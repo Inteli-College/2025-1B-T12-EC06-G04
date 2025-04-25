@@ -6,25 +6,558 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* Azul como cor primária */
+  --ifm-color-primary: #3050cc;
+  --ifm-color-primary-dark: #2b48b8;
+  --ifm-color-primary-darker: #2843ad;
+  --ifm-color-primary-darkest: #21378f;
+  --ifm-color-primary-light: #425bd3;
+  --ifm-color-primary-lighter: #4d64d6;
+  --ifm-color-primary-lightest: #6f83de;
+
+  /* Vermelho como cor de destaque */
+  --ifm-color-danger: #e53e3e;
+  --ifm-color-danger-dark: #d12f2f;
+  --ifm-color-danger-darker: #c52c2c;
+  --ifm-color-danger-darkest: #a22424;
+  --ifm-color-danger-light: #e85252;
+  --ifm-color-danger-lighter: #ea5e5e;
+  --ifm-color-danger-lightest: #ef8282;
+
+  /* Cores neutras */
+  --ifm-color-neutral-10: #f8f9fa;
+  --ifm-color-neutral-20: #e9ecef;
+  --ifm-color-neutral-30: #dee2e6;
+  --ifm-color-neutral-80: #343a40;
+  --ifm-color-neutral-90: #212529;
+
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Cores de links e interação */
+  --ifm-link-color: #3050cc;
+  --ifm-link-hover-color: #e53e3e;
+
+  /* Cores de botões */
+  --ifm-button-background-color: #3050cc;
+  --ifm-button-border-color: #3050cc;
+
+  /* Tempo de transição padrão */
+  --transition-fast: 0.2s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+
+  /* Fontes */
+  --ifm-font-family-base: system-ui, -apple-system, BlinkSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --ifm-heading-font-family: system-ui, -apple-system, BlinkSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --ifm-font-weight-semibold: 600;
+
+  /* Bordas e sombras */
+  --ifm-global-radius: 8px;
+  --ifm-global-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ifm-global-shadow-lw: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+/* Para melhor legibilidade no modo escuro */
+[data-theme="dark"] {
+  /* Azul mais claro para o modo escuro */
+  --ifm-color-primary: #5d75e6;
+  --ifm-color-primary-dark: #4560e2;
+  --ifm-color-primary-darker: #3853e0;
+  --ifm-color-primary-darkest: #1c3ac5;
+  --ifm-color-primary-light: #758aea;
+  --ifm-color-primary-lighter: #8294ec;
+  --ifm-color-primary-lightest: #aab7f2;
+
+  /* Vermelho mais claro para o modo escuro */
+  --ifm-color-danger: #ff5757;
+  --ifm-color-danger-dark: #ff3838;
+  --ifm-color-danger-darker: #ff2828;
+  --ifm-color-danger-darkest: #f90000;
+  --ifm-color-danger-light: #ff7676;
+  --ifm-color-danger-lighter: #ff8686;
+  --ifm-color-danger-lightest: #ffc5c5;
+
+  /* Cores neutras para modo escuro */
+  --ifm-color-neutral-10: #212529;
+  --ifm-color-neutral-20: #343a40;
+  --ifm-color-neutral-30: #495057;
+  --ifm-color-neutral-80: #e9ecef;
+  --ifm-color-neutral-90: #f8f9fa;
+
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  /* Cores de links e interação no modo escuro */
+  --ifm-link-color: #758aea;
+  --ifm-link-hover-color: #ff7676;
+
+  /* Cores de botões no modo escuro */
+  --ifm-button-background-color: #5d75e6;
+  --ifm-button-border-color: #5d75e6;
+
+  /* Sombras no modo escuro */
+  --ifm-global-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --ifm-global-shadow-lw: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  /* Background do site */
+  --ifm-background-color: #121212;
+  --ifm-background-surface-color: #1e1e1e;
+}
+
+/* Estilos globais modernos */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Barra de navegação moderna */
+.navbar {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  height: 70px;
+  transition: all var(--transition-normal) ease;
+}
+
+[data-theme="dark"] .navbar {
+  background-color: rgba(18, 18, 18, 0.8);
+}
+
+.navbar__brand {
+  font-weight: 700;
+  transition: all var(--transition-normal) ease;
+}
+
+.navbar__logo {
+  height: 32px;
+  margin-right: 12px;
+}
+
+.navbar__link {
+  font-weight: 500;
+  position: relative;
+  transition: all var(--transition-fast) ease;
+}
+
+.navbar__link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background: linear-gradient(90deg, var(--ifm-color-primary) 0%, var(--ifm-color-danger) 100%);
+  transition: width var(--transition-normal) ease;
+  border-radius: 2px;
+}
+
+.navbar__link:hover::after,
+.navbar__link--active::after {
+  width: 100%;
+}
+
+/* Botões modernos */
+.button {
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(48, 80, 204, 0.1);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(48, 80, 204, 0.15);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button--primary {
+  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
+  border: none;
+}
+
+.button--primary:hover {
+  background: linear-gradient(135deg, var(--ifm-color-primary-dark) 0%, var(--ifm-color-primary-darkest) 100%);
+}
+
+.button--secondary {
+  background: linear-gradient(135deg, var(--ifm-color-danger) 0%, var(--ifm-color-danger-dark) 100%);
+  border: none;
+}
+
+.button--secondary:hover {
+  background: linear-gradient(135deg, var(--ifm-color-danger-dark) 0%, var(--ifm-color-danger-darkest) 100%);
+}
+
+/* Efeito de ripple para botões */
+.button::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.8s;
+}
+
+.button:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Estilos para cards */
+.card {
+  border-radius: 12px;
+  box-shadow: var(--ifm-global-shadow-lw);
+  overflow: hidden;
+  transition: all var(--transition-normal) ease;
+  border: none;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Estilos para a barra lateral */
+.menu {
+  padding: 1.5rem 1rem;
+}
+
+.menu__link {
+  border-radius: 6px;
+  transition: all var(--transition-fast) ease;
+  font-weight: 500;
+}
+
+.menu__link:hover {
+  background-color: rgba(48, 80, 204, 0.05);
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible:hover {
+  background-color: rgba(48, 80, 204, 0.05);
+  border-radius: 6px;
+}
+
+/* Estilos para o rodapé */
+.footer {
+  background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+  padding: 4rem 0 2rem;
+  position: relative;
+}
+
+.footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ifm-color-primary-darkest) 0%, var(--ifm-color-danger-darkest) 100%);
+  opacity: 0.2;
+}
+
+.footer__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, var(--ifm-color-primary-lighter) 0%, var(--ifm-color-danger-lighter) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.footer__item {
+  padding: 0.5rem 0;
+}
+
+.footer__link-item {
+  color: var(--ifm-color-neutral-30);
+  transition: all var(--transition-fast) ease;
+  font-weight: 500;
+}
+
+.footer__link-item:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.footer__copyright {
+  font-size: 0.9rem;
+  color: var(--ifm-color-neutral-30);
+  margin-top: 2rem;
+}
+
+/* Estilos para títulos */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(90deg, var(--ifm-color-primary) 0%, var(--ifm-color-danger) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+h2::after {
+  content: "";
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 50px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ifm-color-primary) 0%, var(--ifm-color-danger) 100%);
+  border-radius: 2px;
+}
+
+/* Estilos para blocos de código */
+pre {
+  border-radius: 8px;
+  box-shadow: var(--ifm-global-shadow-lw);
+  transition: all var(--transition-normal) ease;
+}
+
+pre:hover {
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Estilos para tabelas */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--ifm-global-shadow-lw);
+  margin-bottom: 1.5rem;
+}
+
+th {
+  background-color: rgba(48, 80, 204, 0.05);
+  font-weight: 600;
+}
+
+th,
+td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ifm-color-neutral-20);
+}
+
+tr:hover {
+  background-color: rgba(48, 80, 204, 0.02);
+}
+
+/* Estilos para admonitions (callouts) */
+.admonition {
+  border-radius: 8px;
+  box-shadow: var(--ifm-global-shadow-lw);
+  border-left-width: 4px;
+  transition: all var(--transition-normal) ease;
+}
+
+.admonition:hover {
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Estilos para tabs */
+.tabs {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabs__item {
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all var(--transition-fast) ease;
+}
+
+.tabs__item--active {
+  border-bottom-color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Estilos para a barra de pesquisa */
+.navbar__search-input {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all var(--transition-normal) ease;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+[data-theme="dark"] .navbar__search-input {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.navbar__search-input:focus {
+  background-color: white;
+  box-shadow: 0 0 0 2px var(--ifm-color-primary);
+}
+
+[data-theme="dark"] .navbar__search-input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Animação para o botão de alternar tema */
+.clean-btn {
+  transition: all var(--transition-normal) ease;
+}
+
+.clean-btn:hover {
+  transform: rotate(15deg);
+}
+
+/* Estilos para paginação */
+.pagination-nav__link {
+  border-radius: 8px;
+  transition: all var(--transition-normal) ease;
+  border: 1px solid var(--ifm-color-neutral-20);
+}
+
+.pagination-nav__link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+/* Estilos para breadcrumbs */
+.breadcrumbs {
+  font-size: 0.9rem;
+}
+
+.breadcrumbs__link {
+  transition: all var(--transition-fast) ease;
+}
+
+.breadcrumbs__link:hover {
+  text-decoration: none;
+}
+
+/* Estilos para links */
+a {
+  transition: all var(--transition-fast) ease;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* Estilos para listas */
+ul,
+ol {
+  padding-left: 1.5rem;
+}
+
+li {
+  margin: 0.5rem 0;
+}
+
+/* Estilos para blockquotes */
+blockquote {
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 0 8px 8px 0;
+  background-color: rgba(48, 80, 204, 0.05);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Estilos para imagens */
+img {
+  border-radius: 8px;
+  transition: all var(--transition-normal) ease;
+}
+
+img:hover {
+  transform: scale(1.01);
+}
+
+/* Estilos para o tema toggle */
+.theme-toggle {
+  transition: all var(--transition-normal) ease;
+}
+
+.theme-toggle:hover {
+  transform: rotate(180deg);
+}
+
+/* Animações para elementos da página */
+.hero__title,
+.hero__subtitle {
+  animation: fadeInUp 0.8s ease-out;
+  color: white;
+}
+
+.buttons {
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para código inline */
+code {
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  transition: all var(--transition-fast) ease;
+}
+
+code:hover {
+  background-color: rgba(48, 80, 204, 0.1);
+}
+
+/* Estilos para elementos de navegação */
+.pagination-nav__sublabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ifm-color-primary);
+}
+
+.pagination-nav__label {
+  font-weight: 600;
 }

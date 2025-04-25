@@ -4,32 +4,29 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
+    title: 'Aumente a produtividade em vistorias',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Fácil e rápido e seguro, o 14 bits oferece suporte para sua vistoria em tempo real.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Foco no que importa',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+       Nosso objetivo é incorporar tecnologias que tornem o processo de vistoria um trabalho mais simples, seguro e rápido. <br/> Chega de subir em Gôndolas, Plataformas elevatórias ou Andaimes!
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Classificação automática de fissuras',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+      O 14 bis conta com algorítmo de classificação integrado que define a gravidade estimada de fissuras estruturais.
       </>
     ),
   },
