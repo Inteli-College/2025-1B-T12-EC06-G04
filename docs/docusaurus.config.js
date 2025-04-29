@@ -43,7 +43,7 @@ const config = {
           sidebarPath: "./sidebars.js",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
         },
         blog: {
           showReadingTime: true,
@@ -53,7 +53,7 @@ const config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
           // Useful options to enforce blogging best practices
           onInlineTags: "warn",
           onInlineAuthors: "warn",
@@ -95,7 +95,7 @@ const config = {
             position: "left",
           },
           {
-            href: "https://github.com/facebook/docusaurus",
+            href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
             label: "GitHub",
             position: "right",
           },
@@ -118,23 +118,6 @@ const config = {
             ],
           },
           {
-            title: "Comunidade",
-            items: [
-              {
-                label: "Stack Overflow",
-                href: "https://stackoverflow.com/questions/tagged/docusaurus",
-              },
-              {
-                label: "Discord",
-                href: "https://discordapp.com/invite/docusaurus",
-              },
-              {
-                label: "Twitter",
-                href: "https://twitter.com/docusaurus",
-              },
-            ],
-          },
-          {
             title: "Mais",
             items: [
               {
@@ -143,12 +126,12 @@ const config = {
               },
               {
                 label: "GitHub",
-                href: "https://github.com/facebook/docusaurus",
+                href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
               },
             ],
           },
         ],
-        copyright: `Todos os direitos reservados © ${new Date().getFullYear()} 14 bis, Inc. Construído com Docusaurus.`,
+        copyright: `Todos os direitos reservados © ${new Date().getFullYear()} 14 bis, Inc.`,
       },
       prism: {
         theme: prismThemes.github,
