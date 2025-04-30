@@ -11,6 +11,8 @@ slug: /sprint-1/negocios/matriz-de-risco
 
 # Riscos
 
+![Matriz de Risco](/img/matRis.png)
+
 ### Treinamento de Modelos levar um tempo exagerado
 
 &emsp;Um dos riscos associados com a produção de um modelo de visão computacional é o tempo de treinamento. É preciso ter um balanço entre a qualidade requerida do sistema e o treino do modelo, de modo a não comprometer o tempo de entrega do projeto e a acurácia. O principal problema é que, na maioria dos casos, o tempo de treino é diretamente proporcional à quantidade de imagens de referência, o que eleva o tempo de treino.
@@ -33,6 +35,8 @@ slug: /sprint-1/negocios/matriz-de-risco
 &emsp;**Para Mitigar:** Fazer um teste inicial com um número reduzido de imagens, e aumentar gradativamente a quantidade de imagens, de modo a conseguir um modelo funcional. Caso o modelo não funcione, rever a estratégia de treino, as imagens utilizadas e o modelo base.
 
 # Oportunidades
+
+![Matriz de Oportunidade](/img/matOp.png)
 
 ### Ter acesso ao sistema do drone (ou similar)
 
