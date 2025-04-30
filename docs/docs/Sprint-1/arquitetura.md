@@ -5,7 +5,7 @@ slug: /sprint-1/Arquitetura/arquitetura
 
 # Proposta de Arquitetura
 
-&emsp;&emsp; A arquitetura do projeto, consiste em um diagrama responsável por demonstrar quais são as técnicas e padrões utilizados para desenvolver uma aplicação, a proposta de arquitetura pode ser utilizada como planejamento do que deve ser desenvolvido para garantir o funcionamento do projeto, levando em consideração diversos fatores como regras de negócios e restrições técnicas.
+&emsp;&emsp; A arquitetura do projeto, consiste em um forma de documentar e demonstrar quais são as técnicas e padrões utilizados para desenvolver uma aplicação, a proposta de arquitetura pode ser utilizada como planejamento do que deve ser desenvolvido para garantir o funcionamento do projeto, levando em consideração diversos fatores como regras de negócios e restrições técnicas, uma vez que ela descreve todos os componentes que fazem parte do sistema.
 
 ## Diagrama de arquitetura
 
@@ -21,7 +21,7 @@ slug: /sprint-1/Arquitetura/arquitetura
 
 ### Drone
 
-&emsp;&emsp;Dentro do contexto do projeto, o drone é o principal responsável pela captação de fotos e vídeos de rachaduras, ele possui a capacidade de sobrevoar diferentes locais e edificações capturando fotos e vídeos de rachaduras.
+&emsp;&emsp;Dentro do contexto do projeto, o drone é o principal responsável pela captação de fotos e vídeos de fissuras. Ele possui a capacidade de sobrevoar diferentes locais e edificações capturando fotos e vídeos das fissuras mapeadas.
 
 - **Unidade de memória externa**
 
@@ -29,19 +29,19 @@ slug: /sprint-1/Arquitetura/arquitetura
 
 ### Aplicação Desktop
 
-&emsp;&emsp;Após a captação e armazenamento das imagens, é necessário uma aplicação desktop, quer servirá como plataforma acessível ao usuário, permitindo que ele selecione, processe e classifique as imagens de forma automatizada, gerando um relatório ao fim do processo. Sendo assim, a aplicação desktop possui três principais funcionalidades, sendo elas, a seleção das imagens de rachaduras, o processamento de imagem e classificação de rachaduras e por último a geração de relatório.
+&emsp;&emsp;Após a captação e armazenamento das imagens, é necessário uma aplicação desktop, que servirá como plataforma acessível ao usuário, permitindo que ele selecione as imagens, que seráo processadas e classificadas pelo sistema de forma automatizada, gerando um relatório ao fim do processo. Sendo assim, a aplicação desktop possui três principais funcionalidades, sendo elas, a seleção das imagens de fissuras, o processamento de imagem e classificação de fissuras e, por último, a geração de relatório.
 
-- **Seleção das imagens de rachaduras**
+- **Seleção das imagens de fissuras**
 
-&emsp;&emsp;Através desta funcionalidade, a aplicação desktop vai permitir que o usuário, após conectar a unidade de memória externa em seu computador, selecione quais fotos de rachaduras capturadas pelo drone ele deseja que sejam processadas e classificadas.
+&emsp;&emsp;Através desta funcionalidade, a aplicação desktop vai permitir que o usuário, após conectar a unidade de memória externa em seu computador, selecione quais fotos de fissuras capturadas pelo drone ele deseja que sejam processadas e classificadas.
 
-- **Processamento de imagem e classificação de rachaduras**
+- **Processamento de imagem e classificação de fissuras**
 
-&emsp;&emsp;No momento do processamento da imagem, o objetivo é reunir as fotos selecionadas pelo usuário, e através de visão computacional, identificar as rachaduras em cada uma das fotos. Após a identificação das rachaduras, essas imagens alimentam um modelo preditivo, que tem como principal objetivo classificar as rachaduras em seus diferentes tipos.
+&emsp;&emsp;No momento do processamento da imagem, o objetivo é reunir as fotos selecionadas pelo usuário, e através de visão computacional, identificar as fissuras em cada uma das fotos. Após a identificação das fissuras, essas imagens alimentam um modelo preditivo, que tem como principal objetivo classificar as fissuras em seus diferentes tipos.
 
 - **Geração de relatório**
 
-&emsp;&emsp;Por fim, após a identificação e classificação de cada uma das rachaduras, o sistema deverá possuir a capacidade de gerar relatórios completos no template desejado pelo usuário. Estes relatórios visam registrar todo o processo de seleção, processamento e classificação, além de possuir uma descrição de cada imagem de rachadura, junto com sua classificação.
+&emsp;&emsp;Por fim, após a identificação e classificação de cada uma das fissuras, o sistema deverá possuir a capacidade de gerar relatórios completos no template desejado pelo usuário. Estes relatórios visam registrar todo o processo de seleção, processamento e classificação, além de possuir uma descrição de cada imagem de fissura, junto com sua classificação.
 
 ## Conclusão
 
