@@ -29,7 +29,7 @@ slug: /sprint-1/Arquitetura/arquitetura
 
 ### Aplicação Desktop
 
-&emsp;&emsp;Após a captação e armazenamento das imagens, é necessário uma aplicação desktop, que servirá como plataforma acessível ao usuário, permitindo que ele selecione as imagens, que seráo processadas e classificadas pelo sistema de forma automatizada, gerando um relatório ao fim do processo. Sendo assim, a aplicação desktop possui três principais funcionalidades, sendo elas, a seleção das imagens de fissuras, o processamento de imagem e classificação de fissuras e, por último, a geração de relatório.
+&emsp;&emsp;Após a captação e armazenamento das imagens, é necessário uma aplicação desktop, que servirá como plataforma acessível ao usuário, permitindo que ele selecione as imagens, que serão processadas e classificadas pelo sistema de forma automatizada, gerando um relatório ao fim do processo. Sendo assim, a aplicação desktop possui três principais funcionalidades, sendo elas, a seleção das imagens de fissuras, o processamento de imagem e classificação de fissuras e, por último, a geração de relatório.
 
 - **Seleção das imagens de fissuras**
 
