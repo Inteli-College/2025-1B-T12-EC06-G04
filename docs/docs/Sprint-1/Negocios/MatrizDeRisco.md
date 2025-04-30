@@ -14,18 +14,23 @@ slug: /sprint-1/negocios/matriz-de-risco
 ### Treinamento de Modelos levar um tempo exagerado
 
 &emsp;Um dos riscos associados com a produção de um modelo de visão computacional é o tempo de treinamento. É preciso ter um balanço entre a qualidade requerida do sistema e o treino do modelo, de modo a não comprometer o tempo de entrega do projeto e a acurácia. O principal problema é que, na maioria dos casos, o tempo de treino é diretamente proporcional à quantidade de imagens de referência, o que eleva o tempo de treino.
+<br>
+&emsp;**Para Mitigar:** Começar com uma quantidade reduzida de imagens e gradativamente aumenta-la, de modo a conseguir um modelo funcional. Caso o treinamento do modelo leve um tempo exagerado (mais de 16h), é necessário rever a estratégia de treino antes desse atraso se tornar um problema.
 
 ### Comunicação do Drone ser incompatível com ROS2
 
 &emsp;Uma das ideias do projeto é fazer o controle do drone por ROS2, mas há o risco da comunicação do drone utilizado pelo parceiro não ser compatível com o nosso sistema. Isso pode afetar o desenvolvimento do projeto e até a geração de ideias para a solução, mas tem uma baixa probabilidade de interferir em algum aspecto do desenvolvimento.
+&emsp;**Para Mitigar:** Conversar com o IPT para entender como funciona a comunicação do drone e se há alguma possibilidade de integração com o ROS2 e/ou outro sistema de controle, ou se realmente será necessário essa comunicação direta.
 
 ### Não ter certeza sobre como funciona o sistema do IPT
 
 &emsp;O IPT é um dos parceiros do projeto e, por isso, é importante entender como funciona o sistema deles. Durante a primeira sprint, houve vários momentos de dúvida e confusão sobre como poderíamos integrar o drone com o nosso modelo, como faríamos a comunicação, entre outros pontos. Embora tenha uma probabilidade média por ser esperado que esse risco caia com a próxima conversa, do referencial atual é importante ter esse risco em mente, pois pode afetar a solução final drasticamente.
+&emsp;**Para Mitigar:** Conversar com o IPT para entender como funciona o sistema de seus drones e como podemos continuar o projeto com base no feedback.
 
 ### Imagens de treino não resultarem em modelo funcional
 
 &emsp;Similar ao primeiro risco, o treino do modelo pode não ser confiável para o uso. Isso pode ocorrer por diversos fatores, como a discussão realizada sobre o tempo de treino, a qualidade das imagens, quantidade, entre outros. Esse risco tem uma probabilidade relativamente baixa, e é esperado que o modelo tenha uma acurácia razoável, mas é importante considerar esse risco, pois afeta diretamente a qualidade do solução.
+&emsp;**Para Mitigar:** Fazer um teste inicial com um número reduzido de imagens, e aumentar gradativamente a quantidade de imagens, de modo a conseguir um modelo funcional. Caso o modelo não funcione, rever a estratégia de treino, as imagens utilizadas e o modelo base.
 
 # Oportunidades
 
