@@ -41,3 +41,7 @@ slug: /sprint-1/negocios/matriz-de-risco
 ### Se utilizar de modelos de imagem já existentes.
 
 &emsp;O principal dessa oportunidade é sobre o modelo em sí, e não o treinamento. O uso de modelos de visão computacional já testados facilita e agiliza o processo de produção da solução para conseguir entregar o projeto com um funcionamento preciso. Tem uma probabilidade alta, e impactos médios, resultando em um nível de prioridade médio para a oportunidade.
+
+# Conclusão
+
+&emsp;Com isso, temos os principais riscos do projeto, como mitigá-los, e as oportunidades. É importante ressaltar que a matriz de risco é uma ferramenta dinâmica, e deve ser atualizada conforme o projeto avança e novos riscos e oportunidades surgem, além de rever o impacto e probabilidade dos riscos e oportunidades já registrados.
