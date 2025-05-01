@@ -3,6 +3,12 @@ title: User Stories
 sidebar_position: 2
 ---
 
+&emsp;Uma user story é uma forma de descrever os requisitos e features de um sistema a partir da perspectiva de seu usuário final. A partir delas, é esperado conseguir criar conexões entre épicos (features inteiras e completas do sistema), as necessidades do usuário e as tasks que a equipe de desenvolvimento precisa cumprir para entregar o valor que o usuário final espera.
+
+&emsp;Abaixo, encontram-se as descrições das 7 user stories criadas para as personas do projeto (para uma descrição mais detalhada das personas, consultar a seção Sprint 1/Personas).
+
+&emsp;A partir desse ponto, a persona Ana Clara, pesquisadora, será denominada como Persona 1. Além disso, a persona Jonathan, técnico, será denominado como Persona 2.
+
 ## User Stories da Persona 1
 
 | Épico | User Story | Descrição |
@@ -19,3 +25,4 @@ sidebar_position: 2
 | ----- | ---------- | --------- |
 | Visualização da câmera do drone | US6 | Como técnico participante de uma equipe de vistoria em campo, quero ter uma ferramenta que me ajude a visualizar de forma mais eficiente a câmera ao vivo do drone e a captura de fotos das fissuras, de forma que possamos validar a qualidade das fotos e evitar o retrabalho. |
 | Escolha das fotos capturadas e seleção para envio | US7 | Como técnico participante de uma equipe de vistoria em campo, quero poder escolher quais fotos serão enviadas aos pesquisadores no laboratório, de forma a apagar as fotos com menor qualidade. |
+
