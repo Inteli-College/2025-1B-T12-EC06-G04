@@ -9,7 +9,7 @@ sidebar_position: 2
 
 &emsp;A partir desse ponto, a persona Ana Clara, pesquisadora, será denominada como Persona 1. Além disso, a persona Jonathan, técnico, será denominado como Persona 2.
 
-## User Stories da Persona 1
+### User Stories da Persona 1
 
 | Épico | User Story | Descrição |
 | ----- | ---------- | --------- |
@@ -19,10 +19,19 @@ sidebar_position: 2
 | Banco de dados e histórico | US4 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero ter um histórico com as fotos separadas por projeto de vistoria, de forma que possa acessar as fotos de maneira organizada e ter uma pasta com todas as fotos de cada projeto para consultas posteriores. |
 | Autenticação de usuários e segurança da informação  | US5 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero que somente os pesquisadores e técnicos responsáveis por determinado projeto possam acessar as fotos e análises das edificações, de forma a evitar possíveis fugas ou vazamentos de dados sensíveis e confidenciais de empresas clientes. |
 
-## User Stories da Persona 2
+### User Stories da Persona 2
 
 | Épico | User Story | Descrição |
 | ----- | ---------- | --------- |
 | Visualização da câmera do drone | US6 | Como técnico participante de uma equipe de vistoria em campo, quero ter uma ferramenta que me ajude a visualizar de forma mais eficiente a câmera ao vivo do drone e a captura de fotos das fissuras, de forma que possamos validar a qualidade das fotos e evitar o retrabalho. |
 | Escolha das fotos capturadas e seleção para envio | US7 | Como técnico participante de uma equipe de vistoria em campo, quero poder escolher quais fotos serão enviadas aos pesquisadores no laboratório, de forma a apagar as fotos com menor qualidade. |
 
+# Conclusão
+
+&emsp;Após a criação das user stories, é esperado que a equipe de desenvolvimento consiga dividir as features do sistema em tasks altamente endereçáveis ao valor que o usuário final espera. Além disso, as user stories permitem entender como os requisitos funcionais e não-funcionais adicionam, de forma direta, valor à experiência do usuário, de modo que podem agora ser tratados como critérios para entender se cada user story está sendo atendida ou não.
+
+# Referências
+
+- EXPERIENCE, W. L. IN R.-B. U. Accounting for UX Work with User Stories in Agile Projects. Disponível em: <https://www.nngroup.com/articles/ux-user-stories/>.
+
+‌
