@@ -88,8 +88,8 @@ A estrutura da interface segue uma lógica de menus principais com acesso direto
 → Relatório salvo no Histórico
 
 ## Conclusão
-A arquitetura da informação proposta busca otimizar a experiência dos dois perfis de usuários-chave do sistema, garantindo que cada funcionalidade esteja claramente posicionada e acessível conforme o fluxo de trabalho real. Ao guiar a navegação com base em tarefas típicas de inspeção e análise técnica, reduzimos a curva de aprendizado e aceleramos a operação do sistema em campo e em laboratório.
+&emsp;A arquitetura da informação proposta busca otimizar a experiência dos dois perfis de usuários-chave do sistema, garantindo que cada funcionalidade esteja claramente posicionada e acessível conforme o fluxo de trabalho real. Ao guiar a navegação com base em tarefas típicas de inspeção e análise técnica, reduzimos a curva de aprendizado e aceleramos a operação do sistema em campo e em laboratório.
 
-Para Jonathan, o sistema atua como um guia de campo digital, oferecendo instruções claras e garantindo a padronização dos dados enviados. Para Ana Clara, o sistema se comporta como uma plataforma de análise e validação assistida por IA, oferecendo automação sem comprometer o rigor técnico da análise.
+&emsp;Para Jonathan, o sistema atua como um guia de campo digital, oferecendo instruções claras e garantindo a padronização dos dados enviados. Para Ana Clara, o sistema se comporta como uma plataforma de análise e validação assistida por IA, oferecendo automação sem comprometer o rigor técnico da análise.
 
-A clareza na estrutura e o alinhamento com as personas proporcionam eficiência operacional, maior qualidade nos dados coletados e confiabilidade nos relatórios gerados, contribuindo diretamente para o propósito central do projeto: tornar o monitoramento de fissuras em edificações mais preciso, seguro e automatizado.
+&emsp;A clareza na estrutura e o alinhamento com as personas proporcionam eficiência operacional, maior qualidade nos dados coletados e confiabilidade nos relatórios gerados, contribuindo diretamente para o propósito central do projeto: tornar o monitoramento de fissuras em edificações mais preciso, seguro e automatizado.
