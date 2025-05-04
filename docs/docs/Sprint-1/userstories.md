@@ -9,17 +9,17 @@ sidebar_position: 2
 
 &emsp;A partir desse ponto, a persona Ana Clara, pesquisadora, será denominada como Persona 1. Além disso, a persona Jonathan, técnico, será denominado como Persona 2.
 
-### User Stories da Persona 1
+### User Stories da Persona 1 - Pesquisador
 
 | Épico | User Story | Descrição |
 | ----- | ---------- | --------- |
-| Usabilidade do sistema | US1 | Como pesquisadores responsável pela vistoria de um projeto, quero ter uma ferramenta que ajude minha equipe técnica a pilotar o drone e visualizar as capturas de fotos de forma mais fácil, para que o tempo de treinamento de novos integrantes da equipe seja diminuído. |
+| Usabilidade do sistema | US1 | Como pesquisadora responsável pela vistoria de um projeto, quero ter uma ferramenta que ajude minha equipe técnica a pilotar o drone e visualizar as capturas de fotos de forma mais fácil, para que o tempo de treinamento de novos integrantes da equipe seja diminuído. |
 | Algoritmo | US2 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero ter uma ferramenta que automatize parcialmente a classificação dos tipos de fissuras, de forma que eu possa despender menos tempo nessa tarefa, mas que ainda precise da minha confirmação para autenticar as classificações. |
 | Criação de relatórios  | US3 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero ter uma ferramenta que crie relatórios de forma automática baseando-se nas fotos e classificações das fissuras, de forma que eu possa utilizá-los como material complementar ao relatório principal que escrevo para cada projeto. |
 | Banco de dados e histórico | US4 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero ter um histórico com as fotos separadas por projeto de vistoria, de forma que possa acessar as fotos de maneira organizada e ter uma pasta com todas as fotos de cada projeto para consultas posteriores. |
 | Autenticação de usuários e segurança da informação  | US5 | Como pesquisadora responsável pela análise de fotos coletadas em campo, quero que somente os pesquisadores e técnicos responsáveis por determinado projeto possam acessar as fotos e análises das edificações, de forma a evitar possíveis fugas ou vazamentos de dados sensíveis e confidenciais de empresas clientes. |
 
-### User Stories da Persona 2
+### User Stories da Persona 2 - Técnico
 
 | Épico | User Story | Descrição |
 | ----- | ---------- | --------- |
@@ -28,7 +28,7 @@ sidebar_position: 2
 
 # Conclusão
 
-&emsp;Após a criação das user stories, é esperado que a equipe de desenvolvimento consiga dividir as features do sistema em tasks altamente endereçáveis ao valor que o usuário final espera. Além disso, as user stories permitem entender como os requisitos funcionais e não-funcionais adicionam, de forma direta, valor à experiência do usuário, de modo que podem agora ser tratados como critérios para entender se cada user story está sendo atendida ou não.
+&emsp;Após a criação das user stories, é esperado que a equipe de desenvolvimento consiga entender, de forma mais profunda, as dores que cada persona passa em suas atividades atuais sem a solução proposta; e, posteriormente, dividir as features do sistema em tasks altamente endereçáveis ao valor que o usuário final espera. Além disso, as user stories permitem entender como os requisitos funcionais e não-funcionais adicionam, de forma direta, valor à experiência do usuário, de modo que podem agora ser tratados como critérios para entender se cada user story está sendo atendida ou não.
 
 # Referências
 
