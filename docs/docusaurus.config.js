@@ -109,11 +109,11 @@ const config = {
             items: [
               {
                 label: "Introdução",
-                to: "/docs/intro",
+                to: "/docs/sprint-1/negocios/",
               },
               {
                 label: "Guia de Início",
-                to: "/docs/intro",
+                to: "/docs/sprint-1/negocios/",
               },
             ],
           },
