@@ -1,0 +1,130 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+ .heroBanner {
+  padding: 6rem 0;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(48, 80, 204, 0.05) 0%, rgba(229, 62, 62, 0.05) 100%);
+}
+
+.heroContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.heroText {
+  flex: 1;
+  max-width: 600px;
+}
+
+.heroImage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.heroImageInner {
+  width: 300px;
+  height: 300px;
+  position: relative;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(48, 80, 204, 0.1) 0%, rgba(229, 62, 62, 0.1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroImageAnimation {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(48, 80, 204, 0.8) 0%, rgba(229, 62, 62, 0.8) 100%);
+  animation: pulse 4s infinite ease-in-out;
+  position: relative;
+}
+
+.heroImageAnimation::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  border-radius: 50%;
+  border: 2px solid rgba(48, 80, 204, 0.2);
+  animation: rotate 10s infinite linear;
+}
+
+.heroImageAnimation::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  right: -40px;
+  bottom: -40px;
+  border-radius: 50%;
+  border: 2px dashed rgba(229, 62, 62, 0.2);
+  animation: rotate 15s infinite linear reverse;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .heroContent {
+    flex-direction: column;
+  }
+
+  .heroText {
+    max-width: 100%;
+  }
+
+  .buttons {
+    justify-content: center;
+  }
+
+  .heroImageInner {
+    width: 200px;
+    height: 200px;
+  }
+
+  .heroImageAnimation {
+    width: 140px;
+    height: 140px;
+  }
+}
