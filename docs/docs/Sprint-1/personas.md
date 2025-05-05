@@ -1,6 +1,6 @@
 ---
 title: Personas
-sidebar_position: 2
+sidebar_position: 3
 ---
 #  Personas
 ##  1. Introdução
