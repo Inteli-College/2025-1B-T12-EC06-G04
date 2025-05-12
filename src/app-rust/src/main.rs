@@ -1,10 +1,8 @@
-use dioxus::prelude::*;
+mod image_processor;
+mod ui;
+
+use dioxus_desktop::Config;
 
 fn main() {
-    dioxus::launch(App);
-}
-
-#[component]
-fn App() -> Element {
-    rsx! { "HotDog!" }
+    dioxus_desktop::launch_cfg(ui::app, Config::default());
 }
