@@ -1,5 +1,5 @@
-mod image_processor;
 mod ui;
+mod image_processor;
 
 use dioxus_desktop::Config;
 

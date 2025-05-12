@@ -1,10 +1,11 @@
 use dioxus::prelude::*;
-use crate::image_processor;
+use rfd::FileDialog;
 
+// Componente principal da interface do usuário
 pub fn app(cx: Scope) -> Element {
     let folder_path = use_state(&cx, || None::<String>);
     let status = use_state(&cx, || String::new());
-    let threshold = use_state(&cx, || 0.001); // Limiar padrão para proximidade (em graus)
+    let threshold = use_state(&cx, || 0.001);
 
     cx.render(rsx! {
         div {
@@ -27,16 +28,15 @@ pub fn app(cx: Scope) -> Element {
 
             button {
                 onclick: move |_| {
-                    if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                    if let Some(path) = FileDialog::new().pick_folder() {
                         folder_path.set(Some(path.display().to_string()));
                         status.set("Processando imagens...".to_string());
                         
-                        // Processa imagens em uma thread separada para não bloquear a UI
                         let path_str = path.display().to_string();
                         let threshold_value = threshold.get();
                         
                         std::thread::spawn(move || {
-                            if let Err(e) = image_processor::process_images(&path_str, *threshold_value) {
+                            if let Err(e) = crate::image_processor::process_images(&path_str, *threshold_value) {
                                 status.set(format!("Erro: {}", e));
                             } else {
                                 status.set("Processamento concluído!".to_string());
