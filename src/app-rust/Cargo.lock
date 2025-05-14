@@ -798,7 +798,7 @@ dependencies = [
  "dioxus-hooks",
  "dioxus-html",
  "dioxus-logger",
- "dioxus-mobile",
+ "dioxus-router",
  "dioxus-signals",
  "dioxus-web",
  "manganis",
@@ -975,7 +975,6 @@ dependencies = [
  "dioxus-devtools",
  "dioxus-history",
  "dioxus-lib",
- "dioxus-mobile",
  "dioxus-web",
  "dioxus_server_macro",
  "futures-channel",
@@ -985,7 +984,6 @@ dependencies = [
  "serde",
  "server_fn",
  "tracing",
- "web-sys",
 ]
 
 [[package]]
@@ -1104,17 +1102,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "dioxus-mobile"
-version = "0.6.2"
+name = "dioxus-router"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d1295388909f427758993f32a571e0f8698d6ce0f125fa0e81b8bfdec3fa952"
+checksum = "7266a76fc9e4a91f56499d1d1aecfff7168952b6627a6008b4e9748d6bf863e4"
 dependencies = [
  "dioxus-cli-config",
- "dioxus-desktop",
+ "dioxus-history",
  "dioxus-lib",
- "jni",
- "libc",
- "once_cell",
+ "dioxus-router-macro",
+ "rustversion",
+ "tracing",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "dioxus-router-macro"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2743ffb79e9a7d33d779c87d6deea2a6c047d0736012f95d63b909b83f0a6fd2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "slab",
+ "syn 2.0.101",
 ]
 
 [[package]]
