@@ -1,0 +1,5 @@
+/home/inteli/Documentos/protitipovisao/build/CMakeFiles/validacao.dir
+/home/inteli/Documentos/protitipovisao/build/CMakeFiles/main.dir
+/home/inteli/Documentos/protitipovisao/build/CMakeFiles/treinamentoModelo.dir
+/home/inteli/Documentos/protitipovisao/build/CMakeFiles/edit_cache.dir
+/home/inteli/Documentos/protitipovisao/build/CMakeFiles/rebuild_cache.dir
