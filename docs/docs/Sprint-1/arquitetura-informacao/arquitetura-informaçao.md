@@ -48,7 +48,7 @@ A estrutura da interface segue uma lógica de menus principais com acesso direto
 
 <div align="center">
 
-![Descrição da Imagem](/img/diagrama_relação.png)
+![Descrição da Imagem](../../../static/img/diagrama_relação.png)
 
 </div>
 
