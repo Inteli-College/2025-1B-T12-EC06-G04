@@ -27,12 +27,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.98"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
+
+[[package]]
 name = "app-rust"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dioxus",
  "dioxus-desktop",
+ "kamadak-exif",
+ "regex",
  "rfd 0.12.1",
+ "walkdir",
  "web-sys",
 ]
 
@@ -801,7 +811,6 @@ dependencies = [
  "dioxus-hooks",
  "dioxus-html",
  "dioxus-logger",
- "dioxus-mobile",
  "dioxus-signals",
  "dioxus-web",
  "manganis",
@@ -978,7 +987,6 @@ dependencies = [
  "dioxus-devtools",
  "dioxus-history",
  "dioxus-lib",
- "dioxus-mobile",
  "dioxus-web",
  "dioxus_server_macro",
  "futures-channel",
@@ -988,7 +996,6 @@ dependencies = [
  "serde",
  "server_fn",
  "tracing",
- "web-sys",
 ]
 
 [[package]]
@@ -1104,20 +1111,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
-]
-
-[[package]]
-name = "dioxus-mobile"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d1295388909f427758993f32a571e0f8698d6ce0f125fa0e81b8bfdec3fa952"
-dependencies = [
- "dioxus-cli-config",
- "dioxus-desktop",
- "dioxus-lib",
- "jni",
- "libc",
- "once_cell",
 ]
 
 [[package]]
@@ -2347,6 +2340,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kamadak-exif"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef4fc70d0ab7e5b6bafa30216a6b48705ea964cdfc29c050f2412295eba58077"
+dependencies = [
+ "mutate_once",
+]
+
+[[package]]
 name = "keyboard-types"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2651,6 +2653,12 @@ dependencies = [
  "thiserror 1.0.69",
  "windows-sys 0.59.0",
 ]
+
+[[package]]
+name = "mutate_once"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16cf681a23b4d0a43fc35024c176437f9dcd818db34e0f42ab456a0ee5ad497b"
 
 [[package]]
 name = "ndk"

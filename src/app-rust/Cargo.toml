@@ -1,24 +1,21 @@
 [package]
 name = "app-rust"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.6.0" }
-web-sys = { version = "0.3.77", features =["Storage"]}
+web-sys = { version = "0.3.77", features = ["Storage"] }
 rfd = "0.12.0"
 dioxus-desktop = "0.6.3"
-exif = "0.8.0"
 walkdir = "2.4.0"
-std::path = "0.1.0"
-std::fs = "0.1.0"
 anyhow = "1.0"
+kamadak-exif = "0.5.5"
+regex = "1.11.1"
 
 [features]
-default = ["dioxus/desktop"]
-web = ["dioxus/web"]
+default = ["desktop"]
 desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
 
 [profile]
 
