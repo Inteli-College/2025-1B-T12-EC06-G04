@@ -5,23 +5,20 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 // @Wandermurem
-// #include "classificador.cpp"
+#include "../include/validacao.hpp"
 
 int resultadoAnalise(std::string imagem, int esperado){
-    bool result = 0; //Apagar
-    // int resultInt = classificador.validaModelo(imagem); //Descomentar
-    result = true; //Apagar
-    //result = resultInt == esperado; //Descomentar
-    return result;
+     int resultInt = validaModelo(imagem); //Descomentar
+    return resultInt == esperado;
 }
 
 int main(){
-    int acertos;
-    int totalProcessado;
+    int acertos = 0;
+    int totalProcessado = 0;
     std::string nomeArquivo;
     std::vector<std::pair<std::string, int>> classes = {
-        {"../images/validacao/retracao", 0},
-        {"../images/validacao/termica", 1},
+        {"src/images/validacao/retracao", 0},
+        {"src/images/validacao/termica", 1},
     };
     for (auto& classe: classes){
         std::string path = classe.first;
@@ -30,6 +27,7 @@ int main(){
             bool tempResultado = resultadoAnalise(nomeArquivo, classe.second);
             if (tempResultado){
                 acertos++;
+                std::cout << " acertou  \n" << acertos << std::endl;
             }
             totalProcessado++;
         }

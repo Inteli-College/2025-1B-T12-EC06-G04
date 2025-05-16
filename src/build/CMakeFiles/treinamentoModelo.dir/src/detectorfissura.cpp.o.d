@@ -1,7 +1,7 @@
 CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp \
  /usr/include/stdc-predef.h \
- /home/inteli/Documentos/protitipovisao/include/detectorfissura.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/detectorfissura.hpp \
  /usr/include/opencv4/opencv2/opencv.hpp \
  /usr/include/opencv4/opencv2/opencv_modules.hpp \
  /usr/include/opencv4/opencv2/core.hpp \

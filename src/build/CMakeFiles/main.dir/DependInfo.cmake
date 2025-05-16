@@ -8,10 +8,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp" "CMakeFiles/main.dir/src/detectorfissura.cpp.o" "gcc" "CMakeFiles/main.dir/src/detectorfissura.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/extrator_features.cpp" "CMakeFiles/main.dir/src/extrator_features.cpp.o" "gcc" "CMakeFiles/main.dir/src/extrator_features.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/main.cpp" "CMakeFiles/main.dir/src/main.cpp.o" "gcc" "CMakeFiles/main.dir/src/main.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp" "CMakeFiles/main.dir/src/preprocessamento.cpp.o" "gcc" "CMakeFiles/main.dir/src/preprocessamento.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp" "CMakeFiles/main.dir/src/detectorfissura.cpp.o" "gcc" "CMakeFiles/main.dir/src/detectorfissura.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp" "CMakeFiles/main.dir/src/extrator_features.cpp.o" "gcc" "CMakeFiles/main.dir/src/extrator_features.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/main.cpp" "CMakeFiles/main.dir/src/main.cpp.o" "gcc" "CMakeFiles/main.dir/src/main.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp" "CMakeFiles/main.dir/src/preprocessamento.cpp.o" "gcc" "CMakeFiles/main.dir/src/preprocessamento.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

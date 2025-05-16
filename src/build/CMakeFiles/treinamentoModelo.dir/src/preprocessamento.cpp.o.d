@@ -1,7 +1,7 @@
 CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp \
  /usr/include/stdc-predef.h \
- /home/inteli/Documentos/protitipovisao/include/preprocessamento.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/preprocessamento.hpp \
  /usr/include/opencv4/opencv2/opencv.hpp \
  /usr/include/opencv4/opencv2/opencv_modules.hpp \
  /usr/include/opencv4/opencv2/core.hpp \

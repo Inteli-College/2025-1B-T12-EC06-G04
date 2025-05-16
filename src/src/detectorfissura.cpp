@@ -1,4 +1,4 @@
-#include "detectorfissura.hpp"
+#include "../include/detectorfissura.hpp"
 
 //Função para aplicar as máscaras na imagem, nesse caso usando o Canny para as bordas e duas função do Morforlogia para fazer
 cv::Mat detectarRachaduras(const cv::Mat& imagemPreProcessada) {

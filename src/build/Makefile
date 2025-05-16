@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/inteli/Documentos/protitipovisao
+CMAKE_SOURCE_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/inteli/Documentos/protitipovisao/build
+CMAKE_BINARY_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/inteli/Documentos/protitipovisao/build/CMakeFiles /home/inteli/Documentos/protitipovisao/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/inteli/Documentos/protitipovisao/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,19 +117,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named validacao
-
-# Build rule for target.
-validacao: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 validacao
-.PHONY : validacao
-
-# fast build rule for target.
-validacao/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/build
-.PHONY : validacao/fast
-
-#=============================================================================
 # Target rules for targets named main
 
 # Build rule for target.
@@ -155,36 +142,11 @@ treinamentoModelo/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/build
 .PHONY : treinamentoModelo/fast
 
-src/classificador.o: src/classificador.cpp.o
-.PHONY : src/classificador.o
-
-# target to build an object file
-src/classificador.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/classificador.cpp.o
-.PHONY : src/classificador.cpp.o
-
-src/classificador.i: src/classificador.cpp.i
-.PHONY : src/classificador.i
-
-# target to preprocess a source file
-src/classificador.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/classificador.cpp.i
-.PHONY : src/classificador.cpp.i
-
-src/classificador.s: src/classificador.cpp.s
-.PHONY : src/classificador.s
-
-# target to generate assembly for a file
-src/classificador.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/classificador.cpp.s
-.PHONY : src/classificador.cpp.s
-
 src/detectorfissura.o: src/detectorfissura.cpp.o
 .PHONY : src/detectorfissura.o
 
 # target to build an object file
 src/detectorfissura.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/detectorfissura.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/detectorfissura.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o
 .PHONY : src/detectorfissura.cpp.o
@@ -194,7 +156,6 @@ src/detectorfissura.i: src/detectorfissura.cpp.i
 
 # target to preprocess a source file
 src/detectorfissura.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/detectorfissura.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/detectorfissura.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.i
 .PHONY : src/detectorfissura.cpp.i
@@ -204,7 +165,6 @@ src/detectorfissura.s: src/detectorfissura.cpp.s
 
 # target to generate assembly for a file
 src/detectorfissura.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/detectorfissura.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/detectorfissura.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.s
 .PHONY : src/detectorfissura.cpp.s
@@ -214,7 +174,6 @@ src/extrator_features.o: src/extrator_features.cpp.o
 
 # target to build an object file
 src/extrator_features.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/extrator_features.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/extrator_features.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o
 .PHONY : src/extrator_features.cpp.o
@@ -224,7 +183,6 @@ src/extrator_features.i: src/extrator_features.cpp.i
 
 # target to preprocess a source file
 src/extrator_features.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/extrator_features.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/extrator_features.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.i
 .PHONY : src/extrator_features.cpp.i
@@ -234,7 +192,6 @@ src/extrator_features.s: src/extrator_features.cpp.s
 
 # target to generate assembly for a file
 src/extrator_features.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/extrator_features.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/extrator_features.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.s
 .PHONY : src/extrator_features.cpp.s
@@ -268,7 +225,6 @@ src/preprocessamento.o: src/preprocessamento.cpp.o
 
 # target to build an object file
 src/preprocessamento.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/preprocessamento.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/preprocessamento.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o
 .PHONY : src/preprocessamento.cpp.o
@@ -278,7 +234,6 @@ src/preprocessamento.i: src/preprocessamento.cpp.i
 
 # target to preprocess a source file
 src/preprocessamento.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/preprocessamento.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/preprocessamento.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.i
 .PHONY : src/preprocessamento.cpp.i
@@ -288,7 +243,6 @@ src/preprocessamento.s: src/preprocessamento.cpp.s
 
 # target to generate assembly for a file
 src/preprocessamento.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/preprocessamento.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/preprocessamento.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.s
 .PHONY : src/preprocessamento.cpp.s
@@ -317,30 +271,6 @@ src/treinamentoModelo.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/treinamentoModelo.dir/build.make CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.s
 .PHONY : src/treinamentoModelo.cpp.s
 
-src/validacao.o: src/validacao.cpp.o
-.PHONY : src/validacao.o
-
-# target to build an object file
-src/validacao.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/validacao.cpp.o
-.PHONY : src/validacao.cpp.o
-
-src/validacao.i: src/validacao.cpp.i
-.PHONY : src/validacao.i
-
-# target to preprocess a source file
-src/validacao.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/validacao.cpp.i
-.PHONY : src/validacao.cpp.i
-
-src/validacao.s: src/validacao.cpp.s
-.PHONY : src/validacao.s
-
-# target to generate assembly for a file
-src/validacao.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/validacao.dir/build.make CMakeFiles/validacao.dir/src/validacao.cpp.s
-.PHONY : src/validacao.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -351,10 +281,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... main"
 	@echo "... treinamentoModelo"
-	@echo "... validacao"
-	@echo "... src/classificador.o"
-	@echo "... src/classificador.i"
-	@echo "... src/classificador.s"
 	@echo "... src/detectorfissura.o"
 	@echo "... src/detectorfissura.i"
 	@echo "... src/detectorfissura.s"
@@ -370,9 +296,6 @@ help:
 	@echo "... src/treinamentoModelo.o"
 	@echo "... src/treinamentoModelo.i"
 	@echo "... src/treinamentoModelo.s"
-	@echo "... src/validacao.o"
-	@echo "... src/validacao.i"
-	@echo "... src/validacao.s"
 .PHONY : help
 
 

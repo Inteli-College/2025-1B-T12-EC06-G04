@@ -1,5 +1,5 @@
 CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/treinamentoModelo.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/treinamentoModelo.cpp \
  /usr/include/stdc-predef.h /usr/include/opencv4/opencv2/opencv.hpp \
  /usr/include/opencv4/opencv2/opencv_modules.hpp \
  /usr/include/opencv4/opencv2/core.hpp \
@@ -359,6 +359,6 @@ CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: \
  /usr/include/c++/13/bits/random.tcc /usr/include/c++/13/numeric \
  /usr/include/c++/13/bits/stl_numeric.h \
  /usr/include/c++/13/pstl/glue_numeric_defs.h \
- /home/inteli/Documentos/protitipovisao/include/preprocessamento.hpp \
- /home/inteli/Documentos/protitipovisao/include/detectorfissura.hpp \
- /home/inteli/Documentos/protitipovisao/include/extrator_features.hpp
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/preprocessamento.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/detectorfissura.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/extrator_features.hpp

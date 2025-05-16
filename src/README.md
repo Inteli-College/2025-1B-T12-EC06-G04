@@ -52,5 +52,6 @@ projeto/
 │       └── termica/
 └── build/    # Diretório gerado pelo CMake
 └── README.md
-└── .gitignore                  
+└── .gitignore    
+├── Testes/                   # Testes para validação do Modelo              
 ```

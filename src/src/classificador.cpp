@@ -1,4 +1,4 @@
-#include "classificador.hpp"
+#include "../include/classificador.hpp"
 
 std::string classificarTipoFissura(const cv::Mat& features, const cv::Ptr<cv::ml::SVM>& modelo) {
     if (modelo.empty()) {

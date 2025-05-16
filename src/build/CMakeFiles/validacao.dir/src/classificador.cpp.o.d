@@ -1,7 +1,7 @@
 CMakeFiles/validacao.dir/src/classificador.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/classificador.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp \
  /usr/include/stdc-predef.h \
- /home/inteli/Documentos/protitipovisao/include/classificador.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/classificador.hpp \
  /usr/include/opencv4/opencv2/core.hpp \
  /usr/include/opencv4/opencv2/core/cvdef.h \
  /usr/include/opencv4/opencv2/core/version.hpp /usr/include/c++/13/limits \

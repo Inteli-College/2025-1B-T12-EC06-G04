@@ -1,5 +1,5 @@
 CMakeFiles/validacao.dir/src/validacao.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/validacao.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp \
  /usr/include/stdc-predef.h /usr/include/opencv4/opencv2/opencv.hpp \
  /usr/include/opencv4/opencv2/opencv_modules.hpp \
  /usr/include/opencv4/opencv2/core.hpp \
@@ -354,7 +354,8 @@ CMakeFiles/validacao.dir/src/validacao.cpp.o: \
  /usr/include/c++/13/filesystem /usr/include/c++/13/bits/fs_fwd.h \
  /usr/include/c++/13/bits/fs_path.h /usr/include/c++/13/codecvt \
  /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h \
- /home/inteli/Documentos/protitipovisao/include/preprocessamento.hpp \
- /home/inteli/Documentos/protitipovisao/include/detectorfissura.hpp \
- /home/inteli/Documentos/protitipovisao/include/extrator_features.hpp \
- /home/inteli/Documentos/protitipovisao/include/classificador.hpp
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/validacao.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/preprocessamento.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/detectorfissura.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/extrator_features.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/classificador.hpp

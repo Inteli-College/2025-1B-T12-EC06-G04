@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/inteli/Documentos/protitipovisao
+CMAKE_SOURCE_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/inteli/Documentos/protitipovisao/build
+CMAKE_BINARY_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/validacao.dir/depend.make
@@ -70,74 +70,74 @@ include CMakeFiles/validacao.dir/progress.make
 include CMakeFiles/validacao.dir/flags.make
 
 CMakeFiles/validacao.dir/src/validacao.cpp.o: CMakeFiles/validacao.dir/flags.make
-CMakeFiles/validacao.dir/src/validacao.cpp.o: /home/inteli/Documentos/protitipovisao/src/validacao.cpp
+CMakeFiles/validacao.dir/src/validacao.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp
 CMakeFiles/validacao.dir/src/validacao.cpp.o: CMakeFiles/validacao.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/validacao.dir/src/validacao.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/validacao.cpp.o -MF CMakeFiles/validacao.dir/src/validacao.cpp.o.d -o CMakeFiles/validacao.dir/src/validacao.cpp.o -c /home/inteli/Documentos/protitipovisao/src/validacao.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/validacao.dir/src/validacao.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/validacao.cpp.o -MF CMakeFiles/validacao.dir/src/validacao.cpp.o.d -o CMakeFiles/validacao.dir/src/validacao.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp
 
 CMakeFiles/validacao.dir/src/validacao.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/validacao.dir/src/validacao.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/validacao.cpp > CMakeFiles/validacao.dir/src/validacao.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp > CMakeFiles/validacao.dir/src/validacao.cpp.i
 
 CMakeFiles/validacao.dir/src/validacao.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/validacao.dir/src/validacao.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/validacao.cpp -o CMakeFiles/validacao.dir/src/validacao.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp -o CMakeFiles/validacao.dir/src/validacao.cpp.s
 
 CMakeFiles/validacao.dir/src/classificador.cpp.o: CMakeFiles/validacao.dir/flags.make
-CMakeFiles/validacao.dir/src/classificador.cpp.o: /home/inteli/Documentos/protitipovisao/src/classificador.cpp
+CMakeFiles/validacao.dir/src/classificador.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp
 CMakeFiles/validacao.dir/src/classificador.cpp.o: CMakeFiles/validacao.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/validacao.dir/src/classificador.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/classificador.cpp.o -MF CMakeFiles/validacao.dir/src/classificador.cpp.o.d -o CMakeFiles/validacao.dir/src/classificador.cpp.o -c /home/inteli/Documentos/protitipovisao/src/classificador.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/validacao.dir/src/classificador.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/classificador.cpp.o -MF CMakeFiles/validacao.dir/src/classificador.cpp.o.d -o CMakeFiles/validacao.dir/src/classificador.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp
 
 CMakeFiles/validacao.dir/src/classificador.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/validacao.dir/src/classificador.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/classificador.cpp > CMakeFiles/validacao.dir/src/classificador.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp > CMakeFiles/validacao.dir/src/classificador.cpp.i
 
 CMakeFiles/validacao.dir/src/classificador.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/validacao.dir/src/classificador.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/classificador.cpp -o CMakeFiles/validacao.dir/src/classificador.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp -o CMakeFiles/validacao.dir/src/classificador.cpp.s
 
 CMakeFiles/validacao.dir/src/preprocessamento.cpp.o: CMakeFiles/validacao.dir/flags.make
-CMakeFiles/validacao.dir/src/preprocessamento.cpp.o: /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp
+CMakeFiles/validacao.dir/src/preprocessamento.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp
 CMakeFiles/validacao.dir/src/preprocessamento.cpp.o: CMakeFiles/validacao.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/validacao.dir/src/preprocessamento.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/preprocessamento.cpp.o -MF CMakeFiles/validacao.dir/src/preprocessamento.cpp.o.d -o CMakeFiles/validacao.dir/src/preprocessamento.cpp.o -c /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/validacao.dir/src/preprocessamento.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/preprocessamento.cpp.o -MF CMakeFiles/validacao.dir/src/preprocessamento.cpp.o.d -o CMakeFiles/validacao.dir/src/preprocessamento.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp
 
 CMakeFiles/validacao.dir/src/preprocessamento.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/validacao.dir/src/preprocessamento.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp > CMakeFiles/validacao.dir/src/preprocessamento.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp > CMakeFiles/validacao.dir/src/preprocessamento.cpp.i
 
 CMakeFiles/validacao.dir/src/preprocessamento.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/validacao.dir/src/preprocessamento.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp -o CMakeFiles/validacao.dir/src/preprocessamento.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp -o CMakeFiles/validacao.dir/src/preprocessamento.cpp.s
 
 CMakeFiles/validacao.dir/src/detectorfissura.cpp.o: CMakeFiles/validacao.dir/flags.make
-CMakeFiles/validacao.dir/src/detectorfissura.cpp.o: /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp
+CMakeFiles/validacao.dir/src/detectorfissura.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp
 CMakeFiles/validacao.dir/src/detectorfissura.cpp.o: CMakeFiles/validacao.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/validacao.dir/src/detectorfissura.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/detectorfissura.cpp.o -MF CMakeFiles/validacao.dir/src/detectorfissura.cpp.o.d -o CMakeFiles/validacao.dir/src/detectorfissura.cpp.o -c /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/validacao.dir/src/detectorfissura.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/detectorfissura.cpp.o -MF CMakeFiles/validacao.dir/src/detectorfissura.cpp.o.d -o CMakeFiles/validacao.dir/src/detectorfissura.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp
 
 CMakeFiles/validacao.dir/src/detectorfissura.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/validacao.dir/src/detectorfissura.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp > CMakeFiles/validacao.dir/src/detectorfissura.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp > CMakeFiles/validacao.dir/src/detectorfissura.cpp.i
 
 CMakeFiles/validacao.dir/src/detectorfissura.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/validacao.dir/src/detectorfissura.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp -o CMakeFiles/validacao.dir/src/detectorfissura.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp -o CMakeFiles/validacao.dir/src/detectorfissura.cpp.s
 
 CMakeFiles/validacao.dir/src/extrator_features.cpp.o: CMakeFiles/validacao.dir/flags.make
-CMakeFiles/validacao.dir/src/extrator_features.cpp.o: /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp
+CMakeFiles/validacao.dir/src/extrator_features.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp
 CMakeFiles/validacao.dir/src/extrator_features.cpp.o: CMakeFiles/validacao.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/validacao.dir/src/extrator_features.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/extrator_features.cpp.o -MF CMakeFiles/validacao.dir/src/extrator_features.cpp.o.d -o CMakeFiles/validacao.dir/src/extrator_features.cpp.o -c /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/validacao.dir/src/extrator_features.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/validacao.dir/src/extrator_features.cpp.o -MF CMakeFiles/validacao.dir/src/extrator_features.cpp.o.d -o CMakeFiles/validacao.dir/src/extrator_features.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp
 
 CMakeFiles/validacao.dir/src/extrator_features.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/validacao.dir/src/extrator_features.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp > CMakeFiles/validacao.dir/src/extrator_features.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp > CMakeFiles/validacao.dir/src/extrator_features.cpp.i
 
 CMakeFiles/validacao.dir/src/extrator_features.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/validacao.dir/src/extrator_features.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp -o CMakeFiles/validacao.dir/src/extrator_features.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp -o CMakeFiles/validacao.dir/src/extrator_features.cpp.s
 
 # Object files for target validacao
 validacao_OBJECTS = \
@@ -212,7 +212,7 @@ validacao: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.6.0
 validacao: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.6.0
 validacao: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.6.0
 validacao: CMakeFiles/validacao.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable validacao"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable validacao"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/validacao.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -224,6 +224,6 @@ CMakeFiles/validacao.dir/clean:
 .PHONY : CMakeFiles/validacao.dir/clean
 
 CMakeFiles/validacao.dir/depend:
-	cd /home/inteli/Documentos/protitipovisao/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/inteli/Documentos/protitipovisao /home/inteli/Documentos/protitipovisao /home/inteli/Documentos/protitipovisao/build /home/inteli/Documentos/protitipovisao/build /home/inteli/Documentos/protitipovisao/build/CMakeFiles/validacao.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/validacao.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/validacao.dir/depend
 

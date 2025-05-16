@@ -1,4 +1,4 @@
-#include "preprocessamento.hpp"
+#include "../include/preprocessamento.hpp"
 
 cv::Mat preprocessarImagem(const cv::Mat& input) {
     cv::Mat redimensionada, gray, blurred, equalized;
@@ -12,7 +12,6 @@ cv::Mat preprocessarImagem(const cv::Mat& input) {
     } else {
         gray = redimensionada.clone();
     }
-
 
     // Suaviza
     cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 1.5);

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/inteli/Documentos/protitipovisao/include -isystem /usr/include/opencv4
+CXX_INCLUDES = -I/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include -isystem /usr/include/opencv4
 
 CXX_FLAGS = -std=gnu++17
 

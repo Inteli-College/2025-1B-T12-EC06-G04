@@ -8,11 +8,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/inteli/Documentos/protitipovisao/src/classificador.cpp" "CMakeFiles/validacao.dir/src/classificador.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/classificador.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp" "CMakeFiles/validacao.dir/src/detectorfissura.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/detectorfissura.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/extrator_features.cpp" "CMakeFiles/validacao.dir/src/extrator_features.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/extrator_features.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp" "CMakeFiles/validacao.dir/src/preprocessamento.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/preprocessamento.cpp.o.d"
-  "/home/inteli/Documentos/protitipovisao/src/validacao.cpp" "CMakeFiles/validacao.dir/src/validacao.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/validacao.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/classificador.cpp" "CMakeFiles/validacao.dir/src/classificador.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/classificador.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp" "CMakeFiles/validacao.dir/src/detectorfissura.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/detectorfissura.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp" "CMakeFiles/validacao.dir/src/extrator_features.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/extrator_features.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp" "CMakeFiles/validacao.dir/src/preprocessamento.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/preprocessamento.cpp.o.d"
+  "/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/validacao.cpp" "CMakeFiles/validacao.dir/src/validacao.cpp.o" "gcc" "CMakeFiles/validacao.dir/src/validacao.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

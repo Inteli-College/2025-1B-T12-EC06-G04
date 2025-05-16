@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/inteli/Documentos/protitipovisao
+CMAKE_SOURCE_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/inteli/Documentos/protitipovisao/build
+CMAKE_BINARY_DIR = /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/treinamentoModelo.dir/depend.make
@@ -70,60 +70,60 @@ include CMakeFiles/treinamentoModelo.dir/progress.make
 include CMakeFiles/treinamentoModelo.dir/flags.make
 
 CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: CMakeFiles/treinamentoModelo.dir/flags.make
-CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: /home/inteli/Documentos/protitipovisao/src/treinamentoModelo.cpp
+CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/treinamentoModelo.cpp
 CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o: CMakeFiles/treinamentoModelo.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o -c /home/inteli/Documentos/protitipovisao/src/treinamentoModelo.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/treinamentoModelo.cpp
 
 CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/treinamentoModelo.cpp > CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/treinamentoModelo.cpp > CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.i
 
 CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/treinamentoModelo.cpp -o CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/treinamentoModelo.cpp -o CMakeFiles/treinamentoModelo.dir/src/treinamentoModelo.cpp.s
 
 CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o: CMakeFiles/treinamentoModelo.dir/flags.make
-CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o: /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp
+CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp
 CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o: CMakeFiles/treinamentoModelo.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o -c /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp
 
 CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp > CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp > CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.i
 
 CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/preprocessamento.cpp -o CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/preprocessamento.cpp -o CMakeFiles/treinamentoModelo.dir/src/preprocessamento.cpp.s
 
 CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o: CMakeFiles/treinamentoModelo.dir/flags.make
-CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o: /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp
+CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp
 CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o: CMakeFiles/treinamentoModelo.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o -c /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp
 
 CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp > CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp > CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.i
 
 CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/detectorfissura.cpp -o CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/detectorfissura.cpp -o CMakeFiles/treinamentoModelo.dir/src/detectorfissura.cpp.s
 
 CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o: CMakeFiles/treinamentoModelo.dir/flags.make
-CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o: /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp
+CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o: /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp
 CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o: CMakeFiles/treinamentoModelo.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o -c /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o -MF CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o.d -o CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o -c /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp
 
 CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp > CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp > CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.i
 
 CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp -o CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp -o CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.s
 
 # Object files for target treinamentoModelo
 treinamentoModelo_OBJECTS = \
@@ -196,7 +196,7 @@ treinamentoModelo: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.6.0
 treinamentoModelo: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.6.0
 treinamentoModelo: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.6.0
 treinamentoModelo: CMakeFiles/treinamentoModelo.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/inteli/Documentos/protitipovisao/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable treinamentoModelo"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable treinamentoModelo"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/treinamentoModelo.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -208,6 +208,6 @@ CMakeFiles/treinamentoModelo.dir/clean:
 .PHONY : CMakeFiles/treinamentoModelo.dir/clean
 
 CMakeFiles/treinamentoModelo.dir/depend:
-	cd /home/inteli/Documentos/protitipovisao/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/inteli/Documentos/protitipovisao /home/inteli/Documentos/protitipovisao /home/inteli/Documentos/protitipovisao/build /home/inteli/Documentos/protitipovisao/build /home/inteli/Documentos/protitipovisao/build/CMakeFiles/treinamentoModelo.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/treinamentoModelo.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/treinamentoModelo.dir/depend
 

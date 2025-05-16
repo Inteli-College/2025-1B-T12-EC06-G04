@@ -1,7 +1,7 @@
 CMakeFiles/treinamentoModelo.dir/src/extrator_features.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/extrator_features.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/extrator_features.cpp \
  /usr/include/stdc-predef.h \
- /home/inteli/Documentos/protitipovisao/include/extrator_features.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/../include/extrator_features.hpp \
  /usr/include/opencv4/opencv2/opencv.hpp \
  /usr/include/opencv4/opencv2/opencv_modules.hpp \
  /usr/include/opencv4/opencv2/core.hpp \

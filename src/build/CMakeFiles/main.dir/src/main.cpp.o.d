@@ -1,5 +1,5 @@
 CMakeFiles/main.dir/src/main.cpp.o: \
- /home/inteli/Documentos/protitipovisao/src/main.cpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/src/main.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
  /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
@@ -351,6 +351,6 @@ CMakeFiles/main.dir/src/main.cpp.o: \
  /usr/include/opencv4/opencv2/video.hpp \
  /usr/include/opencv4/opencv2/video/tracking.hpp \
  /usr/include/opencv4/opencv2/video/background_segm.hpp \
- /home/inteli/Documentos/protitipovisao/include/preprocessamento.hpp \
- /home/inteli/Documentos/protitipovisao/include/detectorfissura.hpp \
- /home/inteli/Documentos/protitipovisao/include/extrator_features.hpp
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/preprocessamento.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/detectorfissura.hpp \
+ /home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/include/extrator_features.hpp
