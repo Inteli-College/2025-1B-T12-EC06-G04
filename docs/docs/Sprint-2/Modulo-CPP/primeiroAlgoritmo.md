@@ -1,6 +1,6 @@
 ---
 title: Primeira Versão Algoritmo
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Primeira Versão Modelo de Classificação de Fissuras
