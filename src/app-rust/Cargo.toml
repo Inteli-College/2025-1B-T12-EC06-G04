@@ -1,10 +1,20 @@
 [package]
-name = "app-rust"
+name = "file-explorer"
+edition = "2021"
 version = "0.1.0"
-edition = "2024"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { version = "0.6.0", features = ["router", "desktop"] }
+chrono = "0.4.41"
+dioxus = { workspace = true, features = ["desktop"] }
+open = "3.2.0" 
+
+[workspace]
+
+[workspace.dependencies]
+dioxus = "0.6"
 
 [profile]
 
@@ -17,3 +27,4 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
+
