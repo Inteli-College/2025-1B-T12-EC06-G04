@@ -1,0 +1,30 @@
+[package]
+name = "file-explorer"
+edition = "2021"
+version = "0.1.0"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.41"
+dioxus = { workspace = true, features = ["desktop"] }
+open = "3.2.0" 
+
+[workspace]
+
+[workspace.dependencies]
+dioxus = "0.6"
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
+
