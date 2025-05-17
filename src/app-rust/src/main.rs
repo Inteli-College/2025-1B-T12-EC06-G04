@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
-mod home;
-use home::Home;
+mod report;
+use report::ReportView;
 
 fn main() {
     dioxus::launch(|| {
@@ -14,7 +14,7 @@ fn main() {
 pub fn Home() -> Element {
     rsx! {
         h1 { "Home Page" }
-        Link { to: "/another-page", "Vá para outra paǵina" }
+        Link { to: "/report", "Vá para outra página" }
     }
 }
 
@@ -22,4 +22,7 @@ pub fn Home() -> Element {
 enum Route {
     #[route("/")]
     Home {},
+
+    #[route("/report")]
+    ReportView {},
 }
