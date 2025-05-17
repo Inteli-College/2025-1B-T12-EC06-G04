@@ -14,7 +14,7 @@ fn main() {
 pub fn Home() -> Element {
     rsx! {
         h1 { "Home Page" }
-        Link { to: "/report", "Vá para outra paǵina" }
+        Link { to: "/report", "Vá para outra página" }
     }
 }
 
