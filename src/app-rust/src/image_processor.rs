@@ -421,6 +421,15 @@ fn extract_gps_string(exif: &exif::Exif, tag_map: &HashMap<&str, Tag>) -> Option
     Some(Location { latitude: lat, longitude: lon })
 }
 
+// Função para sanitizar nomes de arquivos/diretórios
+fn sanitize_filename(name: &str) -> String {
+    let forbidden_chars: &[char] = &['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
+    name.replace(' ', "_")
+        .chars()
+        .filter(|c| !forbidden_chars.contains(c))
+        .collect()
+}
+
 // Função principal de processamento (MODIFICADA SIGNIFICATIVAMENTE)
 pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
     let mut stats = ProcessingStats::default();
@@ -506,8 +515,8 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
 
     // Classificação de Fachadas e Criação de Pastas
     for predio in predios.iter_mut() {
-        let predio_dir_name = &predio.id;
-        let predio_target_dir = folder_path.join(predio_dir_name);
+        let sanitized_predio_id = sanitize_filename(&predio.id); // Sanitizar ID do prédio
+        let predio_target_dir = folder_path.join(&sanitized_predio_id); // Usar ID sanitizado
         if let Err(e) = fs::create_dir_all(&predio_target_dir) {
             stats.errors.push(format!("Falha ao criar diretório {}: {}", predio_target_dir.display(), e));
             continue;
@@ -515,7 +524,8 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
 
         for image_data in &predio.todas_imagens_no_predio {
             let fachada_nome_str = determinar_fachada_nome(image_data.gps_img_direction);
-            let fachada_dir_name = format!("fachada-{}", fachada_nome_str);
+            let base_fachada_dir_name = format!("fachada-{}", fachada_nome_str);
+            let sanitized_fachada_dir_name = sanitize_filename(&base_fachada_dir_name); // Sanitizar nome da fachada
             
             let fachada_entry = predio.fachadas.entry(fachada_nome_str.clone()).or_insert_with(|| Fachada {
                 nome: fachada_nome_str.clone(),
@@ -524,15 +534,35 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
             fachada_entry.imagens.push(image_data.clone());
 
             // Criar pasta da fachada e copiar imagem
-            let fachada_target_dir = predio_target_dir.join(&fachada_dir_name);
+            let fachada_target_dir = predio_target_dir.join(&sanitized_fachada_dir_name); // Usar nome sanitizado
             if let Err(e) = fs::create_dir_all(&fachada_target_dir) {
                 stats.errors.push(format!("Falha ao criar diretório {}: {}", fachada_target_dir.display(), e));
                 continue; // Pula para a próxima imagem se não puder criar a pasta da fachada
             }
 
-            let target_image_path = fachada_target_dir.join(&image_data.file_name);
-            if let Err(e) = fs::copy(&image_data.path, &target_image_path) {
-                stats.errors.push(format!("Falha ao copiar {} para {}: {}", image_data.path.display(), target_image_path.display(), e));
+            let sanitized_image_filename = sanitize_filename(&image_data.file_name); // Sanitizar nome do arquivo da imagem
+            let target_image_path = fachada_target_dir.join(&sanitized_image_filename); // Usar nome do arquivo sanitizado
+            
+            // Tentar copiar o arquivo
+            match fs::copy(&image_data.path, &target_image_path) {
+                Ok(_) => {
+                    // Se a cópia foi bem-sucedida, tentar apagar o arquivo original
+                    if let Err(e_remove) = fs::remove_file(&image_data.path) {
+                        stats.errors.push(format!(
+                            "Falha ao apagar arquivo original {}: {:?}",
+                            image_data.path.display(),
+                            e_remove
+                        ));
+                    }
+                }
+                Err(e_copy) => {
+                    stats.errors.push(format!(
+                        "Falha ao copiar {} para {}: {:?}",
+                        image_data.path.display(),
+                        target_image_path.display(),
+                        e_copy
+                    ));
+                }
             }
         }
     }

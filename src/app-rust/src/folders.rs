@@ -13,7 +13,16 @@ fn display_from_projects(path: &Path) -> Option<PathBuf> {
 
 #[allow(non_snake_case)]
 pub fn Folders() -> Element {
-    let mut files = use_signal(Files::new);
+    let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
+    let initial_path_from_state = processed_folder_signal.read().clone();
+
+    let mut files = use_signal(|| Files::new(initial_path_from_state));
+    
+    use_effect(move || {
+        let new_path = processed_folder_signal.read().clone();
+        files.write().update_base_path_if_different(new_path);
+    });
+
     let mut new_folder_name = use_signal(|| String::new());
     let mut new_folder_description = use_signal(|| String::new());
     let mut show_new_folder_input = use_signal(|| false);
@@ -160,24 +169,47 @@ struct Files {
 }
 
 impl Files {
-    fn new() -> Self {
-        let base_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects");
-        std::fs::create_dir_all(&base_path).ok();
+    fn new(initial_path_option: Option<PathBuf>) -> Self {
+        let base_path = match initial_path_option {
+            Some(path) => path,
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+        };
+
+        if let Err(e) = std::fs::create_dir_all(&base_path) {
+            eprintln!("Falha ao criar diretório base em Files::new: {} ({:?})", base_path.display(), e);
+        }
 
         let current_path = base_path.clone();
 
-        let mut files = Self {
+        let mut files_instance = Self {
             base_path,
             current_path,
             path_names: vec![],
             err: None,
         };
 
-        files.reload_path_list();
-        files
+        files_instance.reload_path_list();
+        files_instance
     }
 
-    // precisamos refatorar, porque essa função cria uma pasta com um arquivo para a descrição dela
+    fn update_base_path_if_different(&mut self, new_initial_path_option: Option<PathBuf>) {
+        let new_base_path = match new_initial_path_option {
+            Some(path) => path,
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+        };
+
+        if self.base_path != new_base_path {
+            self.base_path = new_base_path.clone();
+            self.current_path = new_base_path;
+            if let Err(e) = std::fs::create_dir_all(&self.base_path) {
+                self.err = Some(format!("Falha ao criar novo diretório base {}: {:?}", self.base_path.display(), e));
+            } else {
+                self.err = None;
+            }
+            self.reload_path_list();
+        }
+    }
+
     pub fn create_folder_with_description(&mut self, name: String, description: String) {
         let path = self.current_path.join(&name);
         if let Err(err) = std::fs::create_dir_all(&path) {
@@ -223,7 +255,6 @@ impl Files {
         }
     }
 
-    // criei essa função para voltar as pastas
     fn go_up(&mut self) {
         if self.current_path != self.base_path {
             if let Some(parent) = self.current_path.parent() {
@@ -235,7 +266,6 @@ impl Files {
         }
     }
 
-    // criei essa aqui para entrar nas pastas
     fn enter_dir(&mut self, dir_id: usize) {
         if let Some(entry) = self.path_names.get(dir_id) {
             let path = &entry.path;
