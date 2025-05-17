@@ -18,40 +18,33 @@ fn render_markdown(md: &str) -> String {
     html_output
 }
 
-fn export_pdf(md_content: &str) {
+fn export(md_content: &str, file_type: &str) {
     if let Some(path) = rfd::FileDialog::new()
-        .set_title("Salvar arquivo PDF como...")
-        .add_filter("PDF", &["pdf"])
-        .set_file_name("Relatorio.pdf")
+        .set_title(&format!("Salvar arquivo {} como...", file_type))
+        .add_filter(&file_type.to_uppercase(), &[&file_type.to_lowercase()])
+        .set_file_name(&format!("Relatorio.{}", &file_type.to_lowercase()))
         .save_file()
     {
-        let mut temp_md = NamedTempFile::new().unwrap();
-        write!(temp_md, "{}", md_content).unwrap();
-        temp_md.flush().unwrap();
+        if &file_type.to_lowercase() == "md" {
+            let new_file = File::create(&path).unwrap();
+            let mut writer = BufWriter::new(new_file);
+            writer.write_all(md_content.as_bytes()).unwrap();
+        } else {
+            let mut temp_md = NamedTempFile::new().unwrap();
+            write!(temp_md, "{}", md_content).unwrap();
+            temp_md.flush().unwrap();
 
-        let status = Command::new("pandoc")
-            .arg(temp_md.path())
-            .arg("-o")
-            .arg(&path)
-            .status()
-            .expect("Falha ao gerar PDF com pandoc");
+            let status = Command::new("pandoc")
+                .arg(temp_md.path())
+                .arg("-o")
+                .arg(&path)
+                .status()
+                .expect(&format!("Falha ao gerar {} com pandoc", &file_type.to_uppercase()));
 
-        if !status.success() {
-            eprintln!("Erro ao converter Markdown para PDF com pandoc");
+            if !status.success() {
+                eprintln!("Erro ao converter Markdown para {} com pandoc", &file_type.to_uppercase());
+            }
         }
-    }
-}
-
-fn export_md(md_content: &str) {
-    if let Some(path) = rfd::FileDialog::new()
-        .set_title("Salvar arquivo MD como...")
-        .add_filter("MD", &["md"])
-        .set_file_name("Relatorio.md")
-        .save_file()
-    {
-        let new_file = File::create(&path).unwrap();
-        let mut writer = BufWriter::new(new_file);
-        writer.write_all(md_content.as_bytes()).unwrap();
     }
 }
 
@@ -72,15 +65,21 @@ pub fn ReportView() -> Element {
                     class: "button-area",
                     button {
                         onclick: |_| {
-                            export_md(include_str!("Report/relatorio.md"));
+                            export(include_str!("Report/relatorio.md"), "MD");
                         },
                         "Exportar em MD"
                     }
                     button {
                         onclick: |_| {
-                            export_pdf(include_str!("Report/relatorio.md"));
+                            export(include_str!("Report/relatorio.md"), "PDF");
                         },
                         "Exportar em PDF"
+                    }
+                    button {
+                        onclick: |_| {
+                            export(include_str!("Report/relatorio.md"), "DOCX");
+                        },
+                        "Exportar em DOCX"
                     }
                 }
                 div {
