@@ -1,13 +1,6 @@
-use std::path::{Path, PathBuf};
-use dioxus::desktop::{Config, WindowBuilder};
 use dioxus::prelude::*;
+use std::path::{Path, PathBuf};
 use chrono::{DateTime, Local};
-
-fn main() {
-    dioxus::LaunchBuilder::desktop()
-        .with_cfg(Config::new().with_window(WindowBuilder::new().with_resizable(true)))
-        .launch(app)
-}
 
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
@@ -18,7 +11,8 @@ fn display_from_projects(path: &Path) -> Option<PathBuf> {
     None
 }
 
-fn app() -> Element {
+#[allow(non_snake_case)]
+pub fn Folders() -> Element {
     let mut files = use_signal(Files::new);
     let mut new_folder_name = use_signal(|| String::new());
     let mut new_folder_description = use_signal(|| String::new());
@@ -258,16 +252,5 @@ impl Files {
 
     fn clear_err(&mut self) {
         self.err = None;
-    }
-
-    // essa função é para criar as novas pastas
-    fn create_folder(&mut self, name: String) {
-        let new_folder_path = self.current_path.join(&name);
-
-        if std::fs::create_dir_all(&new_folder_path).is_ok() {
-            self.reload_path_list();
-        } else {
-            self.err = Some("Erro ao criar a pasta".to_string());
-        }
     }
 }
