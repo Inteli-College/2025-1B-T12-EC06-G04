@@ -1,8 +1,11 @@
+
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 
 mod home;
 use home::Home;
+mod ui;
+mod image_processor;
 
 fn main() {
     dioxus::launch(|| {
