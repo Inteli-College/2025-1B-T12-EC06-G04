@@ -12,6 +12,7 @@ walkdir = "2.4.0"
 anyhow = "1.0"
 kamadak-exif = "0.5.5"
 regex = "1.11.1"
+num-traits = "0.2.19"
 
 [features]
 default = ["desktop"]

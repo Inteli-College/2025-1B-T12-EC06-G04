@@ -40,6 +40,7 @@ dependencies = [
  "dioxus",
  "dioxus-desktop",
  "kamadak-exif",
+ "num-traits",
  "regex",
  "rfd 0.12.1",
  "walkdir",
