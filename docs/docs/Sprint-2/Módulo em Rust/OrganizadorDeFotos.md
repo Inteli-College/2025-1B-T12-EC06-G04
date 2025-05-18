@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 title: Como as imagens são organizadas?
-slug: /sprint-2/programação/Rust/Organizadordearquivos
+slug: /sprint-2/Rust/Organizadordearquivos
 ---
 
 ## Organizador de Fotos por Localização
