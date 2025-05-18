@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
-title: Aplicativo Desktop
-slug: /sprint-2/Rust/
+sidebar_position: 0
+title: Organizador de arquivos
+slug: /sprint-2/programação/Rust/sprint-readme
 ---
