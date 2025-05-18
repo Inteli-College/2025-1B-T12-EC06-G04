@@ -21,7 +21,7 @@ sidebar_position: 3
 
   <sub>Figura 1 - Persona Ana Clara Santos </sub>
 
-  <img src="../../img/personaAna.png"
+  <img src="../../../static/img/personaAna.png"
   alt = "Imagem persona Ana Clara"/>
 
 
@@ -86,7 +86,7 @@ Ana, atualmentente, fica responsável por receber, analisar e identificar as ima
 
   <sub>Figura 2 - Persona Jhonathan Medeiros </sub>
 
-  <img src="../../img/personaJhonathan.png" alt = "Imagem persona Jhonathan"/>
+  <img src="../../../img/personaJhonathan.png" alt = "Imagem persona Jhonathan"/>
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
