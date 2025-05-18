@@ -1,6 +1,9 @@
 use dioxus::prelude::*;
 use std::path::{Path, PathBuf};
 use chrono::{DateTime, Local};
+use dioxus_router::prelude::Link;
+use crate::Route;
+
 
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
@@ -77,6 +80,17 @@ pub fn Folders() -> Element {
             main {
                 class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
                 { file_cards.into_iter() }
+
+                Link {
+                    to: Route::ReportView {},  // ajuste para o nome da rota correta
+                    class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
+                    button {
+                        class: "flex items-center gap-2",
+                        i { class: "material-icons", "assessment" }
+                        span { "Relatório" }
+                    }
+                }
+                
             }
 
             if let Some(err) = files.read().err.as_ref() {

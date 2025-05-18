@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::desktop::{Config, WindowBuilder};
+use dioxus::{desktop::Config, desktop::WindowBuilder, prelude::*};
 use std::path::PathBuf;
 
 mod ui;
