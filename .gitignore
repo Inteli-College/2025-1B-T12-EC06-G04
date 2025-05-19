@@ -1,2 +1,4 @@
 .env
 .vscode
+output_images/
+/node_modules/
