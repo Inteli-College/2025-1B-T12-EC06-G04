@@ -1,0 +1,4 @@
+/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/main.dir
+/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/treinamentoModelo.dir
+/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/edit_cache.dir
+/home/inteli/Documentos/modulo6/2025-1B-T12-EC06-G04/src/build/CMakeFiles/rebuild_cache.dir

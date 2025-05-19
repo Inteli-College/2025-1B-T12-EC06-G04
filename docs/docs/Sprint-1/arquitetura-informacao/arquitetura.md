@@ -12,7 +12,9 @@ slug: /sprint-1/Arquitetura/arquitetura
 <p style={{textAlign: 'center'}}>Figura 1 - Diagrama de Blocos da Arquitetura</p>
 
 <div style={{textAlign: 'center'}}>
-    <img src="/img/Sprint1/Arquitetura/diagrama-arquitetura.png" style={{width: 400}} />
+
+![Descrição da Imagem](../../../static/img/diagrama_de_Arquitetura.jpg)
+
 </div>
 
 <p style={{textAlign: 'center'}}>Fonte: Elaboração própria (2025)</p>
