@@ -1,0 +1,3 @@
+/home/inteli/Documentos/2025-1B-T12-EC06-G04/src/crack_preprocessing_cpp/build/CMakeFiles/crack_preprocessing.dir
+/home/inteli/Documentos/2025-1B-T12-EC06-G04/src/crack_preprocessing_cpp/build/CMakeFiles/edit_cache.dir
+/home/inteli/Documentos/2025-1B-T12-EC06-G04/src/crack_preprocessing_cpp/build/CMakeFiles/rebuild_cache.dir
