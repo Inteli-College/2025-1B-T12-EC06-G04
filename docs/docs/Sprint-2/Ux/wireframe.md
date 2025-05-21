@@ -32,8 +32,7 @@ sidebar_position: 2
 
   <sub>Figura 1 - Tela Inicial </sub>
 
-  <img src="../../../static/img/Sprint2/pg-inicial.png"
-  alt="Página Inicial"/>
+  ![Tela Inicial](../../../static/img/Sprint2/pg-inicial.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -58,8 +57,7 @@ Essa página possui:
 
   <sub>Figura 2 - Tela de Criação de Novo Projeto </sub>
 
-  <img src="../../../static/img/Sprint2/new-pj.png"
-  alt="Tela de Criação de Novo Projeto"/>
+  ![Tela de Criação de Novo Projeto](../../../static/img/Sprint2/new-pj.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -83,8 +81,7 @@ Essa página possui:
 
   <sub>Figura 3 - Tela da Pasta do Projeto </sub>
 
-  <img src="../../../static/img/Sprint2/projeto.png"
-  alt="Tela da Pasta do Projeto"/>
+  ![Tela da Pasta do Projeto](../../../static/img/Sprint2/projeto.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -109,8 +106,7 @@ Essa página possui:
 
   <sub>Figura 4 - Tela do Relatório </sub>
 
-  <img src="../../../static/img/Sprint2/relat.png"
-  alt="Tela do Relatório"/>
+  ![Tela do Relatório](../../../static/img/Sprint2/relat.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -133,8 +129,7 @@ Essa página possui:
 
   <sub>Figura 5 - Tela Galeria das Imagens Originais </sub>
 
-  <img src="../../../static/img/Sprint2/image-orig.png"
-  alt="Tela Galeria das Imagens Originais"/>
+  ![Tela Galeria das Imagens Originais](../../../static/img/Sprint2/image-orig.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -157,8 +152,7 @@ Essa página possui:
 
   <sub>Figura 6 - Tela de Pastas por Prédios </sub>
 
-  <img src="../../../static/img/Sprint2/class.png"
-  alt="Tela de Pastas por Prédios"/>
+  ![Tela de Pastas por Prédios](../../../static/img/Sprint2/class.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -180,8 +174,7 @@ Essa página possui:
 
   <sub>Figura 7 - Tela de Pastas por Fachadas </sub>
 
-  <img src="../../../static/img/Sprint2/predio.png"
-  alt="Tela de Pastas por Fachadas"/>
+  ![Tela de Pastas por Fachadas](../../../static/img/Sprint2/predio.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -204,8 +197,7 @@ Essa página possui:
 
   <sub>Figura 8 - Tela da Galeria de Imagens Classificadas </sub>
 
-  <img src="../../../static/img/Sprint2/image-fachada.png"
-  alt="Tela da Galeria de Imagens Classificadas"/>
+  ![Tela da Galeria de Imagens Classificadas](../../../static/img/Sprint2/image-fachada.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -230,8 +222,7 @@ Essa página possui:
 
   <sub>Figura 9 - Tela da Descrição de Imagem </sub>
 
-  <img src="../../../static/img/Sprint2/image-desc.png"
-  alt="Tela da Descrição de Imagem"/>
+  ![Tela da Descrição de Imagem](../../../static/img/Sprint2/image-desc.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 

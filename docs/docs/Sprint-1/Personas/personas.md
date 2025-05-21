@@ -21,9 +21,7 @@ sidebar_position: 3
 
   <sub>Figura 1 - Persona Ana Clara Santos </sub>
 
-  <img src="../../img/personaAna.png"
-  alt = "Imagem persona Ana Clara"/>
-
+  ![Imagem persona Jhonathan](../../../static/img/personaJhonathan.png)  
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -86,7 +84,7 @@ Ana, atualmentente, fica responsável por receber, analisar e identificar as ima
 
   <sub>Figura 2 - Persona Jhonathan Medeiros </sub>
 
-  <img src="../../img/personaJhonathan.png" alt = "Imagem persona Jhonathan"/>
+  ![magem persona Jhonathan](../../../static/img/personaAna.png)  
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -151,6 +149,6 @@ Atualmente, Jhonatan faz parte da equipe técnica, sendo resposável por ir até
 
 ## Referências
 
-- [^1]: Dam, R. F. and Teo, Y. S. (2025, March 18). Personas – A Simple Introduction. Interaction Design Foundation - IxDF. https://www.interaction-design.org/literature/article/personas-why-and-how-you-should-use-them
+- Dam, R. F. and Teo, Y. S. (2025, March 18). Personas – A Simple Introduction. Interaction Design Foundation - IxDF. https://www.interaction-design.org/literature/article/personas-why-and-how-you-should-use-them
 
-- [^2]: Informações coletadas durante o kickoff do projeto, TAPI e reuniões com parceiros do Instituto de Pesquisas Tecnológicas (IPT), 2025.
+- Informações coletadas durante o kickoff do projeto, TAPI e reuniões com parceiros do Instituto de Pesquisas Tecnológicas (IPT), 2025.
