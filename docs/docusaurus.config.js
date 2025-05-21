@@ -90,11 +90,6 @@ const config = {
             label: "Documentação",
           },
           {
-            to: "/blog",
-            label: "Blog",
-            position: "left",
-          },
-          {
             href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
             label: "GitHub",
             position: "right",
@@ -120,10 +115,6 @@ const config = {
           {
             title: "Mais",
             items: [
-              {
-                label: "Blog",
-                to: "/blog",
-              },
               {
                 label: "GitHub",
                 href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
