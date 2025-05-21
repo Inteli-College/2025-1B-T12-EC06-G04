@@ -55,6 +55,9 @@ pub fn Folders() -> Element {
     .filter_map(Result::ok)
     .collect::<Vec<_>>();
 
+    // variável para o input na barra de pesquisa
+    let mut search = use_signal(|| "".to_string());
+
     // aqui começa o front
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") } // puxa as classes do tailwind
@@ -75,6 +78,12 @@ pub fn Folders() -> Element {
                     onclick: move |_| files.write().go_up(),
                     "logout"
                 }
+            }
+
+            // barra de pesquisa
+            input {
+                value: "{search}",
+                oninput: move |event| search.set(event.value())
             }
 
             main {
@@ -156,7 +165,7 @@ pub fn Folders() -> Element {
                 }
             }
     
-            // Botão para criar as pastas
+            // Botão para criar o projeto
             Link {
                 to: Route::Home {},
                 button {
