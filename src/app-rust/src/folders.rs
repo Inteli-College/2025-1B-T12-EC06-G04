@@ -157,11 +157,14 @@ pub fn Folders() -> Element {
             }
     
             // Botão para criar as pastas
-            button {
-                class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
-                title: "Nova Pasta",
-                onclick: move |_| show_new_folder_input.set(true),
-                i { class: "material-icons", "edit" }
+            Link {
+                to: Route::Home {},
+                button {
+                    class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
+                    title: "Nova Pasta",
+                    onclick: move |_| show_new_folder_input.set(true),
+                    i { class: "material-icons", "edit" }
+                }
             }
 
         }

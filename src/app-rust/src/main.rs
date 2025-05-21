@@ -29,9 +29,9 @@ fn App() -> Element {
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
-    #[route("/")]
+    #[route("/home")]
     Home {},
-    #[route("/folders")]
+    #[route("/")]
     Folders {},
     #[route("/report")]
     ReportView {}
