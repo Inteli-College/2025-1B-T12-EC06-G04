@@ -53,7 +53,3 @@ Com o conjunto de imagens anotadas, os próximos passos incluem:
 ## Conclusão
 
 O processo de pré-processamento com o LabelImg foi uma etapa fundamental para o desenvolvimento do nosso sistema de detecção automática de fissuras térmicas com YOLO. A anotação cuidadosa, baseada em conhecimento técnico do IPT, garante que o modelo terá uma base de aprendizado consistente e confiável. A partir daqui, seguiremos para o treinamento do modelo e avaliação de seu desempenho, buscando construir uma solução robusta e eficiente para o reconhecimento automático de fissuras em imagens de fachadas.
-
----
-
-Se quiser, posso formatar isso em `.md`, `.pdf`, `.tex` ou integrar à sua documentação do Docusaurus. Deseja em algum desses formatos?
