@@ -30,6 +30,9 @@ pub fn Folders() -> Element {
     let mut new_folder_description = use_signal(|| String::new());
     let mut show_new_folder_input = use_signal(|| false);
 
+    // pesquisa do usuário
+    let mut search_term = use_signal(|| String::new());
+
 
     let file_cards = files.read().path_names.iter().enumerate()
     .filter_map(|(dir_id, entry)| {
@@ -39,6 +42,13 @@ pub fn Folders() -> Element {
             .map(|p| p.display().to_string())
             .unwrap_or_else(|| path.display().to_string());
         let created = entry.created.clone().unwrap_or_default();
+        let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
+
+        // Aplicando a pesquisa do usuário
+        let term = search_term.read().to_lowercase();
+        if !term.is_empty() && !path_end.to_lowercase().contains(&term) {
+            return None;
+        }
 
         Some(rsx!(
             div {
@@ -49,6 +59,7 @@ pub fn Folders() -> Element {
                 i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
                 h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{path_end}" }
                 p { class: "text-xs text-gray-400 mt-1", "{created}" }
+                p { class: "text-xs text-gray-600 mt-1", "{description}" }
             }
         ))
     })
@@ -74,6 +85,20 @@ pub fn Folders() -> Element {
                     class: "material-icons cursor-pointer hover:text-red-200",
                     onclick: move |_| files.write().go_up(),
                     "logout"
+                }
+            }
+
+            // barra de pesquisa
+            div {
+                class: "w-full p-4",
+                input {
+                    r#type: "text",
+                    class: "w-full p-2 border rounded",
+                    placeholder: "Buscar pasta...",
+                    oninput: move |e| {
+                        search_term.set(e.value().clone());
+                    },
+                    value: "{search_term}",
                 }
             }
 
@@ -156,7 +181,7 @@ pub fn Folders() -> Element {
                 }
             }
     
-            // Botão para criar as pastas
+            // Botão para criar o projeto
             Link {
                 to: Route::Home {},
                 button {
@@ -176,6 +201,7 @@ pub fn Folders() -> Element {
 struct FileEntry {
     path: PathBuf,
     created: Option<String>,
+    description: Option<String>,
 }
 
 struct Files {
@@ -266,8 +292,14 @@ impl Files {
                         let datetime: DateTime<Local> = time.into();
                         Some(datetime.format("%d/%m/%Y %H:%M").to_string())
                     });
+                let description = if path.is_dir() {
+                    let desc_path = path.join("description.txt");
+                    std::fs::read_to_string(&desc_path).ok()
+                } else {
+                    None
+                };
 
-                self.path_names.push(FileEntry { path, created });
+                self.path_names.push(FileEntry { path, created, description });
             }
         }
     }
