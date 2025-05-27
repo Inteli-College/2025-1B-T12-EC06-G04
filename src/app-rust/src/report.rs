@@ -1,11 +1,18 @@
 use dioxus::prelude::*;
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
-use std::process::Command;
+use serde_json::{json, Value};
 use tempfile::NamedTempFile;
-
 use pulldown_cmark::{Parser, Options, html};
+use std::{
+    collections::BTreeMap,
+    io::{Write, BufWriter},
+    process::Command,
+    fs::File
+};
+
+// To indicate another path, use `mod` with `#[path = "..."]`:
+#[path = "./report_generator.rs"]
+mod report_generator;
+use report_generator::generate_report;
 
 fn render_markdown(md: &str) -> String {
     let mut options = Options::empty();
@@ -51,6 +58,34 @@ fn export(md_content: &str, file_type: &str) {
     }
 }
 
+fn get_report() -> Result<String, handlebars::RenderError> {
+    // Importa o template do relatório
+    let template: &str = include_str!("Report/report_template.md");
+
+    // Pegar arquivo JSON
+    let file = File::open("Report/relatorio.json")
+        .map_err(|e| handlebars::RenderError::from(
+            handlebars::RenderErrorReason::Other(format!("Erro ao abrir JSON: {}", e))
+        ))?;
+
+    // Serializae do JSON
+    let json_data: Value = serde_json::from_reader(file)
+        .map_err(|e| handlebars::RenderError::from(
+            handlebars::RenderErrorReason::Other(format!("Erro ao ler JSON: {}", e))
+        ))?;
+
+    // Converter dados do JSON em um BtreeMap
+    let data: BTreeMap<String, Value> = match json_data.as_object() {
+        Some(map) => map.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+        None => BTreeMap::new(),
+    };
+
+    // Gera o report, passando o template e os dados
+    let report = generate_report(template, data)?;
+
+    Ok(report)
+}
+
 #[allow(non_snake_case)]
 pub fn ReportView() -> Element {
     rsx! {
@@ -89,7 +124,7 @@ pub fn ReportView() -> Element {
                     class: "text-viewer",
                     div {
                         class: "text-content",
-                        dangerous_inner_html: "{render_markdown(include_str!(\"Report/relatorio.md\"))}"
+                        dangerous_inner_html: get_report().unwrap_or_else(|e| format!("Erro ao gerar relatório: {}", e))
                     }
                 }
             }
