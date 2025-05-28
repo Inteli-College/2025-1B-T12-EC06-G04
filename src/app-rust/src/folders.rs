@@ -20,6 +20,49 @@ pub fn Folders() -> Element {
     let initial_path_from_state = processed_folder_signal.read().clone();
 
     let mut files = use_signal(|| Files::new(initial_path_from_state));
+
+    // variáveis para o filtros de ordenação alfabética e por data
+    let mut sort_alphabetical_order = use_signal(|| SortAlphabeticOrder::AZ);
+    let mut sort_date_order = use_signal(|| SortDateOrder::MaisRecente);
+
+    let alphabetical_order = sort_alphabetical_order.read();
+    let date_order = sort_date_order.read();
+
+    let binding = files.read();
+    let mut entries: Vec<_> = binding.path_names.iter().collect();
+
+    entries.sort_by(|a, b| {
+        let date_a = a.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+        let date_b = b.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+    
+        // Aplica o filtro de data
+        let date_cmp = match *date_order {
+            SortDateOrder::MaisRecente => date_b.cmp(&date_a),
+            SortDateOrder::MaisAntigo => date_a.cmp(&date_b),
+        };
+    
+        // Se as datas forem iguais ou inexistentes, aplica o filtro alfabético
+        if date_cmp == std::cmp::Ordering::Equal {
+            let name_a = a.path.file_name()
+                .map(|n| n.to_string_lossy().to_lowercase())
+                .unwrap_or_default();
+            let name_b = b.path.file_name()
+                .map(|n| n.to_string_lossy().to_lowercase())
+                .unwrap_or_default();
+    
+            match *alphabetical_order {
+                SortAlphabeticOrder::AZ => name_a.cmp(&name_b),
+                SortAlphabeticOrder::ZA => name_b.cmp(&name_a),
+            }
+        } else {
+            date_cmp
+        }
+    });
+    
+    
+    if *alphabetical_order == SortAlphabeticOrder::ZA {
+        entries.reverse();
+    }
     
     use_effect(move || {
         let new_path = processed_folder_signal.read().clone();
@@ -31,13 +74,13 @@ pub fn Folders() -> Element {
     let mut show_new_folder_input = use_signal(|| false);
 
     // pesquisa do usuário
-    let mut search_term = use_signal(|| String::new());
+    let mut search_input = use_signal(|| String::new());
 
 
-    let file_cards = files.read().path_names.iter().enumerate()
+    let folder_cards = entries.iter().enumerate()
     .filter_map(|(dir_id, entry)| {
         let path = &entry.path;
-        let path_end = path.file_name()?.to_string_lossy();
+        let folder_name = path.file_name()?.to_string_lossy();
         let path_display = display_from_projects(path)
             .map(|p| p.display().to_string())
             .unwrap_or_else(|| path.display().to_string());
@@ -45,8 +88,8 @@ pub fn Folders() -> Element {
         let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
 
         // Aplicando a pesquisa do usuário
-        let term = search_term.read().to_lowercase();
-        if !term.is_empty() && !path_end.to_lowercase().contains(&term) {
+        let search = search_input.read().to_lowercase();
+        if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
             return None;
         }
 
@@ -57,7 +100,7 @@ pub fn Folders() -> Element {
                 onclick: move |_| files.write().enter_dir(dir_id),
 
                 i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
-                h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{path_end}" }
+                h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
                 p { class: "text-xs text-gray-400 mt-1", "{created}" }
                 p { class: "text-xs text-gray-600 mt-1", "{description}" }
             }
@@ -96,15 +139,47 @@ pub fn Folders() -> Element {
                     class: "w-full p-2 border rounded",
                     placeholder: "Buscar pasta...",
                     oninput: move |e| {
-                        search_term.set(e.value().clone());
+                        search_input.set(e.value().clone());
                     },
-                    value: "{search_term}",
+                    value: "{search_input}",
                 }
             }
 
+            // botões de filtro de ordenação alfabética
+            div {
+                class: "flex gap-2",
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
+                    "Mais recente"
+                }
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
+                    "Mais antigo"
+                }
+            }
+
+            // botões de filtro de ordenação por data
+            div {
+                class: "flex gap-2",
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
+                    "A-Z"
+                }
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
+                    "Z-A"
+                }
+            }
+            
+        
+
             main {
                 class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                { file_cards.into_iter() }
+                { folder_cards.into_iter() }
 
                 Link {
                     to: Route::ReportView {},  // ajuste para o nome da rota correta
@@ -141,7 +216,7 @@ pub fn Folders() -> Element {
                         r#type: "text",
                         placeholder: "Nome da nova pasta",
                         value: "{new_folder_name.read()}",
-                        oninput: move |e| new_folder_name.set(e.value())
+                        oninput: move |e| new_folder_name.set(e.value()) // callback que acessa e atualiza o valor do input sempre que o usuário escrever algo
                     }
     
                     textarea {
@@ -196,6 +271,17 @@ pub fn Folders() -> Element {
     }
 }
 
+#[derive(PartialEq)]
+enum SortAlphabeticOrder {
+    AZ,
+    ZA,
+}
+
+#[derive(PartialEq)]
+enum SortDateOrder {
+    MaisRecente,
+    MaisAntigo,
+}
 
 
 struct FileEntry {
@@ -290,7 +376,7 @@ impl Files {
                     .ok()
                     .and_then(|time| {
                         let datetime: DateTime<Local> = time.into();
-                        Some(datetime.format("%d/%m/%Y %H:%M").to_string())
+                        Some(datetime.to_rfc3339())
                     });
                 let description = if path.is_dir() {
                     let desc_path = path.join("description.txt");
@@ -332,4 +418,5 @@ impl Files {
     fn clear_err(&mut self) {
         self.err = None;
     }
+    
 }
