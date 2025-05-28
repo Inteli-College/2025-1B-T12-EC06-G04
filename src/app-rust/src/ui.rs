@@ -18,6 +18,22 @@ pub fn Home() -> Element {
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
+    // Handle for the folders popup
+    let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
+        use futures_util::StreamExt;
+        while let Some(path) = rx.next().await {
+            processed_folder_signal.set(path);
+        }
+    });
+
+    let open_folders_window = move |_evt: MouseEvent| {
+        let tx = handle.tx();
+        dioxus::desktop::window().new_window(
+            VirtualDom::new_with_props(folders_popup, Rc::new(move |path| tx.unbounded_send(path).unwrap())),
+            Default::default(),
+        );
+    };
+
     rsx! {
         div { class: "container",
             h1 { "Organizador de Fotos por Localização" }
