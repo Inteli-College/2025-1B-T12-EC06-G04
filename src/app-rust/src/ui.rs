@@ -126,6 +126,12 @@ pub fn Home() -> Element {
                         }
                     }
                 }
+                div { class: "input-group", style: "margin-top: 20px;",
+                    Link {
+                        to: Route::GraphView {},
+                        button { class: "action-button", "Ver Gráficos 📊" }
+                    }
+                }
             }
             if !status().is_empty() {
                 p { class: "status", "{status()}" }

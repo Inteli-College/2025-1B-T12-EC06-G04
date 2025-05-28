@@ -10,6 +10,9 @@ mod folders;
 use folders::Folders;
 mod report;
 use report::ReportView;
+mod graph;
+use graph::GraphView;
+
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -34,5 +37,7 @@ pub enum Route {
     #[route("/folders")]
     Folders {},
     #[route("/report")]
-    ReportView {}
+    ReportView {},
+    #[route("/graph")]
+    GraphView {},
 }
