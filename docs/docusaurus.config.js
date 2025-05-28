@@ -23,7 +23,7 @@ const config = {
   organizationName: "14 bis", // Usually your GitHub org/user name.
   projectName: "14 bis", // Usually your repo name.
 
-  onBrokenLinks: "warn",
+  onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
@@ -109,11 +109,11 @@ const config = {
             items: [
               {
                 label: "Introdução",
-                to: "/docs/Sprint-1/Negocios/",
+                to: "/docs/sprint-1/negocios/",
               },
               {
                 label: "Guia de Início",
-                to: "/docs/Sprint-1/Negocios/",
+                to: "/docs/sprint-1/negocios/",
               },
             ],
           },
