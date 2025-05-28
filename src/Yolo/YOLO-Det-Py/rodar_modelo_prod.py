@@ -5,15 +5,16 @@ def rodar_modelo(path, modelPath):
         0: "retracao",
         1: "termica"}
     model = YOLO(modelPath)
-    results = model.predict(source=path, show=True)
-    total = {0: 0, 1: 0}
+    results = model.predict(source=path)
+    final = []
     for result in results:
+        path = result.path
         labels = result.boxes.cls.tolist()
+        confidence  = result.boxes.conf.tolist()
         for label in labels:
-            total[label] += 1
-        print(labels)
-    print("Total de objetos detectados por classe:")
-    for label, count in total.items():
-        print(f"Classe {labelToName[label]}: {count} detectado(s)")
-    return total
+            name = labelToName[label]
+            preResultado = {"path": path, "fissura":[]}
+            preResultado["fissura"].append({"name": name, "confidence": confidence[labels.index(label)]})
+            final.append(preResultado)
+    return final
 print(rodar_modelo("RunDataset", "best.pt"))
