@@ -29,37 +29,42 @@ fn render_markdown(md: &str) -> String {
 }
 
 fn export(md_content: &str, file_type: &str) {
-    let file_type_lower = file_type.to_lowercase();
-    let file_type_upper = file_type.to_uppercase();
+    let md_content = md_content.to_string();
+    let file_type = file_type.to_string();
 
-    if let Some(path) = rfd::FileDialog::new()
-        .set_title(&format!("Salvar arquivo {} como...", file_type_lower))
-        .add_filter(&file_type_upper, &[&file_type_lower])
-        .set_file_name(&format!("Relatorio.{}", &file_type_lower))
-        .save_file()
-    {
-        let path = PathBuf::from(path);
-        if &file_type_lower == "md" {
-            let new_file = File::create(&path).unwrap();
-            let mut writer = BufWriter::new(new_file);
-            writer.write_all(md_content.as_bytes()).unwrap();
-        } else {
-            let mut temp_md = NamedTempFile::new().unwrap();
-            write!(temp_md, "{}", md_content).unwrap();
-            temp_md.flush().unwrap();
+    std::thread::spawn(move || {
+        let file_type_lower = file_type.to_lowercase();
+        let file_type_upper = file_type.to_uppercase();
 
-            let status = Command::new("pandoc")
-                .arg(temp_md.path())
-                .arg("-o")
-                .arg(&path)
-                .status()
-                .expect(&format!("Falha ao gerar {} com pandoc", &file_type_upper));
+        if let Some(path) = rfd::FileDialog::new()
+            .set_title(&format!("Salvar arquivo {} como...", file_type_lower))
+            .add_filter(&file_type_upper, &[&file_type_lower])
+            .set_file_name(&format!("Relatorio.{}", &file_type_lower))
+            .save_file()
+        {
+            let path = PathBuf::from(path);
+            if &file_type_lower == "md" {
+                let new_file = File::create(&path).unwrap();
+                let mut writer = BufWriter::new(new_file);
+                writer.write_all(md_content.as_bytes()).unwrap();
+            } else {
+                let mut temp_md = NamedTempFile::new().unwrap();
+                write!(temp_md, "{}", md_content).unwrap();
+                temp_md.flush().unwrap();
 
-            if !status.success() {
-                eprintln!("Erro ao converter Markdown para {} com pandoc", &file_type_upper);
+                let status = Command::new("pandoc")
+                    .arg(temp_md.path())
+                    .arg("-o")
+                    .arg(&path)
+                    .status()
+                    .expect(&format!("Falha ao gerar {} com pandoc", &file_type_upper));
+
+                if !status.success() {
+                    eprintln!("Erro ao converter Markdown para {} com pandoc", &file_type_upper);
+                }
             }
         }
-    }
+    });
 }
 
 fn get_report(report_data_path: PathBuf) -> Result<String, handlebars::RenderError> {
@@ -162,11 +167,10 @@ pub struct ReportViewProps {
 
 #[allow(non_snake_case)]
 pub fn ReportView(props: ReportViewProps) -> Element {
-    let data_file_name = format!("Dados-{}-{}.json", &props.project_name, &props.building_name);
+    let data_file_name: String = format!("Dados-{}-{}.json", &props.project_name, &props.building_name);
     let data_file_path: PathBuf = ["src", "Report", &props.project_name, &data_file_name].iter().collect();
-    println!("data_file_name: {}", data_file_name);
-    println!("&props.project_name: {}", &props.project_name);
-    println!("&props.building_name: {}", &props.building_name);
+    let report_file_name: String = format!("Relatorio-{}-{}.md", &props.project_name, &props.building_name);
+    let report_file_path: PathBuf = ["src", "Report", &props.project_name, &report_file_name].iter().collect();
 
     rsx! {
         document::Link {
@@ -182,20 +186,41 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                 div {
                     class: "button-area",
                     button {
-                        onclick: |_| {
-                            export(include_str!("Template/relatorio.md"), "MD");
+                        onclick: {
+                            let report_file_path = report_file_path.clone();
+                            move |_| {
+                                let report_file_path = report_file_path.clone();
+                                match std::fs::read_to_string(&report_file_path) {
+                                    Ok(content) => export(&content, "MD"),
+                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                }
+                            }
                         },
                         "Exportar em MD"
                     }
                     button {
-                        onclick: |_| {
-                            export(include_str!("Template/relatorio.md"), "PDF");
+                        onclick: {
+                            let report_file_path = report_file_path.clone();
+                            move |_| {
+                                let report_file_path = report_file_path.clone();
+                                match std::fs::read_to_string(&report_file_path) {
+                                    Ok(content) => export(&content, "PDF"),
+                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                }
+                            }
                         },
                         "Exportar em PDF"
-                    }
+                    },
                     button {
-                        onclick: |_| {
-                            export(include_str!("Template/relatorio.md"), "DOCX");
+                        onclick: {
+                            let report_file_path = report_file_path.clone();
+                            move |_| {
+                                let report_file_path = report_file_path.clone();
+                                match std::fs::read_to_string(&report_file_path) {
+                                    Ok(content) => export(&content, "DOCX"),
+                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                }
+                            }
                         },
                         "Exportar em DOCX"
                     }
