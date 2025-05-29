@@ -21,41 +21,67 @@ pub struct ImageData {
 #[component]
 pub fn ManualProcessor() -> Element {
     let mut num_buildings = use_signal(|| 1);
-    let mut buildings = use_signal(|| Vec::<Building>::new());
+    let mut buildings = use_signal(Vec::<Building>::new); // Use ::new for default
     let mut selected_building = use_signal(|| 0);
     let mut building_names = use_signal(|| vec!["Prédio 1".to_string()]);
     let mut facade_counts = use_signal(|| vec![1]);
-    let mut facade_names = use_signal(|| vec![HashMap::new()]);
+    // Ensure HashMap is properly initialized for each building's facade names
+    let mut facade_names = use_signal(|| vec![HashMap::new()]); 
     let mut is_processing = use_signal(|| false);
-    let mut status = use_signal(|| String::new());
+    let mut status = use_signal(String::new); // Use ::new for default
 
     use_effect(move || {
-        let count = num_buildings();
-        if count > 20 {
-            num_buildings.set(20);
-            return;
+        let current_num_buildings_val = *num_buildings.read();
+        let mut desired_num_buildings = current_num_buildings_val;
+
+        // Sanitize num_buildings
+        if desired_num_buildings > 20 {
+            desired_num_buildings = 20;
         }
-        if count == 0 {
-            num_buildings.set(1);
+        // Ensure num_buildings is at least 1
+        if desired_num_buildings < 1 {
+            desired_num_buildings = 1;
+        }
+
+        // If num_buildings was adjusted, set it and let the effect re-run with the new value.
+        if current_num_buildings_val != desired_num_buildings {
+            num_buildings.set(desired_num_buildings);
             return;
         }
 
+        // At this point, desired_num_buildings holds the validated and stable count.
+        let count = desired_num_buildings;
+
+        // Clone all the data we need before any writes
+        let current_buildings = buildings.read().clone();
+        let current_building_names = building_names.read().clone();
+        let current_facade_counts = facade_counts.read().clone();
+        let current_facade_names = facade_names.read().clone();
+
+        // Check if we need to update
+        if current_buildings.len() == count {
+            // Only adjust selected_building if needed
+            if *selected_building.read() >= count && count > 0 {
+                selected_building.set(count - 1);
+            } else if count == 0 {
+                selected_building.set(0);
+            }
+            return;
+        }
+
+        // Create new vectors with the desired capacity
         let mut new_buildings_vec = Vec::with_capacity(count);
         let mut new_building_names_vec = Vec::with_capacity(count);
         let mut new_facade_counts_vec = Vec::with_capacity(count);
         let mut new_facade_names_vec = Vec::with_capacity(count);
 
-        let old_building_names: Vec<String> = building_names.read().clone();
-        let old_facade_counts: Vec<usize> = facade_counts.read().clone();
-        let old_facade_names: Vec<HashMap<usize, String>> = facade_names.read().clone();
-        let old_buildings_data: Vec<Building> = buildings.read().clone();
-
+        // Populate the new vectors using the cloned data
         for i in 0..count {
-            let name = old_building_names.get(i)
+            let name = current_building_names.get(i)
                 .cloned()
                 .unwrap_or_else(|| format!("Prédio {}", i + 1));
             
-            let facades_data = old_buildings_data.get(i)
+            let facades_data = current_buildings.get(i)
                 .map(|b| b.facades.clone())
                 .unwrap_or_else(HashMap::new);
 
@@ -64,29 +90,47 @@ pub fn ManualProcessor() -> Element {
                 facades: facades_data,
             });
             new_building_names_vec.push(name);
-            new_facade_counts_vec.push(old_facade_counts.get(i).cloned().unwrap_or(1));
-            new_facade_names_vec.push(old_facade_names.get(i).cloned().unwrap_or_else(HashMap::new));
+            new_facade_counts_vec.push(current_facade_counts.get(i).cloned().unwrap_or(1));
+            new_facade_names_vec.push(current_facade_names.get(i).cloned().unwrap_or_else(HashMap::new));
         }
 
+        // Now we can safely write to all signals since we're not holding any read locks
         buildings.set(new_buildings_vec);
         building_names.set(new_building_names_vec);
         facade_counts.set(new_facade_counts_vec);
         facade_names.set(new_facade_names_vec);
+
+        // Adjust selected_building if needed
+        if *selected_building.read() >= count && count > 0 {
+            selected_building.set(count - 1);
+        } else if count == 0 {
+            selected_building.set(0);
+        }
     });
 
     let organize_folders = move |_| {
-        let current_buildings = buildings.read().clone();
+        // Clone necessary data for the async block
+        let current_buildings_for_async = buildings.read().clone(); 
+        // Make sure is_processing and status signals are properly captured if needed by value for set
+        let mut is_processing_writer = is_processing;
+        let mut status_writer = status;
+
         spawn(async move {
-            is_processing.set(true);
-            status.set("Organizando pastas...".to_string());
+            is_processing_writer.set(true);
+            status_writer.set("Organizando pastas...".to_string());
             
-            for building_detail in current_buildings.iter() {
+            // Iterate over the cloned data
+            for building_detail in current_buildings_for_async.iter() {
                 let building_folder_name = &building_detail.name;
+                // It's good practice to ensure folder names are sanitized
+                // For simplicity, using as is.
                 let building_path = PathBuf::from(building_folder_name);
                 
                 if let Err(e) = fs::create_dir_all(&building_path) {
-                    status.set(format!("Erro ao criar pasta do prédio {}: {}", building_folder_name, e));
-                    is_processing.set(false);
+                    status_writer.set(format!("Erro ao criar pasta do prédio {}: {}", building_folder_name, e));
+                    // Decide if you want to stop all processing or continue with other buildings
+                    // For now, setting is_processing to false and returning.
+                    is_processing_writer.set(false);
                     return;
                 }
                 
@@ -94,23 +138,34 @@ pub fn ManualProcessor() -> Element {
                     let facade_path = building_path.join(facade_folder_name);
                     
                     if let Err(e) = fs::create_dir_all(&facade_path) {
-                        status.set(format!("Erro ao criar pasta da fachada {} (prédio {}): {}", facade_folder_name, building_folder_name, e));
-                        continue; 
+                        status_writer.set(format!("Erro ao criar pasta da fachada {} (prédio {}): {}", facade_folder_name, building_folder_name, e));
+                        continue; // Continue with the next facade or image
                     }
                     
                     for image_data in images {
                         let source_path = PathBuf::from(&image_data.path);
+                        // Ensure image_data.name is a valid file name
                         let target_path = facade_path.join(&image_data.name);
                         
+                        // Check if source_path exists before trying to copy
+                        if !source_path.exists() {
+                            status_writer.set(format!("Erro: Imagem de origem não encontrada {} para {}", image_data.path, facade_folder_name));
+                            continue; // Skip this image
+                        }
+
                         if let Err(e) = fs::copy(&source_path, &target_path) {
-                            status.set(format!("Erro ao copiar imagem {} para {}: {}", image_data.name, facade_folder_name, e));
+                            status_writer.set(format!("Erro ao copiar imagem {} para {}: {}", image_data.name, facade_folder_name, e));
+                            // Decide if this error should stop everything or just log and continue
                         }
                     }
                 }
             }
             
-            status.set("Organização concluída com sucesso!".to_string());
-            is_processing.set(false);
+            status_writer.set("Organização concluída com sucesso!".to_string());
+            is_processing_writer.set(false);
+            
+            // Close the window after successful organization
+            dioxus::desktop::window().close();
         });
     };
 
@@ -171,6 +226,7 @@ pub fn ManualProcessor() -> Element {
                                     // Their lifetime is now tied to this outer .map() iteration.
                                     
                                     rsx! { // RSX for a single building
+                                        document::Stylesheet { href: asset!("/assets/tailwind.css") }
                                         div { key: "building-{i}", class: "bg-white rounded-lg shadow-md p-6 mb-6",
                                             div { class: "mb-6", // Building Name
                                                 label { class: "block text-gray-700 mb-2", "Nome do Prédio:" }
@@ -216,6 +272,7 @@ pub fn ManualProcessor() -> Element {
                                                             .unwrap_or_else(|| format!("Fachada {}", j + 1));
 
                                                         rsx! { // RSX for a single facade
+                                                            document::Stylesheet { href: asset!("/assets/tailwind.css") }
                                                             div { key: "facade-{i}-{j}", class: "bg-gray-50 rounded-lg p-4",
                                                                 div { class: "flex items-center justify-between mb-4", // Facade Name and Add Images
                                                                     div { class: "flex-1 mr-4",
@@ -344,6 +401,7 @@ pub fn ManualProcessor() -> Element {
                                     }
                                 } else { // Else for `if i < data_lengths`
                                     rsx! { // Fallback for out-of-bounds (should ideally not happen if data is synced)
+                                        document::Stylesheet { href: asset!("/assets/tailwind.css") }
                                         div { key: "loading-{i}", class: "bg-gray-100 rounded-lg p-4 animate-pulse",
                                             "Carregando dados do prédio..."
                                         }
