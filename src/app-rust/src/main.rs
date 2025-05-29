@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder, prelude::*};
+use dioxus::{desktop::Config, desktop::WindowBuilder};
 use std::path::PathBuf;
 
 mod ui;
@@ -33,6 +33,6 @@ pub enum Route {
     Home {},
     #[route("/")]
     Folders {},
-    #[route("/report")]
-    ReportView {}
+    #[route("/report/:project_name/:building_name")]
+    ReportView { project_name: String, building_name: String }
 }

@@ -82,8 +82,8 @@ pub fn Folders() -> Element {
                 { file_cards.into_iter() }
 
                 Link {
-                    to: Route::ReportView {},  // ajuste para o nome da rota correta
                     class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
+                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },  // ajuste para o nome da rota correta
                     button {
                         class: "flex items-center gap-2",
                         i { class: "material-icons", "assessment" }
