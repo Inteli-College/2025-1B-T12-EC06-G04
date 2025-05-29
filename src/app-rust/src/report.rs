@@ -1,15 +1,18 @@
 use dioxus::prelude::*;
-use serde_json::{json, Value};
+use serde_json::Value;
 use tempfile::NamedTempFile;
 use pulldown_cmark::{Parser, Options, html};
 use std::{
-    collections::BTreeMap,
-    io::{Write, BufWriter},
+    io::{
+        Read,
+        Write,
+        BufWriter
+    },
     process::Command,
-    fs::File
+    fs::File,
+    path::PathBuf
 };
 
-// To indicate another path, use `mod` with `#[path = "..."]`:
 #[path = "./report_generator.rs"]
 mod report_generator;
 use report_generator::generate_report;
@@ -35,6 +38,7 @@ fn export(md_content: &str, file_type: &str) {
         .set_file_name(&format!("Relatorio.{}", &file_type_lower))
         .save_file()
     {
+        let path = PathBuf::from(path);
         if &file_type_lower == "md" {
             let new_file = File::create(&path).unwrap();
             let mut writer = BufWriter::new(new_file);
@@ -58,40 +62,116 @@ fn export(md_content: &str, file_type: &str) {
     }
 }
 
-fn get_report() -> Result<String, handlebars::RenderError> {
+fn get_report(report_data_path: PathBuf) -> Result<String, handlebars::RenderError> {
     // Importa o template do relatório
-    let template: &str = include_str!("Report/report_template.md");
+    let template: &str = include_str!("Template/report_template.md");
+
+    println!("report_data_path: {:?}", report_data_path.to_str());
+
+    if !report_data_path.exists() {
+        return Err(handlebars::RenderError::from(
+            handlebars::RenderErrorReason::Other(format!(
+                "O arquivo de dados do relatório não existe: {:?}",
+                report_data_path
+            )),
+        ));
+    }
 
     // Pegar arquivo JSON
-    let file = File::open("Report/relatorio.json")
+    let file = File::open(&report_data_path)
         .map_err(|e| handlebars::RenderError::from(
             handlebars::RenderErrorReason::Other(format!("Erro ao abrir JSON: {}", e))
         ))?;
 
-    // Serializae do JSON
-    let json_data: Value = serde_json::from_reader(file)
+    // Deserialize do JSON
+    let mut json_data: Value = serde_json::from_reader(file)
         .map_err(|e| handlebars::RenderError::from(
             handlebars::RenderErrorReason::Other(format!("Erro ao ler JSON: {}", e))
         ))?;
 
-    // Converter dados do JSON em um BtreeMap
-    let data: BTreeMap<String, Value> = match json_data.as_object() {
-        Some(map) => map.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
-        None => BTreeMap::new(),
-    };
+    // Extrai os nomes antes do empréstimo mutável
+    let project_name = json_data.get("nome_projeto")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .replace(' ', "_")
+        .to_string();
+    let building_name = json_data.get("nome_predio")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .replace(' ', "_")
+        .to_string();
 
-    // Gera o report, passando o template e os dados
-    let report = generate_report(template, data)?;
+    // Ajusta o caminho das imagens das fissuras
+    if let Some(fissuras) = json_data.get_mut("fissuras").and_then(|v| v.as_array_mut()) {
+        for fissura in fissuras {
+            if let Some(caminho) = fissura.get_mut("caminho_imagem") {
+                if let Some(str_path) = caminho.as_str() {
+                    let new_path = format!("Report/{}/{}", project_name, str_path);
+                    *caminho = Value::String(new_path);
+                }
+            }
+        }
+    }
+    let file_name = format!("Relatorio-{}-{}.md", project_name, building_name);
+    let file_path: PathBuf = ["Report", &project_name, &file_name].iter().collect();
 
-    Ok(report)
+    let report: String;
+
+    // Verifica se o arquivo do relatório já existe; caso não, gera o relatório
+    if !file_path.exists() {
+        let report_dir: PathBuf = ["Report", &project_name].iter().collect();
+        std::fs::create_dir_all(&report_dir).map_err(|e| handlebars::RenderError::from(
+            handlebars::RenderErrorReason::Other(format!("Erro ao criar pasta Report: {}", e))
+        ))?;
+
+        // Gera o report, passando o template e os dados
+        report = generate_report(template, &json_data)?;
+
+        // Salva o relatório gerado em um arquivo Markdown
+        let mut file = File::create(&file_path)
+            .map_err(|e| handlebars::RenderError::from(
+                handlebars::RenderErrorReason::Other(format!("Erro ao criar arquivo MD: {}", e))
+            ))?;
+        file.write_all(report.as_bytes())
+            .map_err(|e| handlebars::RenderError::from(
+                handlebars::RenderErrorReason::Other(format!("Erro ao escrever no arquivo MD: {}", e))
+            ))?;
+    } else {
+        // Se o arquivo já existe, lê o conteúdo Markdown
+        let mut file = File::open(&file_path)
+            .map_err(|e| handlebars::RenderError::from(
+                handlebars::RenderErrorReason::Other(format!("Erro ao abrir arquivo MD existente: {}", e))
+            ))?;
+        let mut md_content = String::new();
+        file.read_to_string(&mut md_content)
+            .map_err(|e| handlebars::RenderError::from(
+                handlebars::RenderErrorReason::Other(format!("Erro ao ler arquivo MD existente: {}", e))
+            ))?;
+        report = md_content;
+    }
+
+    // Retorna o relatório renderizado como HTML
+    Ok(render_markdown(&report))
+}
+
+#[derive(Props, PartialEq, Clone)]
+pub struct ReportViewProps {
+    pub project_name: String,
+    pub building_name: String
 }
 
 #[allow(non_snake_case)]
-pub fn ReportView() -> Element {
+pub fn ReportView(props: ReportViewProps) -> Element {
+    let data_file_name = format!("Dados-{}-{}.json", &props.project_name, &props.building_name);
+    let data_file_path: PathBuf = ["src", "Report", &props.project_name, &data_file_name].iter().collect();
+    println!("data_file_name: {}", data_file_name);
+    println!("&props.project_name: {}", &props.project_name);
+    println!("&props.building_name: {}", &props.building_name);
+
     rsx! {
         document::Link {
             rel: "stylesheet",
-            href: asset!("/src/Report/report_page.css")
+            href: asset!("/src/Template/report_page.css")
         }
         body {
             header {
@@ -103,19 +183,19 @@ pub fn ReportView() -> Element {
                     class: "button-area",
                     button {
                         onclick: |_| {
-                            export(include_str!("Report/relatorio.md"), "MD");
+                            export(include_str!("Template/relatorio.md"), "MD");
                         },
                         "Exportar em MD"
                     }
                     button {
                         onclick: |_| {
-                            export(include_str!("Report/relatorio.md"), "PDF");
+                            export(include_str!("Template/relatorio.md"), "PDF");
                         },
                         "Exportar em PDF"
                     }
                     button {
                         onclick: |_| {
-                            export(include_str!("Report/relatorio.md"), "DOCX");
+                            export(include_str!("Template/relatorio.md"), "DOCX");
                         },
                         "Exportar em DOCX"
                     }
@@ -124,7 +204,8 @@ pub fn ReportView() -> Element {
                     class: "text-viewer",
                     div {
                         class: "text-content",
-                        dangerous_inner_html: get_report().unwrap_or_else(|e| format!("Erro ao gerar relatório: {}", e))
+                        dangerous_inner_html: get_report(data_file_path.clone())
+                            .unwrap_or_else(|e| format!("Erro ao gerar relatório: {}", e))
                     }
                 }
             }
