@@ -133,7 +133,7 @@ pub fn Folders() -> Element {
 
             // barra de pesquisa
             div {
-                class: "w-full p-4",
+                class: "w-4 p-4",
                 input {
                     r#type: "text",
                     class: "w-full p-2 border rounded",
@@ -144,37 +144,32 @@ pub fn Folders() -> Element {
                     value: "{search_input}",
                 }
             }
-
-            // botões de filtro de ordenação alfabética
             div {
-                class: "flex gap-2",
+                // container com todos os botões em uma única linha
+                class: "flex-wrap p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
+                
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
                     onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
                     "Mais recente"
                 }
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
                     onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
                     "Mais antigo"
                 }
-            }
-
-            // botões de filtro de ordenação por data
-            div {
-                class: "flex gap-2",
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
                     onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
                     "A-Z"
                 }
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
                     onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
                     "Z-A"
                 }
             }
-            
+
         
 
             main {
