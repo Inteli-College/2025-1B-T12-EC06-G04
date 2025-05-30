@@ -11,7 +11,7 @@ use chrono::{DateTime, Local};
 use crate::manual_processor::ManualProcessor;
 
 #[component]
-pub fn Home() -> Element {
+pub fn Create_project() -> Element {
     let mut folder_path = use_signal(|| None::<String>);
     let mut status = use_signal(|| String::new());
     let mut threshold = use_signal(|| 200.0_f64);
