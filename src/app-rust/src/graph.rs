@@ -192,7 +192,7 @@ fn gerar_svg_barras(dados: &[FissuraData]) -> String {
 
 #[component]
 pub fn GraphView() -> Element {
-    let dados = ler_csv("../../src/teste_fissuras.csv");
+    let dados = ler_csv("teste_fissuras.csv"); 
 
     let total_termica: u32 = dados.iter().map(|d| d.termica).sum();
     let total_retracao: u32 = dados.iter().map(|d| d.retracao).sum();
