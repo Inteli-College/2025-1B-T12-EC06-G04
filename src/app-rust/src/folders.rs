@@ -253,12 +253,12 @@ pub fn Folders() -> Element {
     
             // Botão para criar o projeto
             Link {
-                to: Route::Home {},
+                to: Route::New_project {},
                 button {
                     class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
                     title: "Nova Pasta",
                     onclick: move |_| show_new_folder_input.set(true),
-                    i { class: "material-icons", "edit" }
+                    i { class: "material-icons", "add" }
                 }
             }
 
