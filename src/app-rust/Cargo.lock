@@ -1587,6 +1587,7 @@ dependencies = [
  "dioxus",
  "dioxus-desktop",
  "dioxus-router",
+ "futures-util",
  "home",
  "kamadak-exif",
  "num-traits",

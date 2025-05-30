@@ -6,9 +6,8 @@ use std::path::PathBuf;
 mod ui;
 use ui::Home;
 mod image_processor;
-mod folders;
-use folders::Folders;
 mod report;
+mod manual_processor;
 use report::ReportView;
 
 fn main() {
@@ -29,10 +28,8 @@ fn App() -> Element {
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
-    #[route("/home")]
-    Home {},
     #[route("/")]
-    Folders {},
+    Home {},
     #[route("/report")]
     ReportView {}
 }

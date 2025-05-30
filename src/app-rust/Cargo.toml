@@ -22,6 +22,7 @@ kamadak-exif = "0.5.5"
 regex = "1.11.1"
 num-traits = "0.2.19"
 home = "0.5.11"
+futures-util = "0.3.31"
 
 [workspace]
 
@@ -43,4 +44,3 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
-
