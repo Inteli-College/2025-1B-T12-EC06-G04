@@ -128,67 +128,14 @@ pub fn Home() -> Element {
                     }
                 }
             }
-
-            // se o botão para criar pasta for clicado, aciona o pop-up abaixo
-            if *show_new_folder_input.read() {
-                div {
-                    class: "fixed bottom-24 right-6 bg-white border shadow-lg rounded-lg p-4 flex flex-col gap-2 w-80 max-w-full z-50",
-    
-                    h2 { class: "text-lg font-semibold text-gray-800", "Novo Projeto" }
-    
-                    input {
-                        class: "border rounded px-3 py-2 w-full",
-                        r#type: "text",
-                        placeholder: "Nome da nova pasta",
-                        value: "{new_folder_name.read()}",
-                        oninput: move |e| new_folder_name.set(e.value())
-                    }
-    
-                    textarea {
-                        class: "border rounded px-3 py-2 w-full resize-none",
-                        rows: "4",
-                        placeholder: "Descrição do projeto",
-                        value: "{new_folder_description.read()}",
-                        oninput: move |e| new_folder_description.set(e.value())
-                    }
-    
-                    div { class: "flex justify-end gap-2 mt-2",
-                        button {
-                            class: "text-gray-500 text-sm hover:underline",
-                            onclick: move |_| {
-                                show_new_folder_input.set(false);
-                                new_folder_name.set(String::new());
-                                new_folder_description.set(String::new());
-                            },
-                            "Cancelar"
-                        }
-                        button {
-                            class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded",
-                            onclick: move |_| {
-                                let name = new_folder_name.read().trim().to_string();
-                                let description = new_folder_description.read().trim().to_string();
-    
-                                if !name.is_empty() {
-                                    files.write().create_folder_with_description(name.clone(), description.clone());
-                                    new_folder_name.set(String::new());
-                                    new_folder_description.set(String::new());
-                                    show_new_folder_input.set(false);
-                                }
-                            },
-                            "Criar Pasta"
-                        }
-                    }
-                }
-            }
     
             // Botão para criar o projeto
             Link {
-                to: Route::Home {},
+                to: Route::Create_project {},
                 button {
                     class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
                     title: "Nova Pasta",
-                    onclick: move |_| show_new_folder_input.set(true),
-                    i { class: "material-icons", "edit" }
+                    i { class: "material-icons", "add" }
                 }
             }
 
