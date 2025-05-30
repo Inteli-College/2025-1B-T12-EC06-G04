@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder, prelude::*};
+use dioxus::{desktop::Config, desktop::WindowBuilder};
 use std::path::PathBuf;
 
 mod create_project;
@@ -35,5 +35,7 @@ pub enum Route {
     #[route("/create-project")]
     Create_project {},
     #[route("/report")]
-    ReportView {}
+    ReportView {},
+    #[route("/report/:project_name/:building_name")]
+    ReportView { project_name: String, building_name: String }
 }
