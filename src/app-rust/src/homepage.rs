@@ -15,7 +15,7 @@ fn display_from_projects(path: &Path) -> Option<PathBuf> {
 }
 
 #[allow(non_snake_case)]
-pub fn Folders() -> Element {
+pub fn Homepage() -> Element {
     let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
     let initial_path_from_state = processed_folder_signal.read().clone();
 

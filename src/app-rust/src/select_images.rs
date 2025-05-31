@@ -11,7 +11,7 @@ use chrono::{DateTime, Local};
 use crate::manual_processor::ManualProcessor;
 
 #[component]
-pub fn Home() -> Element {
+pub fn Select_images() -> Element {
     let mut folder_path = use_signal(|| None::<String>);
     let mut status = use_signal(|| String::new());
     let mut threshold = use_signal(|| 200.0_f64);
@@ -81,7 +81,7 @@ pub fn Home() -> Element {
                             "Distância máxima entre imagens do mesmo prédio (metros):" 
                         }
                 input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "w-4 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
                     r#type: "number",
                     value: "{threshold()}",
                     min: "10",
