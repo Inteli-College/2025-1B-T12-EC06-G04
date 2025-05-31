@@ -76,7 +76,7 @@ pub fn Homepage() -> Element {
     let mut search_input = use_signal(|| String::new());
 
 
-    let file_cards = files.read().path_names.iter().enumerate()
+    let folder_cards = entries.iter().enumerate()
     .filter_map(|(dir_id, entry)| {
         let path = &entry.path;
         let folder_name = path.file_name()?.to_string_lossy();
@@ -173,7 +173,7 @@ pub fn Homepage() -> Element {
 
             main {
                 class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                { file_cards.into_iter() }
+                { folder_cards.into_iter() }
 
                 Link {
                     to: Route::ReportView {},  // ajuste para o nome da rota correta
