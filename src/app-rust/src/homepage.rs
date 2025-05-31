@@ -316,7 +316,7 @@ impl Files {
                     .ok()
                     .and_then(|time| {
                         let datetime: DateTime<Local> = time.into();
-                        Some(datetime.format("%d/%m/%Y %H:%M").to_string())
+                        Some(datetime.to_rfc3339())
                     });
                 let description = if path.is_dir() {
                     let desc_path = path.join("description.txt");
