@@ -90,7 +90,7 @@ pub fn Folders() -> Element {
 
             // barra de pesquisa
             div {
-                class: "w-full p-4",
+                class: "w-4 p-4",
                 input {
                     r#type: "text",
                     class: "w-full p-2 border rounded",
@@ -98,9 +98,36 @@ pub fn Folders() -> Element {
                     oninput: move |e| {
                         search_term.set(e.value().clone());
                     },
-                    value: "{search_term}",
+                    value: "{search_input}",
                 }
             }
+            div {
+                // container com todos os botões em uma única linha
+                class: "flex-wrap p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
+                
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
+                    "Mais recente"
+                }
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
+                    "Mais antigo"
+                }
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
+                    "A-Z"
+                }
+                button {
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
+                    "Z-A"
+                }
+            }
+
+        
 
             main {
                 class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
@@ -183,12 +210,12 @@ pub fn Folders() -> Element {
     
             // Botão para criar o projeto
             Link {
-                to: Route::Home {},
+                to: Route::New_project {},
                 button {
                     class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
                     title: "Nova Pasta",
                     onclick: move |_| show_new_folder_input.set(true),
-                    i { class: "material-icons", "edit" }
+                    i { class: "material-icons", "add" }
                 }
             }
 

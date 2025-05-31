@@ -9,6 +9,8 @@ mod image_processor;
 mod report;
 mod manual_processor;
 use report::ReportView;
+mod create_project;
+use create_project::New_project;
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -31,5 +33,7 @@ pub enum Route {
     #[route("/")]
     Home {},
     #[route("/report")]
-    ReportView {}
+    ReportView {},
+    #[route("/new-project")]
+    New_project {}
 }
