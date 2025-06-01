@@ -3,6 +3,12 @@ use std::collections::HashMap;
 use rfd::AsyncFileDialog;
 use std::path::PathBuf;
 use std::fs;
+use dioxus::prelude::Readable;
+
+#[derive(Props, Clone, PartialEq)]
+pub struct ManualProcessorProps {
+    pub project_name: String,
+}
 
 #[derive(Clone, PartialEq)]
 pub struct Building {
@@ -18,12 +24,12 @@ pub struct ImageData {
 }
 
 #[component]
-pub fn ManualProcessor() -> Element {
+pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     let mut num_buildings = use_signal(|| 1);
     let mut buildings = use_signal(Vec::<Building>::new);
     let mut building_names = use_signal(|| vec!["Prédio 1".to_string()]);
     let mut facade_counts = use_signal(|| vec![1]);
-    let mut facade_names = use_signal(|| vec![HashMap::new()]); 
+    let mut facade_names = use_signal(|| vec![HashMap::new()]);
     let is_processing = use_signal(|| false);
     let status = use_signal(String::new);
 
@@ -80,14 +86,19 @@ pub fn ManualProcessor() -> Element {
         let current_buildings = buildings.read().clone();
         let mut is_processing_writer = is_processing;
         let mut status_writer = status;
+        let project_name_clone = props.project_name.clone();
 
         spawn(async move {
             is_processing_writer.set(true);
             status_writer.set("Organizando pastas...".to_string());
             
+            let project_name_for_path = project_name_clone;
+
+            let project_path = PathBuf::from("Projects").join(&project_name_for_path).join("images");
+            
             for building_detail in current_buildings.iter() {
                 let building_folder_name = &building_detail.name;
-                let building_path = PathBuf::from(building_folder_name);
+                let building_path = project_path.join(building_folder_name);
                 
                 if let Err(e) = fs::create_dir_all(&building_path) {
                     status_writer.set(format!("Erro ao criar pasta do prédio {}: {}", building_folder_name, e));
@@ -99,8 +110,9 @@ pub fn ManualProcessor() -> Element {
                     let facade_path = building_path.join(facade_folder_name);
                     
                     if let Err(e) = fs::create_dir_all(&facade_path) {
-                        status_writer.set(format!("Erro ao criar pasta da fachada {} (prédio {}): {}", facade_folder_name, building_folder_name, e));
-                        continue;
+                        status_writer.set(format!("Erro ao criar pasta da fachada {}: {}", facade_folder_name, e));
+                        is_processing_writer.set(false);
+                        return;
                     }
                     
                     for image_data in images {
@@ -119,9 +131,8 @@ pub fn ManualProcessor() -> Element {
                 }
             }
             
-            status_writer.set("Organização concluída com sucesso!".to_string());
+            status_writer.set("Pastas organizadas com sucesso!".to_string());
             is_processing_writer.set(false);
-            dioxus::desktop::window().close();
         });
     };
 

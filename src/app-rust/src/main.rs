@@ -9,14 +9,22 @@ mod report;
 mod create_project;
 mod image_processor;
 mod manual_processor;
+mod ui;
 
 use homepage::HomePage;
 use select_images::SelectImages;
 use report::ReportView;
 use create_project::NewProject;
+use ui::Home;
 mod graph;
 use graph::GraphView;
 
+#[component]
+fn Process() -> Element {
+    rsx! {
+        Home {}
+    }
+}
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -50,4 +58,7 @@ pub enum Route {
     
     #[route("/report/:project_name/:building_name")]
     ReportView { project_name: String, building_name: String },
+
+    #[route("/process")]
+    Process {},
 }

@@ -8,6 +8,8 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::process::Command;
 use exif::{Tag, In, Reader, Value};
+use crate::create_project::PROJECT_NAME;
+use dioxus::prelude::Readable;
 
 // Representa uma localização geográfica
 #[derive(Debug, Clone, PartialEq, Copy)]
@@ -428,9 +430,17 @@ fn sanitize_filename(name: &str) -> String {
 }
 
 // Função principal de processamento (MODIFICADA SIGNIFICATIVAMENTE)
-pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
-    let mut stats = ProcessingStats::default();
-    let folder_path = Path::new(folder_path_str);
+pub fn process_folder(folder_path: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
+    let project_name = match PROJECT_NAME.try_read() {
+        Ok(guard) => match &*guard {
+            Some(name) => name.clone(),
+            None => return Err(anyhow!("Nome do projeto não definido")),
+        },
+        Err(_) => return Err(anyhow!("Erro ao ler nome do projeto")),
+    };
+
+    let project_path = PathBuf::from("Projects").join(&project_name).join("images");
+    let folder_path = Path::new(folder_path);
     let tag_map = nome_para_tag();
     
     // Verifica se exiftool está disponível
@@ -441,6 +451,7 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
         println!("ExifTool não encontrado, usando apenas biblioteca exif.");
     }
 
+    let mut stats = ProcessingStats::default();
     let mut all_image_metadata: Vec<ImageMetadata> = Vec::new();
 
     for entry in WalkDir::new(folder_path)
@@ -513,9 +524,9 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
     // Classificação de Fachadas e Criação de Pastas
     for predio in predios.iter_mut() {
         let sanitized_predio_id = sanitize_filename(&predio.id); // Sanitizar ID do prédio
-        let predio_target_dir = folder_path.join(&sanitized_predio_id); // Usar ID sanitizado
+        let predio_target_dir = project_path.join(&sanitized_predio_id); // Usar ID sanitizado
         if let Err(e) = fs::create_dir_all(&predio_target_dir) {
-            stats.errors.push(format!("Falha ao criar diretório {}: {}", predio_target_dir.display(), e));
+            stats.errors.push(format!("Erro ao criar pasta do prédio {}: {}", sanitized_predio_id, e));
             continue;
         }
 
@@ -533,7 +544,7 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
             // Criar pasta da fachada e copiar imagem
             let fachada_target_dir = predio_target_dir.join(&sanitized_fachada_dir_name); // Usar nome sanitizado
             if let Err(e) = fs::create_dir_all(&fachada_target_dir) {
-                stats.errors.push(format!("Falha ao criar diretório {}: {}", fachada_target_dir.display(), e));
+                stats.errors.push(format!("Erro ao criar diretório {}: {}", fachada_target_dir.display(), e));
                 continue; // Pula para a próxima imagem se não puder criar a pasta da fachada
             }
 
