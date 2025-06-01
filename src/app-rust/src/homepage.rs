@@ -92,11 +92,10 @@ pub fn HomePage() -> Element {
         }
 
         Some(rsx!(
-            div {
+            Link {
+                to: Route::GraphView {},
                 class: "flex flex-col items-center text-center bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg hover:bg-blue-50 transition duration-300 ease-in-out",
                 key: "{path_display}",
-                onclick: move |_| files.write().enter_dir(dir_id),
-
                 i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
                 h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
                 p { class: "text-xs text-gray-400 mt-1", "{created}" }

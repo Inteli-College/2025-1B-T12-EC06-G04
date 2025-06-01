@@ -14,6 +14,9 @@ use homepage::HomePage;
 use select_images::SelectImages;
 use report::ReportView;
 use create_project::NewProject;
+mod graph;
+use graph::GraphView;
+
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -35,10 +38,16 @@ fn App() -> Element {
 pub enum Route {
     #[route("/")]
     HomePage {},
+
     #[route("/new-project")]
     NewProject {},
+
     #[route("/select-images")]
     SelectImages {},
+
+    #[route("/graph")]
+    GraphView {},
+    
     #[route("/report/:project_name/:building_name")]
-    ReportView { project_name: String, building_name: String }
+    ReportView { project_name: String, building_name: String },
 }
