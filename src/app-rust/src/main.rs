@@ -1,21 +1,19 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder, prelude::*};
+use dioxus::{desktop::Config, desktop::WindowBuilder};
 use std::path::PathBuf;
 
-
 mod homepage;
-use homepage::Homepage;
 mod select_images;
-use select_images::Select_images;
 mod report;
-use report::ReportView;
 mod create_project;
-use create_project::New_project;
-mod manual_processor;
-use manual_processor::ManualProcessor;
 mod image_processor;
+mod manual_processor;
 
+use homepage::HomePage;
+use select_images::SelectImages;
+use report::ReportView;
+use create_project::NewProject;
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -36,11 +34,11 @@ fn App() -> Element {
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[route("/")]
-    Homepage {},
-    #[route("/report")]
-    ReportView {},
+    HomePage {},
     #[route("/new-project")]
-    New_project {},
+    NewProject {},
     #[route("/select-images")]
-    Select_images {}
+    SelectImages {},
+    #[route("/report/:project_name/:building_name")]
+    ReportView { project_name: String, building_name: String }
 }

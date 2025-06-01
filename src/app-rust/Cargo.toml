@@ -3,10 +3,8 @@ name = "file-explorer"
 edition = "2021"
 version = "0.1.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-dioxus = { version = "0.6.0", workspace = true, features = ["desktop"] }
+dioxus = { version = "0.6.0", features = ["desktop"] }
 printpdf = "0.3.1"
 pulldown-cmark = "0.9"
 tempfile = "3.20.0"
@@ -23,17 +21,13 @@ regex = "1.11.1"
 num-traits = "0.2.19"
 home = "0.5.11"
 futures-util = "0.3.31"
-
-[workspace]
+handlebars = "6.3.2"
+markdown_to_text = "1.0.0"
+serde_json = "1.0.140"
 
 [features]
 default = ["desktop"]
 desktop = ["dioxus/desktop"]
-
-[workspace.dependencies]
-dioxus = "0.6"
-
-[profile]
 
 [profile.wasm-dev]
 inherits = "dev"

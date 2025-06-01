@@ -4,10 +4,9 @@ use chrono::{DateTime, Local};
 use dioxus_router::prelude::Link;
 use crate::Route;
 
-
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
-        if ancestor.file_name().map_or(false, |name| name == "projects") {
+        if ancestor.file_name().map_or(false, |name| name == "Projects") {
             return path.strip_prefix(ancestor).ok().map(|p| p.to_path_buf());
         }
     }
@@ -15,7 +14,7 @@ fn display_from_projects(path: &Path) -> Option<PathBuf> {
 }
 
 #[allow(non_snake_case)]
-pub fn Homepage() -> Element {
+pub fn HomePage() -> Element {
     let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
     let initial_path_from_state = processed_folder_signal.read().clone();
 
@@ -176,8 +175,8 @@ pub fn Homepage() -> Element {
                 { folder_cards.into_iter() }
 
                 Link {
-                    to: Route::ReportView {},  // ajuste para o nome da rota correta
                     class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
+                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },  // ajuste para o nome da rota correta
                     button {
                         class: "flex items-center gap-2",
                         i { class: "material-icons", "assessment" }
@@ -200,7 +199,7 @@ pub fn Homepage() -> Element {
     
             // Botão para criar o projeto
             Link {
-                to: Route::New_project {},
+                to: Route::NewProject {},
                 button {
                     class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
                     title: "Nova Pasta",
@@ -241,7 +240,7 @@ impl Files {
     fn new(initial_path_option: Option<PathBuf>) -> Self {
         let base_path = match initial_path_option {
             Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects"),
         };
 
         if let Err(e) = std::fs::create_dir_all(&base_path) {
@@ -264,7 +263,7 @@ impl Files {
     fn update_base_path_if_different(&mut self, new_initial_path_option: Option<PathBuf>) {
         let new_base_path = match new_initial_path_option {
             Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects"),
         };
 
         if self.base_path != new_base_path {

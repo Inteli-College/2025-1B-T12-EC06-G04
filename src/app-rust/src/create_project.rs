@@ -1,11 +1,10 @@
 use dioxus::prelude::*;
-use std::path::{Path, PathBuf};
-use chrono::{DateTime, Local};
+use std::path::PathBuf;
 use dioxus_router::prelude::Link;
 use crate::Route;
 
 #[component]
-pub fn New_project() -> Element {
+pub fn NewProject() -> Element {
     let mut name = use_signal(|| String::new());
     let mut description = use_signal(|| String::new());
     let mut year = use_signal(|| "".to_string());
@@ -118,6 +117,14 @@ pub fn New_project() -> Element {
 
                     if !status().is_empty() {
                         p { class: "text-center text-gray-700", "{status()}" }
+                        Link {
+                            to: Route::HomePage {},
+                            button {
+                                class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
+                                title: "Voltar para a página inicial",
+                                i { class: "material-icons", "arrow_back" }
+                            }
+                        }
                     }
                 }
             }

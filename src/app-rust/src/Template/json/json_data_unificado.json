@@ -1,0 +1,83 @@
+{
+  "nome_projeto": "Galpão Logístico XPTO",
+  "data_analise": "2025-05-18",
+  "nome_responsavel": "Eng. Mariana Lima",
+  "nome_predio": "Galpão 3",
+  "endereco_predio": "Rod. dos Imigrantes, km 22 - Diadema/SP",
+  "numero_andares": 1,
+  "ano_construcao": 2005,
+  "tipo_estrutura": "Estrutura metálica com fundação de concreto",
+  "observacoes_gerais": "Estrutura apresenta sinais de recalque diferencial e movimentação térmica significativa.",
+  "dados_modelo": {
+    "algorithm": "Yolo",
+    "tipo_modelo": "Classificação"
+  },
+  "facetas": [
+    {
+      "id": "F01",
+      "orientacao": "Sul",
+      "qtd_rachaduras": 3,
+      "observacoes": "Fissuras próximas a pilares e juntas de dilatação."
+    },
+    {
+      "id": "F02",
+      "orientacao": "Oeste",
+      "qtd_rachaduras": 2,
+      "observacoes": "Rachaduras próximas ao piso e na ligação com o telhado."
+    }
+  ],
+  "dados_fissuras": [
+    {
+      "id_faceta": "Faceta 1",
+      "orientacao": "Sul",
+      "qtd_rachaduras": 3,
+      "observacoes": "Fissuras próximas a pilares e juntas de dilatação.",
+      "imagens_fissuras": [
+        {
+          "id_imagem": "0",
+          "caminho_imagem": "images/fissura_conexao.jpg",
+          "fissuras": [
+            {
+              "id_fissura": 0,
+              "classificacao_fissura": "térmica",
+              "porcentagem_confianca_modelo": 92
+            },
+            {
+              "id_fissura": 1,
+              "classificacao_fissura": "retração",
+              "porcentagem_confianca_modelo": 95
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id_faceta": "Faceta 2",
+      "orientacao": "Norte",
+      "qtd_rachaduras": 3,
+      "observacoes": "Fissuras próximas a muros e juntas de dilatação.",
+      "imagens_fissuras": [
+        {
+          "id_imagem": "0",
+          "caminho_imagem": "images/fissura_conexao.jpg",
+          "fissuras": [
+            {
+              "id_fissura": 0,
+              "classificacao_fissura": "térmica",
+              "porcentagem_confianca_modelo": 92
+            },
+            {
+              "id_fissura": 1,
+              "classificacao_fissura": "retração",
+              "porcentagem_confianca_modelo": 95
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conclusao_geral": "Há indícios de problemas estruturais sérios que exigem intervenção imediata.",
+  "recomendacoes": "Contratar perícia estrutural detalhada, interditar área próxima ao pilar P3 e reparar as juntas.",
+  "funcao_responsavel": "Engenheira Estrutural",
+  "nome_empresa": "IPT - Instituto de Pesquisas Tecnológicas"
+}
