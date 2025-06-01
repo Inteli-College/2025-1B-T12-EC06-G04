@@ -10,6 +10,7 @@ mod create_project;
 mod image_processor;
 mod manual_processor;
 mod ui;
+mod report_structures;
 
 use homepage::HomePage;
 use select_images::SelectImages;

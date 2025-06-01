@@ -7,15 +7,14 @@ use crate::Route;
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
-    let current_dir = std::env::current_dir().ok()?;
-    // Sobe um nível na hierarquia de diretórios
-    let parent_dir = current_dir.parent()?;
-    let projects_dir = parent_dir.join("Projects");
+    // Construct path relative to CARGO_MANIFEST_DIR
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let projects_dir = base_dir.join("Projects"); // This will be src/app-rust/Projects
     
     // Tenta criar o diretório se não existir
     if !projects_dir.exists() {
-        if let Err(e) = std::fs::create_dir(&projects_dir) {
-            eprintln!("Erro ao criar diretório Projects: {}", e);
+        if let Err(e) = std::fs::create_dir_all(&projects_dir) { // Use create_dir_all for robustness
+            eprintln!("Erro ao criar diretório Projects em {}: {}", projects_dir.display(), e);
             return None;
         }
     }

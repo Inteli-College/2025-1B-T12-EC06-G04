@@ -94,7 +94,8 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             
             let project_name_for_path = project_name_clone;
 
-            let project_path = PathBuf::from("Projects").join(&project_name_for_path).join("images");
+            let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let project_path = base_dir.join("Projects").join(&project_name_for_path).join("images");
             
             for building_detail in current_buildings.iter() {
                 let building_folder_name = &building_detail.name;

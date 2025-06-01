@@ -430,7 +430,7 @@ fn sanitize_filename(name: &str) -> String {
 }
 
 // Função principal de processamento (MODIFICADA SIGNIFICATIVAMENTE)
-pub fn process_folder(folder_path: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
+pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
     let project_name = match PROJECT_NAME.try_read() {
         Ok(guard) => match &*guard {
             Some(name) => name.clone(),
@@ -439,8 +439,11 @@ pub fn process_folder(folder_path: &str, distance_threshold_meters: f64) -> Resu
         Err(_) => return Err(anyhow!("Erro ao ler nome do projeto")),
     };
 
-    let project_path = PathBuf::from("Projects").join(&project_name).join("images");
-    let folder_path = Path::new(folder_path);
+    // Construct path relative to CARGO_MANIFEST_DIR
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let images_base_path = base_dir.join("Projects").join(&project_name).join("images"); // Path for output
+
+    let input_folder_path = Path::new(folder_path_str); // Path for input images
     let tag_map = nome_para_tag();
     
     // Verifica se exiftool está disponível
@@ -454,7 +457,7 @@ pub fn process_folder(folder_path: &str, distance_threshold_meters: f64) -> Resu
     let mut stats = ProcessingStats::default();
     let mut all_image_metadata: Vec<ImageMetadata> = Vec::new();
 
-    for entry in WalkDir::new(folder_path)
+    for entry in WalkDir::new(input_folder_path)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
@@ -524,7 +527,7 @@ pub fn process_folder(folder_path: &str, distance_threshold_meters: f64) -> Resu
     // Classificação de Fachadas e Criação de Pastas
     for predio in predios.iter_mut() {
         let sanitized_predio_id = sanitize_filename(&predio.id); // Sanitizar ID do prédio
-        let predio_target_dir = project_path.join(&sanitized_predio_id); // Usar ID sanitizado
+        let predio_target_dir = images_base_path.join(&sanitized_predio_id); // Usar ID sanitizado
         if let Err(e) = fs::create_dir_all(&predio_target_dir) {
             stats.errors.push(format!("Erro ao criar pasta do prédio {}: {}", sanitized_predio_id, e));
             continue;
