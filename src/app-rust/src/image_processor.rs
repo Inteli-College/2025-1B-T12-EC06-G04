@@ -1,16 +1,13 @@
 // image_processor.rs
 use std::path::{Path, PathBuf};
 use std::fs;
-use std::io::{BufReader, BufRead};
+use std::io::BufReader;
 use walkdir::WalkDir;
 use anyhow::{Result, Context, anyhow};
 use regex::Regex;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::process::Command;
-use std::str::FromStr;
-
-use exif::{Tag, In, Reader, Value, Rational};
+use exif::{Tag, In, Reader, Value};
 
 // Representa uma localização geográfica
 #[derive(Debug, Clone, PartialEq, Copy)]
@@ -31,7 +28,7 @@ pub struct ImageMetadata {
 // Representa uma fachada de um prédio
 #[derive(Debug, Clone)]
 pub struct Fachada {
-    pub nome: String, // "Norte", "Sul", "Leste", "Oeste", "Indefinida"
+    pub _nome: String, // "Norte", "Sul", "Leste", "Oeste", "Indefinida"
     pub imagens: Vec<ImageMetadata>,
 }
 
@@ -528,7 +525,7 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
             let sanitized_fachada_dir_name = sanitize_filename(&base_fachada_dir_name); // Sanitizar nome da fachada
             
             let fachada_entry = predio.fachadas.entry(fachada_nome_str.clone()).or_insert_with(|| Fachada {
-                nome: fachada_nome_str.clone(),
+                _nome: fachada_nome_str.clone(),
                 imagens: Vec::new(),
             });
             fachada_entry.imagens.push(image_data.clone());

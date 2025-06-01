@@ -68,15 +68,12 @@ pub fn HomePage() -> Element {
         files.write().update_base_path_if_different(new_path);
     });
 
-    let mut new_folder_name = use_signal(|| String::new());
-    let mut new_folder_description = use_signal(|| String::new());
-
     // pesquisa do usuário
     let mut search_input = use_signal(|| String::new());
 
 
     let folder_cards = entries.iter().enumerate()
-    .filter_map(|(dir_id, entry)| {
+    .filter_map(|(_dir_id, entry)| {
         let path = &entry.path;
         let folder_name = path.file_name()?.to_string_lossy();
         let path_display = display_from_projects(path)
@@ -277,22 +274,6 @@ impl Files {
         }
     }
 
-    pub fn create_folder_with_description(&mut self, name: String, description: String) {
-        let path = self.current_path.join(&name);
-        if let Err(err) = std::fs::create_dir_all(&path) {
-            self.err = Some(format!("Erro ao criar pasta: {err}"));
-            return;
-        }
-
-        let desc_path = path.join("description.txt");
-        if let Err(err) = std::fs::write(&desc_path, description) {
-            self.err = Some(format!("Erro ao salvar descrição: {err}"));
-            return;
-        }
-
-        self.reload_path_list();
-    }
-
     fn reload_path_list(&mut self) {
         let paths = match std::fs::read_dir(&self.current_path) {
             Ok(e) => e,
@@ -335,16 +316,6 @@ impl Files {
                     self.current_path = parent.to_path_buf();
                     self.reload_path_list();
                 }
-            }
-        }
-    }
-
-    fn enter_dir(&mut self, dir_id: usize) {
-        if let Some(entry) = self.path_names.get(dir_id) {
-            let path = &entry.path;
-            if path.is_dir() && path.starts_with(&self.base_path) {
-                self.current_path = path.clone();
-                self.reload_path_list();
             }
         }
     }

@@ -1,11 +1,8 @@
 use dioxus::prelude::*;
-use dioxus_router::prelude::Link;
 use rfd::AsyncFileDialog;
 use crate::image_processor::{process_folder, ProcessingStats};
-use crate::Route;
 use std::path::PathBuf;
 use std::rc::Rc;
-use futures_util::StreamExt;
 use std::path::Path;
 use chrono::{DateTime, Local};
 use crate::manual_processor::ManualProcessor;

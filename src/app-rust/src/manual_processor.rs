@@ -24,8 +24,8 @@ pub fn ManualProcessor() -> Element {
     let mut building_names = use_signal(|| vec!["Prédio 1".to_string()]);
     let mut facade_counts = use_signal(|| vec![1]);
     let mut facade_names = use_signal(|| vec![HashMap::new()]); 
-    let mut is_processing = use_signal(|| false);
-    let mut status = use_signal(String::new);
+    let is_processing = use_signal(|| false);
+    let status = use_signal(String::new);
 
     use_effect(move || {
         let count = num_buildings();
