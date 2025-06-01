@@ -38,7 +38,7 @@
   Fissura com abertura &gt;1 mm, com indícios de infiltração.
 
 **Imagem:**  
-![Imagem da Fissura](Report/Galpão_Logístico_XPTO/images/fissura_estrutural_1.jpg)
+![Imagem da Fissura](Projects/Galpão_Logístico_XPTO/images/fissura_estrutural_1.jpg)
 
 ---
 ### Fissura 1
@@ -50,7 +50,7 @@
   Fissura longitudinal contínua por 2 metros.
 
 **Imagem:**  
-![Imagem da Fissura](Report/Galpão_Logístico_XPTO/images/fissura_termica_1.jpg)
+![Imagem da Fissura](Projects/Galpão_Logístico_XPTO/images/fissura_termica_1.jpg)
 
 ---
 ### Fissura 2
@@ -62,7 +62,7 @@
   Fissura com destaque de concreto e ferragem exposta.
 
 **Imagem:**  
-![Imagem da Fissura](Report/Galpão_Logístico_XPTO/images/fissura_estrutural_2.jpg)
+![Imagem da Fissura](Projects/Galpão_Logístico_XPTO/images/fissura_estrutural_2.jpg)
 
 ---
 ### Fissura 3
@@ -74,7 +74,7 @@
   Trincas em padrão reticulado devido à retração no início de cura.
 
 **Imagem:**  
-![Imagem da Fissura](Report/Galpão_Logístico_XPTO/images/fissura_piso.jpg)
+![Imagem da Fissura](Projects/Galpão_Logístico_XPTO/images/fissura_piso.jpg)
 
 ---
 ### Fissura 4
@@ -86,7 +86,7 @@
   Fissura inclinada indicando movimentação diferencial.
 
 **Imagem:**  
-![Imagem da Fissura](Report/Galpão_Logístico_XPTO/images/fissura_conexao.jpg)
+![Imagem da Fissura](Projects/Galpão_Logístico_XPTO/images/fissura_conexao.jpg)
 
 ---
 

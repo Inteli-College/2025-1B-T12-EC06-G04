@@ -31,13 +31,14 @@
 ## 3. Detalhamento das Fissuras
 
 {{#each fissuras}}
-### Fissura {{@index}}
+### Fissura {{id_fissura}}
 
 - **Faceta:** {{faceta_id}}
-- **Localização:** {{localizacao}}
+- **Orientação:** {{orientacao}}
 - **Classificação:** **{{classificacao}}**
-- **Descrição:**  
-  {{descricao}}
+- **Confiança do Modelo:** {{confianca}}%
+- **Observações da Faceta:**  
+  {{observacoes}}
 
 **Imagem:**  
 ![Imagem da Fissura]({{caminho_imagem}})
@@ -47,7 +48,7 @@
 
 ## 4. Conclusões e Recomendações
 
-**Conclusões:**  
+**Conclusões:**
 {{conclusao_geral}}
 
 **Recomendações:**  

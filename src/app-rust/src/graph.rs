@@ -188,10 +188,13 @@ fn gerar_svg_barras(dados: &[FissuraData]) -> String {
     svg
 }
 
-//Frontend de backend
+#[derive(Props, PartialEq, Clone)]
+pub struct GraphViewProps {
+    pub project_name: String
+}
 
 #[component]
-pub fn GraphView() -> Element {
+pub fn GraphView(props: GraphViewProps) -> Element {
     let dados = ler_csv("src/teste_fissuras.csv"); 
 
     let total_termica: u32 = dados.iter().map(|d| d.termica).sum();
@@ -275,8 +278,11 @@ pub fn GraphView() -> Element {
 
                     button {
                         onclick: move |_| {
-                            navigator.push(Route::ReportView { project_name: "Inteli".to_string(), building_name: "".to_string() });
-                        },                    
+                            // Corrigir: building_name não pode ser vazio!
+                            // Use um valor padrão ou derive do contexto/projeto
+                            let building_name = "Galpão_3".to_string(); // Substitua por lógica dinâmica se necessário
+                            navigator.push(Route::ReportView { project_name: props.project_name.to_string(), building_name });
+                        },
                         style: "
                             position: absolute;
                             bottom: 60px;
@@ -289,7 +295,7 @@ pub fn GraphView() -> Element {
                             cursor: pointer;
                             font-size: 18px;
                         ",
-                        "Válidar Fotos →"
+                        "Visualizar relatório →"
                     }
                 }
             }

@@ -106,12 +106,48 @@ fn get_report(report_data_path: PathBuf) -> Result<String, handlebars::RenderErr
         .replace(' ', "_")
         .to_string();
 
-    // Ajusta o caminho das imagens das fissuras
+    // --- FLATTEN dados_fissuras INTO fissuras ARRAY FOR TEMPLATE COMPATIBILITY ---
+    // Remove any existing top-level fissuras array to avoid conflicts
+    json_data.as_object_mut().map(|obj| obj.remove("fissuras"));
+
+    let mut fissuras_flat = Vec::new();
+    if let Some(dados_fissuras) = json_data.get("dados_fissuras").and_then(|v| v.as_array()) {
+        for faceta in dados_fissuras {
+            let faceta_id = faceta.get("id_faceta").cloned().unwrap_or(Value::Null);
+            let orientacao = faceta.get("orientacao").cloned().unwrap_or(Value::Null);
+            let observacoes = faceta.get("observacoes").cloned().unwrap_or(Value::Null);
+            if let Some(imagens) = faceta.get("imagens_fissuras").and_then(|v| v.as_array()) {
+                for imagem in imagens {
+                    let caminho_imagem = imagem.get("caminho_imagem").cloned().unwrap_or(Value::Null);
+                    if let Some(fissuras) = imagem.get("fissuras").and_then(|v| v.as_array()) {
+                        for fissura in fissuras {
+                            let classificacao = fissura.get("classificacao_fissura").cloned().unwrap_or(Value::Null);
+                            let confianca = fissura.get("porcentagem_confianca_modelo").cloned().unwrap_or(Value::Null);
+                            let id_fissura = fissura.get("id_fissura").cloned().unwrap_or(Value::Null);
+                            // Compose a flat object for the template
+                            let mut fissura_obj = serde_json::Map::new();
+                            fissura_obj.insert("faceta_id".to_string(), faceta_id.clone());
+                            fissura_obj.insert("orientacao".to_string(), orientacao.clone());
+                            fissura_obj.insert("observacoes".to_string(), observacoes.clone());
+                            fissura_obj.insert("caminho_imagem".to_string(), caminho_imagem.clone());
+                            fissura_obj.insert("classificacao".to_string(), classificacao);
+                            fissura_obj.insert("confianca".to_string(), confianca);
+                            fissura_obj.insert("id_fissura".to_string(), id_fissura);
+                            fissuras_flat.push(Value::Object(fissura_obj));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    json_data["fissuras"] = Value::Array(fissuras_flat);
+
+    // Ajusta o caminho das imagens das fissuras (now in the new flat array)
     if let Some(fissuras) = json_data.get_mut("fissuras").and_then(|v| v.as_array_mut()) {
         for fissura in fissuras {
             if let Some(caminho) = fissura.get_mut("caminho_imagem") {
                 if let Some(str_path) = caminho.as_str() {
-                    let new_path = format!("Report/{}/{}", project_name, str_path);
+                    let new_path = format!("Projects/{}/{}", project_name, str_path);
                     *caminho = Value::String(new_path);
                 }
             }
@@ -167,10 +203,11 @@ pub struct ReportViewProps {
 
 #[allow(non_snake_case)]
 pub fn ReportView(props: ReportViewProps) -> Element {
+    // Corrigir caminho do arquivo de dados para buscar em 'Projects' ao invés de 'src/Report'
     let data_file_name: String = format!("Dados-{}-{}.json", &props.project_name, &props.building_name);
-    let data_file_path: PathBuf = ["src", "Report", &props.project_name, &data_file_name].iter().collect();
+    let data_file_path: PathBuf = ["Projects", &props.project_name, &data_file_name].iter().collect();
     let report_file_name: String = format!("Relatorio-{}-{}.md", &props.project_name, &props.building_name);
-    let report_file_path: PathBuf = ["src", "Report", &props.project_name, &report_file_name].iter().collect();
+    let report_file_path: PathBuf = ["Report", &props.project_name, &report_file_name].iter().collect();
 
     rsx! {
         document::Link {

@@ -93,7 +93,7 @@ pub fn HomePage() -> Element {
 
         Some(rsx!(
             Link {
-                to: Route::GraphView {},
+                to: Route::GraphView { project_name: folder_name.to_string() },
                 class: "flex flex-col items-center text-center bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg hover:bg-blue-50 transition duration-300 ease-in-out",
                 key: "{path_display}",
                 i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }

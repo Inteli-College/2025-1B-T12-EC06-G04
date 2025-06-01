@@ -45,8 +45,8 @@ pub enum Route {
     #[route("/select-images")]
     SelectImages {},
 
-    #[route("/graph")]
-    GraphView {},
+    #[route("/graph/:project_name")]
+    GraphView { project_name: String },
     
     #[route("/report/:project_name/:building_name")]
     ReportView { project_name: String, building_name: String },
