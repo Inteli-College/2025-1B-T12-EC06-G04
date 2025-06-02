@@ -177,8 +177,7 @@ model.val()
 
   <sub>Figura 1 -  Matriz de Confusão (valores absolutos) </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/confusion_matrix.png"
-  alt="ooooo"/>
+  ![Matris de confusão](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/confusion_matrix.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
@@ -204,8 +203,7 @@ model.val()
 
   <sub>Figura 2 -  Matriz de Confusão Normalizada </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/confusion_matrix_normalized.png"
-  alt="ooooo"/>
+  ![Matris de confusão normalizada](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/confusion_matrix_normalized.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
@@ -225,8 +223,7 @@ model.val()
 
   <sub>Figura 3 -  Curva F1 vs Confiança </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/F1_curve.png"
-  alt="ooooo"/>
+  ![Curva F1](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/F1_curve.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
@@ -251,8 +248,7 @@ model.val()
 
   <sub>Figura 4 - Curva de Precisão vs Confiança </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/P_curve.png"
-  alt="ooooo"/>
+  ![Curva P](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/P_curve.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
@@ -273,8 +269,7 @@ model.val()
 
   <sub>Figura 5 - R_curve.png Curva de Revocação vs Confiança </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/R_curve.png"
-  alt="ooooo"/>
+  ![Curva R](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/R_curve.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
@@ -296,8 +291,7 @@ model.val()
 
   <sub>Figura 6 - Curva de Precisão vs Revocação (PR Curve) </sub>
 
-  <img src="../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/PR_curve.png"
-  alt="ooooo"/>
+  ![Curva PR](../../../../src/Yolo/YOLO-Det-Py/runs/detect/val/PR_curve.png)
 
   <sup>Fonte: Material produzido pelo resultado do algoritmo (2025).</sup>
 
