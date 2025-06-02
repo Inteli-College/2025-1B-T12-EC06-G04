@@ -14,7 +14,7 @@ sidebar_position: 0
 
   <sub>Figura 1 - Logo do IPT </sub>
 
-  <img src="../../static/img/ipt_logo.png"
+  <img src="../../img/ipt_logo.png"
   alt = "logo"/>
 
 
@@ -31,7 +31,7 @@ sidebar_position: 0
 
   <sub>Figura 2 - LMPC </sub>
 
-  <img src="../../static/img/lab.png"
+  <img src="../../img/lab.png"
   alt = "logo"/>
 
 
