@@ -15,7 +15,7 @@ sidebar_position: 0
   <sub>Figura 1 - Logo do IPT </sub>
 
   <img src="../../img/ipt_logo.png"
-  alt = "logo"/>
+
 
 
   <sup>Fonte: [IPT](https://ipt.br/)</sup>
@@ -32,7 +32,7 @@ sidebar_position: 0
   <sub>Figura 2 - LMPC </sub>
 
   <img src="../../img/lab.png"
-  alt = "logo"/>
+
 
 
   <sup>Fonte: [IPT](https://ipt.br/2023/09/05/laboratorio-de-materiais-para-produtos-de-construcao/)</sup>

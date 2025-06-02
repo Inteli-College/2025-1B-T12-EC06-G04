@@ -1,15 +1,31 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder, prelude::*};
+use dioxus::{desktop::Config, desktop::WindowBuilder};
 use std::path::PathBuf;
 
-mod ui;
-use ui::Home;
-mod image_processor;
-mod folders;
-use folders::Folders;
+mod homepage;
+mod select_images;
 mod report;
+mod create_project;
+mod image_processor;
+mod manual_processor;
+mod ui;
+mod report_structures;
+
+use homepage::HomePage;
+use select_images::SelectImages;
 use report::ReportView;
+use create_project::NewProject;
+use ui::Home;
+mod graph;
+use graph::GraphView;
+
+#[component]
+fn Process() -> Element {
+    rsx! {
+        Home {}
+    }
+}
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -30,9 +46,20 @@ fn App() -> Element {
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[route("/")]
-    Home {},
-    #[route("/folders")]
-    Folders {},
-    #[route("/report")]
-    ReportView {}
+    HomePage {},
+
+    #[route("/new-project")]
+    NewProject {},
+
+    #[route("/select-images")]
+    SelectImages {},
+
+    #[route("/graph/:project_name")]
+    GraphView { project_name: String },
+    
+    #[route("/report/:project_name/:building_name")]
+    ReportView { project_name: String, building_name: String },
+
+    #[route("/process")]
+    Process {},
 }
