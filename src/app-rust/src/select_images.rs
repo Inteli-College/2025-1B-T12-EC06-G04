@@ -1,33 +1,27 @@
 use dioxus::prelude::*;
-use dioxus_router::prelude::Link;
 use rfd::AsyncFileDialog;
 use crate::image_processor::{process_folder, ProcessingStats};
-use crate::Route as AppRoute;
 use std::path::PathBuf;
 use std::rc::Rc;
-use futures_util::StreamExt;
 use std::path::Path;
 use chrono::{DateTime, Local};
-use crate::manual_processor::{ManualProcessor, ManualProcessorProps, run_yolo_script_and_parse_results, ImageAnalysisResult};
+use crate::manual_processor::ManualProcessor;
+use dioxus_router::prelude::Link;
+use crate::Route as AppRoute;
+use crate::manual_processor::ManualProcessorProps;
 use crate::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
-use dioxus_router::prelude::use_navigator;
 
 #[component]
-pub fn Home() -> Element {
+pub fn SelectImages() -> Element {
     let mut folder_path = use_signal(|| None::<String>);
     let mut status = use_signal(String::new);
     let mut threshold = use_signal(|| 200.0_f64);
     let mut stats = use_signal(|| None::<ProcessingStats>);
     let mut is_processing = use_signal(|| false);
     let mut is_selecting_folder = use_signal(|| false);
-    let navigator = use_navigator();
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
-
-    let project_name_available = use_memo(move || {
-        PROJECT_NAME.try_read().map_or(false, |guard| guard.is_some())
-    });
 
     // Handle for the folders popup
     let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
@@ -65,7 +59,7 @@ pub fn Home() -> Element {
                     r#type: "text",
                     value: folder_path().unwrap_or_default(),
                     readonly: true,
-                    placeholder: "Selecione uma pasta de imagens para processar..."
+                    placeholder: "Selecione uma pasta..."
                 }
                 button {
                             class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
@@ -75,12 +69,13 @@ pub fn Home() -> Element {
                         spawn(async move {
                             if let Some(file_handle) = AsyncFileDialog::new().pick_folder().await {
                                 folder_path.set(Some(file_handle.path().display().to_string()));
+                                        processed_folder_signal.set(None);
                             }
                             is_selecting_folder.set(false);
                         });
                     },
                             i { class: "material-icons", "folder" }
-                    if is_selecting_folder() { "Selecionando..." } else { "Selecionar Pasta de Imagens" }
+                    if is_selecting_folder() { "Selecionando..." } else { "Selecionar Pasta" }
                 }
             }
                     div { class: "mb-6",
@@ -88,7 +83,7 @@ pub fn Home() -> Element {
                             "Distância máxima entre imagens do mesmo prédio (metros):" 
                         }
                 input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "w-4 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
                     r#type: "number",
                     value: "{threshold()}",
                     min: "10",
@@ -100,29 +95,18 @@ pub fn Home() -> Element {
                     }
                 }
             }
-
-                    if !project_name_available() {
-                        p { class: "text-center text-red-500 mb-4 py-2 px-4 border border-red-300 bg-red-50 rounded-md",
-                            "Para habilitar o processamento, por favor, primeiro crie um projeto na tela 'Criar Novo Projeto'."
-                        }
-                    }
-
                     div { class: "flex gap-4",
             button {
                             class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                disabled: is_processing() || folder_path().is_none() || !project_name_available(),
+                disabled: is_processing() || folder_path().is_none(),
                 onclick: move |_| {
                                 if let Some(path_str) = folder_path() {
-                        if !project_name_available() {
-                            status.set("Erro: Crie um projeto antes de processar.".to_string());
-                            return;
-                        }
                         is_processing.set(true);
                         status.set("Processando imagens...".to_string());
                         
                                     let path_clone_for_processing = path_str.clone();
                         let threshold_value = threshold();
-                        let project_name_clone = PROJECT_NAME.try_read().unwrap().clone().unwrap();
+                                    let path_clone_for_state = path_str.clone();
                         
                         spawn(async move {
                                         let result = process_folder(&path_clone_for_processing, threshold_value);
@@ -131,67 +115,56 @@ pub fn Home() -> Element {
                                             Ok(result_data) => {
                                                 stats.set(Some(result_data.clone()));
                                                 if result_data.images_with_gps > 0 {
-                                        status.set(format!("Processamento de pastas concluído! {} imagens com GPS organizadas em {} prédios. Iniciando análise de IA...", 
+                                        status.set(format!("Processamento concluído! {} imagens com GPS organizadas em {} prédios.", 
                                                         result_data.images_with_gps, result_data.predio_groups));
-                                        
-                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                                        match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
-                                            Ok(analysis_results) => {
-                                                status.set(format!(
-                                                    "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
-                                                    analysis_results.len()
-                                                ));
-                                                navigator.push(AppRoute::HomePage {});
-                                            }
-                                            Err(e) => {
-                                                status.set(format!("Erro durante a análise de IA: {}", e));
-                                            }
-                                        }
+                                                    processed_folder_signal.set(Some(PathBuf::from(path_clone_for_state)));
                                     } else {
-                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
-                                        navigator.push(AppRoute::HomePage {});
+                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada.".to_string());
+                                                    processed_folder_signal.set(None);
                                     }
                                 }
                                 Err(e) => {
-                                    status.set(format!("Erro no processamento de pastas: {}", e));
+                                    status.set(format!("Erro: {}", e));
+                                                processed_folder_signal.set(None);
                                 }
                             }
                             
                             is_processing.set(false);
                         });
-                    } else {
-                         status.set("Erro: Selecione uma pasta de imagens primeiro.".to_string());
                     }
                 },
                             i { class: "material-icons", "sync" }
-                            if is_processing() { "Processando..." } else { "Processar Automaticamente" }
+                            if is_processing() { "Processando..." } else { "Processar automaticamente (experimental)" }
                         }
                         button {
                             class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                            disabled: is_processing() || !project_name_available(),
+                            disabled: is_processing(),
                             onclick: move |_| {
-                                if project_name_available() {
-                                    if let Ok(guard) = PROJECT_NAME.try_read() {
-                                        if let Some(name) = &*guard {
-                                            dioxus::desktop::window().new_window(
-                                                VirtualDom::new_with_props(
-                                                    ManualProcessor,
-                                                    ManualProcessorProps { project_name: name.clone() }
-                                                ),
-                                                Default::default(),
-                                            );
-                                        } else {
-                                            status.set("Erro: Nome do projeto é None, não deveria acontecer aqui.".to_string());
+                                match PROJECT_NAME.try_read() {
+                                    Ok(guard) => match &*guard {
+                                        Some(name) => {
+                                            if !name.is_empty() {
+                                                dioxus::desktop::window().new_window(
+                                                    VirtualDom::new_with_props(
+                                                        ManualProcessor,
+                                                        ManualProcessorProps { project_name: name.clone() }
+                                                    ),
+                                                    Default::default(),
+                                                );
+                                            } else {
+                                                status.set("Erro: Nome do projeto está vazio (SelectImages).".to_string());
+                                            }
                                         }
-                                    } else {
-                                        status.set("Erro: Falha ao ler o nome do projeto global.".to_string());
+                                        None => {
+                                            status.set("Erro: Nenhum projeto selecionado (SelectImages).".to_string());
+                                        }
+                                    },
+                                    Err(_) => {
+                                        status.set("Erro ao ler nome do projeto (SelectImages).".to_string());
                                     }
-                                } else {
-                                    status.set("Erro: Crie um projeto antes de processar manualmente.".to_string());
                                 }
                             },
-                            i { class: "material-icons", "folder_open" }
-                            "Processar Manualmente"
+                            "Abrir Processador Manual (SelectImages)"
                         }
                     }
 
@@ -236,7 +209,11 @@ pub fn Home() -> Element {
                     }
 
                     if !status.read().is_empty() {
-                         p { class: "text-center mt-4", "{status}" }
+                        div {
+                            class: "fixed bottom-36 right-6 bg-red-100 text-red-700 p-3 rounded shadow-lg z-50",
+                            onclick: move |_| status.set(String::new()),
+                            "{status.read().clone()}"
+                        }
                     }
                 }
             }
