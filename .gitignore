@@ -2,3 +2,5 @@
 .vscode
 output_images/
 /node_modules/
+src/Yolo/YOLO-Det-Py/train
+src/Yolo/YOLO-Det-Py/val
