@@ -8,9 +8,10 @@ use std::rc::Rc;
 use futures_util::StreamExt;
 use std::path::Path;
 use chrono::{DateTime, Local};
-use crate::manual_processor::{ManualProcessor, ManualProcessorProps};
+use crate::manual_processor::{ManualProcessor, ManualProcessorProps, run_yolo_script_and_parse_results, ImageAnalysisResult};
 use crate::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
+use dioxus_router::prelude::use_navigator;
 
 #[component]
 pub fn Home() -> Element {
@@ -20,6 +21,7 @@ pub fn Home() -> Element {
     let mut stats = use_signal(|| None::<ProcessingStats>);
     let mut is_processing = use_signal(|| false);
     let mut is_selecting_folder = use_signal(|| false);
+    let navigator = use_navigator();
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
@@ -120,6 +122,7 @@ pub fn Home() -> Element {
                         
                                     let path_clone_for_processing = path_str.clone();
                         let threshold_value = threshold();
+                        let project_name_clone = PROJECT_NAME.try_read().unwrap().clone().unwrap();
                         
                         spawn(async move {
                                         let result = process_folder(&path_clone_for_processing, threshold_value);
@@ -128,14 +131,29 @@ pub fn Home() -> Element {
                                             Ok(result_data) => {
                                                 stats.set(Some(result_data.clone()));
                                                 if result_data.images_with_gps > 0 {
-                                        status.set(format!("Processamento concluído! {} imagens com GPS organizadas em {} prédios.", 
+                                        status.set(format!("Processamento de pastas concluído! {} imagens com GPS organizadas em {} prédios. Iniciando análise de IA...", 
                                                         result_data.images_with_gps, result_data.predio_groups));
+                                        
+                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                        match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
+                                            Ok(analysis_results) => {
+                                                status.set(format!(
+                                                    "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
+                                                    analysis_results.len()
+                                                ));
+                                                navigator.push(AppRoute::HomePage {});
+                                            }
+                                            Err(e) => {
+                                                status.set(format!("Erro durante a análise de IA: {}", e));
+                                            }
+                                        }
                                     } else {
-                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada.".to_string());
+                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
+                                        navigator.push(AppRoute::HomePage {});
                                     }
                                 }
                                 Err(e) => {
-                                    status.set(format!("Erro: {}", e));
+                                    status.set(format!("Erro no processamento de pastas: {}", e));
                                 }
                             }
                             

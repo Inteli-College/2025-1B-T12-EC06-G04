@@ -7,9 +7,9 @@ use crate::Route;
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
-    // Construct path relative to CARGO_MANIFEST_DIR
+    // Construct path relative to CARGO_MANIFEST_DIR (i.e., src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let projects_dir = base_dir.join("Projects"); // This will be src/app-rust/Projects
+    let projects_dir = base_dir.join("Projects"); 
     
     // Tenta criar o diretório se não existir
     if !projects_dir.exists() {
@@ -20,6 +20,15 @@ fn get_or_create_projects_dir() -> Option<PathBuf> {
     }
     
     Some(projects_dir)
+}
+
+// Helper function to sanitize project names
+fn sanitize_name(name: &str) -> String {
+    name.replace(' ', "_")
+        // Add other sanitization rules if needed, e.g., remove special characters
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+        .collect::<String>()
 }
 
 #[component]
@@ -42,15 +51,26 @@ pub fn NewProject() -> Element {
         }
 
         is_creating.set(true);
-        let project_name = name().trim().to_string();
+        let project_name_raw = name().trim().to_string();
         let project_year = year().trim().to_string();
 
-        // Store project name in global signal
-        *PROJECT_NAME.write() = Some(project_name.clone());
+        // Sanitize the project name
+        let sanitized_project_name = sanitize_name(&project_name_raw);
+
+        if sanitized_project_name.is_empty() {
+            status.set("Nome do projeto inválido após sanitização. Use letras, números, '_' ou '-'.".to_string());
+            is_creating.set(false);
+            return;
+        }
+
+        // Store sanitized project name in global signal
+        *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
         
+        let project_name_for_folder = sanitized_project_name; // Use sanitized name for folder
+
         spawn(async move {
             if let Some(projects_dir) = get_or_create_projects_dir() {
-                let new_folder = projects_dir.join(format!("{} - {}", project_year, project_name));
+                let new_folder = projects_dir.join(project_name_for_folder);
 
                 if let Err(e) = std::fs::create_dir_all(&new_folder) {
                     status.set(format!("Erro ao criar pasta: {}", e));

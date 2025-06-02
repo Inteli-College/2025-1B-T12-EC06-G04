@@ -85,7 +85,7 @@ if __name__ == "__main__":
         print("[]") 
         exit(1)
 
-    results_list = rodar_modelo(image_dir_from_arg, args.model_path) # Pass relative path, it will be made absolute by os.path.abspath if needed by YOLO internally
+    results_list = rodar_modelo(abs_image_dir, args.model_path) # Pass absolute path here
     
     # Save the results to a JSON file
     try:

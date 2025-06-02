@@ -13,15 +13,15 @@ pub struct ManualProcessorProps {
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
-struct FissuraData {
-    name: String,
-    confidence: f64,
+pub struct FissuraData {
+    pub name: String,
+    pub confidence: f64,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
-struct ImageAnalysisResult {
-    path: String,
-    fissura: Vec<FissuraData>,
+pub struct ImageAnalysisResult {
+    pub path: String,
+    pub fissura: Vec<FissuraData>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -405,15 +405,15 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     }
 }
 
-async fn run_yolo_script_and_parse_results(
+pub async fn run_yolo_script_and_parse_results(
     project_name: &str,
     mut status: Signal<String>,
     app_rust_dir: &PathBuf,
 ) -> Result<Vec<ImageAnalysisResult>, String> {
     status.set("Preparando para executar script de análise de imagens...".to_string());
 
-    let script_path = app_rust_dir.join("../Yolo/YOLO-Det-Py/rodar_modelo_prod.py");
-    let model_path = app_rust_dir.join("../Yolo/YOLO-Det-Py/best.pt");
+    let script_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("rodar_modelo_prod.py");
+    let model_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("best.pt");
 
     if !script_path.exists() {
         return Err(format!("Script Python não encontrado em: {}", script_path.display()));
@@ -424,10 +424,12 @@ async fn run_yolo_script_and_parse_results(
 
     status.set("Executando script de análise de imagens... (Isso pode levar um tempo)".to_string());
 
+    let script_project_argument = format!("../app-rust/Projects/{}", project_name);
+
     let output = Command::new("python3")
         .current_dir(app_rust_dir)
         .arg(&script_path)
-        .arg(project_name)
+        .arg(script_project_argument)
         .arg(&model_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

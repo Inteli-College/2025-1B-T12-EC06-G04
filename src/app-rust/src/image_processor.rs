@@ -439,9 +439,9 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
         Err(_) => return Err(anyhow!("Erro ao ler nome do projeto")),
     };
 
-    // Construct path relative to CARGO_MANIFEST_DIR
+    // Construct path relative to CARGO_MANIFEST_DIR (src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let images_base_path = base_dir.join("Projects").join(&project_name).join("images"); // Path for output
+    let images_base_path = base_dir.join("Projects").join(&project_name).join("images");
 
     let input_folder_path = Path::new(folder_path_str); // Path for input images
     let tag_map = nome_para_tag();

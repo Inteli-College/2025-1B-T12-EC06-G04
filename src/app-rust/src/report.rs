@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use dioxus_router::prelude::*;
 use serde::Deserialize;
 use tempfile::NamedTempFile;
 use pulldown_cmark::{Parser, Options, html};
@@ -16,6 +17,7 @@ use std::{
 };
 use chrono::Local;
 use rand::Rng;
+use crate::Route;
 
 #[path = "./report_generator.rs"]
 pub mod report_generator;
@@ -99,13 +101,13 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
         }
     };
 
-    let detection_json_path_str = format!("src/app-rust/Projects/{}/detection_results.json", project_name_prop);
+    let detection_json_path_str = format!("../Projects/{}/detection_results.json", project_name_prop);
     let absolute_detection_json_path = Path::new(&cwd_string).join(&detection_json_path_str);
 
-    println!("[RUST report.rs] Attempting to read detection_results.json from: {:?}", absolute_detection_json_path);
+    println!("[RUST report.rs] Attempting to read detection_results.json from (absolute constructed): {:?}", absolute_detection_json_path);
 
     if !absolute_detection_json_path.exists() {
-        let err_msg = format!("Arquivo detection_results.json não existe em: {:?}", absolute_detection_json_path);
+        let err_msg = format!("Arquivo detection_results.json não existe em: {:?}. Verifique o CWD e o caminho relativo.", absolute_detection_json_path);
         eprintln!("[RUST report.rs] {}", err_msg);
         return Err(handlebars::RenderError::from(handlebars::RenderErrorReason::Other(err_msg)));
     }
@@ -207,6 +209,14 @@ pub fn ReportView(props: ReportViewProps) -> Element {
             main {
                 div {
                     class: "button-area",
+                    Link {
+                        to: Route::HomePage {},
+                        class: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md flex items-center gap-2",
+                        button {
+                            i { class: "material-icons", "home" }
+                            "Voltar para Home"
+                        }
+                    }
                     button {
                         onclick: {
                             let path_clone = report_md_filepath.clone();
