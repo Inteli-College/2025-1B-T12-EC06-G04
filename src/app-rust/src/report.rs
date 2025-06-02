@@ -95,7 +95,7 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
         Err(e) => {
             let err_msg = format!("Failed to get CWD for report: {}", e);
             eprintln!("[RUST report.rs] {}", err_msg);
-            return Err(handlebars::RenderErrorReason::Other(err_msg).into());
+            return Err(handlebars::RenderError::from(handlebars::RenderErrorReason::Other(err_msg)));
         }
     };
 
@@ -107,14 +107,14 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
     if !absolute_detection_json_path.exists() {
         let err_msg = format!("Arquivo detection_results.json não existe em: {:?}", absolute_detection_json_path);
         eprintln!("[RUST report.rs] {}", err_msg);
-        return Err(handlebars::RenderErrorReason::Other(err_msg).into());
+        return Err(handlebars::RenderError::from(handlebars::RenderErrorReason::Other(err_msg)));
     }
 
     let file = File::open(&absolute_detection_json_path)
-        .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao abrir detection_results.json (path: {:?}): {}", absolute_detection_json_path, e)).into())?;
+        .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao abrir detection_results.json (path: {:?}): {}", absolute_detection_json_path, e))))?;
     
     let detection_data_vec: Vec<ImageDetectionData> = serde_json::from_reader(BufReader::new(file))
-        .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao ler/parsear detection_results.json (path: {:?}): {}", absolute_detection_json_path, e)).into())?;
+        .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao ler/parsear detection_results.json (path: {:?}): {}", absolute_detection_json_path, e))))?;
 
     let mut fissuras_flat_for_template = Vec::new();
     let mut rng = rand::thread_rng();
@@ -158,19 +158,19 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
     let report_markdown_content: String;
 
     if !report_md_filepath.exists() {
-        std::fs::create_dir_all(&report_output_dir).map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao criar pasta Report '{:?}': {}", report_output_dir, e)).into())?;
+        std::fs::create_dir_all(&report_output_dir).map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao criar pasta Report '{:?}': {}", report_output_dir, e))))?;
         report_markdown_content = generate_report(template, &final_json_for_template)?;
         let mut file = File::create(&report_md_filepath)
-            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao criar arquivo MD '{:?}': {}", report_md_filepath, e)).into())?;
+            .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao criar arquivo MD '{:?}': {}", report_md_filepath, e))))?;
         file.write_all(report_markdown_content.as_bytes())
-            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao escrever no arquivo MD '{:?}': {}", report_md_filepath, e)).into())?;
+            .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao escrever no arquivo MD '{:?}': {}", report_md_filepath, e))))?;
         println!("[RUST report.rs] Novo relatório MD gerado em: {:?}", report_md_filepath);
     } else {
         let mut file = File::open(&report_md_filepath)
-            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao abrir arquivo MD existente '{:?}': {}", report_md_filepath, e)).into())?;
+            .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao abrir arquivo MD existente '{:?}': {}", report_md_filepath, e))))?;
         let mut md_content = String::new();
         file.read_to_string(&mut md_content)
-            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao ler arquivo MD existente '{:?}': {}", report_md_filepath, e)).into())?;
+            .map_err(|e| handlebars::RenderError::from(handlebars::RenderErrorReason::Other(format!("Erro ao ler arquivo MD existente '{:?}': {}", report_md_filepath, e))))?;
         report_markdown_content = md_content;
         println!("[RUST report.rs] Relatório MD existente carregado de: {:?}", report_md_filepath);
     }
