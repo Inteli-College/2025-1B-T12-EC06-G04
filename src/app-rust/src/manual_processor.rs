@@ -1,13 +1,27 @@
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use rfd::AsyncFileDialog;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::fs;
 use dioxus::prelude::Readable;
+use std::process::{Command, Stdio};
+use serde::Deserialize;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
     pub project_name: String,
+}
+
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+struct FissuraData {
+    name: String,
+    confidence: f64,
+}
+
+#[derive(Deserialize, Debug, Clone, PartialEq)]
+struct ImageAnalysisResult {
+    path: String,
+    fissura: Vec<FissuraData>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -92,18 +106,20 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             is_processing_writer.set(true);
             status_writer.set("Organizando pastas...".to_string());
             
-            let project_name_for_path = project_name_clone;
+            let project_name_for_path = project_name_clone.clone();
 
             let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            let project_path = base_dir.join("Projects").join(&project_name_for_path).join("images");
+            let project_images_path = base_dir.join("Projects").join(&project_name_for_path).join("images");
             
+            let mut folder_organization_successful = true;
             for building_detail in current_buildings.iter() {
                 let building_folder_name = &building_detail.name;
-                let building_path = project_path.join(building_folder_name);
+                let building_path = project_images_path.join(building_folder_name);
                 
                 if let Err(e) = fs::create_dir_all(&building_path) {
                     status_writer.set(format!("Erro ao criar pasta do prédio {}: {}", building_folder_name, e));
                     is_processing_writer.set(false);
+                    folder_organization_successful = false;
                     return;
                 }
                 
@@ -113,6 +129,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                     if let Err(e) = fs::create_dir_all(&facade_path) {
                         status_writer.set(format!("Erro ao criar pasta da fachada {}: {}", facade_folder_name, e));
                         is_processing_writer.set(false);
+                        folder_organization_successful = false;
                         return;
                     }
                     
@@ -132,7 +149,22 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                 }
             }
             
-            status_writer.set("Pastas organizadas com sucesso!".to_string());
+            if folder_organization_successful {
+                status_writer.set("Pastas organizadas com sucesso! Iniciando análise de imagens...".to_string());
+
+                match run_yolo_script_and_parse_results(&project_name_clone, status_writer, &base_dir).await {
+                    Ok(analysis_results) => {
+                        status_writer.set(format!(
+                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos.",
+                            analysis_results.len()
+                        ));
+                    }
+                    Err(e) => {
+                        status_writer.set(format!("Erro durante a análise de imagens: {}", e));
+                    }
+                }
+            }
+            
             is_processing_writer.set(false);
         });
     };
@@ -371,4 +403,48 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             }
         }
     }
+}
+
+async fn run_yolo_script_and_parse_results(
+    project_name: &str,
+    mut status: Signal<String>,
+    app_rust_dir: &PathBuf,
+) -> Result<Vec<ImageAnalysisResult>, String> {
+    status.set("Preparando para executar script de análise de imagens...".to_string());
+
+    let script_path = app_rust_dir.join("../Yolo/YOLO-Det-Py/rodar_modelo_prod.py");
+    let model_path = app_rust_dir.join("../Yolo/YOLO-Det-Py/best.pt");
+
+    if !script_path.exists() {
+        return Err(format!("Script Python não encontrado em: {}", script_path.display()));
+    }
+    if !model_path.exists() {
+        return Err(format!("Modelo YOLO não encontrado em: {}", model_path.display()));
+    }
+
+    status.set("Executando script de análise de imagens... (Isso pode levar um tempo)".to_string());
+
+    let output = Command::new("python3")
+        .current_dir(app_rust_dir)
+        .arg(&script_path)
+        .arg(project_name)
+        .arg(&model_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("Falha ao executar o script Python: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        status.set(format!("Erro na execução do script Python: {}", stderr));
+        return Err(format!("Script Python falhou: {}", stderr));
+    }
+
+    let stdout_str = String::from_utf8(output.stdout)
+        .map_err(|e| format!("Saída do script Python não é UTF-8 válido: {}", e))?;
+    
+    status.set("Script executado. Processando resultados...".to_string());
+
+    serde_json::from_str::<Vec<ImageAnalysisResult>>(&stdout_str)
+        .map_err(|e| format!("Falha ao parsear JSON da saída do script: {}\nSaída: {}", e, stdout_str))
 }

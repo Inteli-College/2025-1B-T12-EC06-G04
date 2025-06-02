@@ -1,21 +1,37 @@
 use dioxus::prelude::*;
-use serde_json::Value;
+use serde::Deserialize;
 use tempfile::NamedTempFile;
 use pulldown_cmark::{Parser, Options, html};
 use std::{
     io::{
         Read,
         Write,
-        BufWriter
+        BufWriter,
+        BufReader
     },
     process::Command,
     fs::File,
-    path::PathBuf
+    path::{Path, PathBuf},
+    env
 };
+use chrono::Local;
+use rand::Rng;
 
 #[path = "./report_generator.rs"]
-mod report_generator;
+pub mod report_generator;
 use report_generator::generate_report;
+
+#[derive(Deserialize, Debug, Clone)]
+struct DetectionFissura {
+    name: String,
+    confidence: f64,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct ImageDetectionData {
+    path: String,
+    fissura: Vec<DetectionFissura>,
+}
 
 fn render_markdown(md: &str) -> String {
     let mut options = Options::empty();
@@ -67,132 +83,99 @@ fn export(md_content: &str, file_type: &str) {
     });
 }
 
-fn get_report(report_data_path: PathBuf) -> Result<String, handlebars::RenderError> {
-    // Importa o template do relatório
+fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<String, handlebars::RenderError> {
     let template: &str = include_str!("Template/report_template.md");
 
-    println!("report_data_path: {:?}", report_data_path.to_str());
+    let cwd_string = match env::current_dir() {
+        Ok(cwd) => {
+            let s = cwd.display().to_string();
+            println!("[RUST report.rs] Current Working Directory: {}", s);
+            s
+        }
+        Err(e) => {
+            let err_msg = format!("Failed to get CWD for report: {}", e);
+            eprintln!("[RUST report.rs] {}", err_msg);
+            return Err(handlebars::RenderErrorReason::Other(err_msg).into());
+        }
+    };
 
-    if !report_data_path.exists() {
-        return Err(handlebars::RenderError::from(
-            handlebars::RenderErrorReason::Other(format!(
-                "O arquivo de dados do relatório não existe: {:?}",
-                report_data_path
-            )),
-        ));
+    let detection_json_path_str = format!("src/app-rust/Projects/{}/detection_results.json", project_name_prop);
+    let absolute_detection_json_path = Path::new(&cwd_string).join(&detection_json_path_str);
+
+    println!("[RUST report.rs] Attempting to read detection_results.json from: {:?}", absolute_detection_json_path);
+
+    if !absolute_detection_json_path.exists() {
+        let err_msg = format!("Arquivo detection_results.json não existe em: {:?}", absolute_detection_json_path);
+        eprintln!("[RUST report.rs] {}", err_msg);
+        return Err(handlebars::RenderErrorReason::Other(err_msg).into());
     }
 
-    // Pegar arquivo JSON
-    let file = File::open(&report_data_path)
-        .map_err(|e| handlebars::RenderError::from(
-            handlebars::RenderErrorReason::Other(format!("Erro ao abrir JSON: {}", e))
-        ))?;
+    let file = File::open(&absolute_detection_json_path)
+        .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao abrir detection_results.json (path: {:?}): {}", absolute_detection_json_path, e)).into())?;
+    
+    let detection_data_vec: Vec<ImageDetectionData> = serde_json::from_reader(BufReader::new(file))
+        .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao ler/parsear detection_results.json (path: {:?}): {}", absolute_detection_json_path, e)).into())?;
 
-    // Deserialize do JSON
-    let mut json_data: Value = serde_json::from_reader(file)
-        .map_err(|e| handlebars::RenderError::from(
-            handlebars::RenderErrorReason::Other(format!("Erro ao ler JSON: {}", e))
-        ))?;
+    let mut fissuras_flat_for_template = Vec::new();
+    let mut rng = rand::thread_rng();
 
-    // Extrai os nomes antes do empréstimo mutável
-    let project_name = json_data.get("nome_projeto")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default()
-        .replace(' ', "_")
-        .to_string();
-    let building_name = json_data.get("nome_predio")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default()
-        .replace(' ', "_")
-        .to_string();
+    for image_data in detection_data_vec {
+        let path_obj = Path::new(&image_data.path);
+        let facade_name = path_obj.parent().and_then(|p| p.file_name()).and_then(|os| os.to_str()).unwrap_or("N/A").to_string();
 
-    // --- FLATTEN dados_fissuras INTO fissuras ARRAY FOR TEMPLATE COMPATIBILITY ---
-    // Remove any existing top-level fissuras array to avoid conflicts
-    json_data.as_object_mut().map(|obj| obj.remove("fissuras"));
+        for fissura_item in image_data.fissura {
+            let mut fissura_obj_for_template = serde_json::Map::new();
+            fissura_obj_for_template.insert("caminho_imagem".to_string(), serde_json::Value::String(image_data.path.clone()));
+            fissura_obj_for_template.insert("classificacao".to_string(), serde_json::Value::String(fissura_item.name.clone()));
+            
+            let confidence_number = serde_json::Number::from_f64(fissura_item.confidence)
+                                      .unwrap_or_else(|| serde_json::Number::from(0));
+            fissura_obj_for_template.insert("confianca".to_string(), serde_json::Value::Number(confidence_number));
+            
+            fissura_obj_for_template.insert("faceta_id".to_string(), serde_json::Value::String(facade_name.clone()));
+            fissura_obj_for_template.insert("orientacao".to_string(), serde_json::Value::String("N/A".to_string()));
+            fissura_obj_for_template.insert("observacoes".to_string(), serde_json::Value::String("N/A".to_string()));
+            fissura_obj_for_template.insert("id_fissura".to_string(), serde_json::Value::String(format!("f_{}", rng.gen::<u32>())));
 
-    let mut fissuras_flat = Vec::new();
-    if let Some(dados_fissuras) = json_data.get("dados_fissuras").and_then(|v| v.as_array()) {
-        for faceta in dados_fissuras {
-            let faceta_id = faceta.get("id_faceta").cloned().unwrap_or(Value::Null);
-            let orientacao = faceta.get("orientacao").cloned().unwrap_or(Value::Null);
-            let observacoes = faceta.get("observacoes").cloned().unwrap_or(Value::Null);
-            if let Some(imagens) = faceta.get("imagens_fissuras").and_then(|v| v.as_array()) {
-                for imagem in imagens {
-                    let caminho_imagem = imagem.get("caminho_imagem").cloned().unwrap_or(Value::Null);
-                    if let Some(fissuras) = imagem.get("fissuras").and_then(|v| v.as_array()) {
-                        for fissura in fissuras {
-                            let classificacao = fissura.get("classificacao_fissura").cloned().unwrap_or(Value::Null);
-                            let confianca = fissura.get("porcentagem_confianca_modelo").cloned().unwrap_or(Value::Null);
-                            let id_fissura = fissura.get("id_fissura").cloned().unwrap_or(Value::Null);
-                            // Compose a flat object for the template
-                            let mut fissura_obj = serde_json::Map::new();
-                            fissura_obj.insert("faceta_id".to_string(), faceta_id.clone());
-                            fissura_obj.insert("orientacao".to_string(), orientacao.clone());
-                            fissura_obj.insert("observacoes".to_string(), observacoes.clone());
-                            fissura_obj.insert("caminho_imagem".to_string(), caminho_imagem.clone());
-                            fissura_obj.insert("classificacao".to_string(), classificacao);
-                            fissura_obj.insert("confianca".to_string(), confianca);
-                            fissura_obj.insert("id_fissura".to_string(), id_fissura);
-                            fissuras_flat.push(Value::Object(fissura_obj));
-                        }
-                    }
-                }
-            }
+            fissuras_flat_for_template.push(serde_json::Value::Object(fissura_obj_for_template));
         }
     }
-    json_data["fissuras"] = Value::Array(fissuras_flat);
 
-    // Ajusta o caminho das imagens das fissuras (now in the new flat array)
-    if let Some(fissuras) = json_data.get_mut("fissuras").and_then(|v| v.as_array_mut()) {
-        for fissura in fissuras {
-            if let Some(caminho) = fissura.get_mut("caminho_imagem") {
-                if let Some(str_path) = caminho.as_str() {
-                    let new_path = format!("Projects/{}/{}", project_name, str_path);
-                    *caminho = Value::String(new_path);
-                }
-            }
-        }
-    }
-    let file_name = format!("Relatorio-{}-{}.md", project_name, building_name);
-    let file_path: PathBuf = ["Report", &project_name, &file_name].iter().collect();
+    let mut template_data = serde_json::Map::new();
+    template_data.insert("nome_projeto".to_string(), serde_json::Value::String(project_name_prop.to_string()));
+    template_data.insert("nome_predio".to_string(), serde_json::Value::String(building_name_prop.to_string()));
+    template_data.insert("fissuras".to_string(), serde_json::Value::Array(fissuras_flat_for_template));
+    
+    let now = Local::now();
+    template_data.insert("data_geracao".to_string(), serde_json::Value::String(now.format("%Y-%m-%d %H:%M:%S").to_string()));
 
-    let report: String;
+    let final_json_for_template = serde_json::Value::Object(template_data);
 
-    // Verifica se o arquivo do relatório já existe; caso não, gera o relatório
-    if !file_path.exists() {
-        let report_dir: PathBuf = ["Report", &project_name].iter().collect();
-        std::fs::create_dir_all(&report_dir).map_err(|e| handlebars::RenderError::from(
-            handlebars::RenderErrorReason::Other(format!("Erro ao criar pasta Report: {}", e))
-        ))?;
+    let report_output_dir: PathBuf = ["Report", project_name_prop].iter().collect();
+    let report_md_filename: String = format!("Relatorio-{}-{}.md", project_name_prop.replace(' ', "_"), building_name_prop.replace(' ', "_"));
+    let report_md_filepath: PathBuf = report_output_dir.join(&report_md_filename);
 
-        // Gera o report, passando o template e os dados
-        report = generate_report(template, &json_data)?;
+    let report_markdown_content: String;
 
-        // Salva o relatório gerado em um arquivo Markdown
-        let mut file = File::create(&file_path)
-            .map_err(|e| handlebars::RenderError::from(
-                handlebars::RenderErrorReason::Other(format!("Erro ao criar arquivo MD: {}", e))
-            ))?;
-        file.write_all(report.as_bytes())
-            .map_err(|e| handlebars::RenderError::from(
-                handlebars::RenderErrorReason::Other(format!("Erro ao escrever no arquivo MD: {}", e))
-            ))?;
+    if !report_md_filepath.exists() {
+        std::fs::create_dir_all(&report_output_dir).map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao criar pasta Report '{:?}': {}", report_output_dir, e)).into())?;
+        report_markdown_content = generate_report(template, &final_json_for_template)?;
+        let mut file = File::create(&report_md_filepath)
+            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao criar arquivo MD '{:?}': {}", report_md_filepath, e)).into())?;
+        file.write_all(report_markdown_content.as_bytes())
+            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao escrever no arquivo MD '{:?}': {}", report_md_filepath, e)).into())?;
+        println!("[RUST report.rs] Novo relatório MD gerado em: {:?}", report_md_filepath);
     } else {
-        // Se o arquivo já existe, lê o conteúdo Markdown
-        let mut file = File::open(&file_path)
-            .map_err(|e| handlebars::RenderError::from(
-                handlebars::RenderErrorReason::Other(format!("Erro ao abrir arquivo MD existente: {}", e))
-            ))?;
+        let mut file = File::open(&report_md_filepath)
+            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao abrir arquivo MD existente '{:?}': {}", report_md_filepath, e)).into())?;
         let mut md_content = String::new();
         file.read_to_string(&mut md_content)
-            .map_err(|e| handlebars::RenderError::from(
-                handlebars::RenderErrorReason::Other(format!("Erro ao ler arquivo MD existente: {}", e))
-            ))?;
-        report = md_content;
+            .map_err(|e| handlebars::RenderErrorReason::Other(format!("Erro ao ler arquivo MD existente '{:?}': {}", report_md_filepath, e)).into())?;
+        report_markdown_content = md_content;
+        println!("[RUST report.rs] Relatório MD existente carregado de: {:?}", report_md_filepath);
     }
 
-    // Retorna o relatório renderizado como HTML
-    Ok(render_markdown(&report))
+    Ok(render_markdown(&report_markdown_content))
 }
 
 #[derive(Props, PartialEq, Clone)]
@@ -203,11 +186,13 @@ pub struct ReportViewProps {
 
 #[allow(non_snake_case)]
 pub fn ReportView(props: ReportViewProps) -> Element {
-    // Corrigir caminho do arquivo de dados para buscar em 'Projects' ao invés de 'src/Report'
-    let data_file_name: String = format!("Dados-{}-{}.json", &props.project_name, &props.building_name);
-    let data_file_path: PathBuf = ["Projects", &props.project_name, &data_file_name].iter().collect();
-    let report_file_name: String = format!("Relatorio-{}-{}.md", &props.project_name, &props.building_name);
-    let report_file_path: PathBuf = ["Report", &props.project_name, &report_file_name].iter().collect();
+    let report_md_filename: String = format!("Relatorio-{}-{}.md", &props.project_name.replace(' ', "_"), &props.building_name.replace(' ', "_"));
+    let report_md_filepath: PathBuf = ["Report", &props.project_name, &report_md_filename].iter().collect();
+    
+    if let Ok(cwd) = env::current_dir() {
+        println!("[RUST ReportView Render] CWD: {:?}", cwd);
+    }
+    println!("[RUST ReportView Render] Tentando usar MD de: {:?}", report_md_filepath);
 
     rsx! {
         document::Link {
@@ -216,20 +201,23 @@ pub fn ReportView(props: ReportViewProps) -> Element {
         }
         body {
             header {
-                i { class: "material-icons icon", "logo" }
-                h1 { "14 BIS" }
+                i { class: "material-icons icon", "description" }
+                h1 { "Relatório de Inspeção - 14 BIS" }
             }
             main {
                 div {
                     class: "button-area",
                     button {
                         onclick: {
-                            let report_file_path = report_file_path.clone();
+                            let path_clone = report_md_filepath.clone();
                             move |_| {
-                                let report_file_path = report_file_path.clone();
-                                match std::fs::read_to_string(&report_file_path) {
-                                    Ok(content) => export(&content, "MD"),
-                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                if path_clone.exists() {
+                                    match std::fs::read_to_string(&path_clone) {
+                                        Ok(content) => export(&content, "MD"),
+                                        Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
+                                    }
+                                } else {
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
@@ -237,12 +225,15 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                     button {
                         onclick: {
-                            let report_file_path = report_file_path.clone();
+                            let path_clone = report_md_filepath.clone();
                             move |_| {
-                                let report_file_path = report_file_path.clone();
-                                match std::fs::read_to_string(&report_file_path) {
-                                    Ok(content) => export(&content, "PDF"),
-                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                if path_clone.exists() {
+                                    match std::fs::read_to_string(&path_clone) {
+                                        Ok(content) => export(&content, "PDF"),
+                                        Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
+                                    }
+                                } else {
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
@@ -250,12 +241,15 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     },
                     button {
                         onclick: {
-                            let report_file_path = report_file_path.clone();
+                            let path_clone = report_md_filepath.clone();
                             move |_| {
-                                let report_file_path = report_file_path.clone();
-                                match std::fs::read_to_string(&report_file_path) {
-                                    Ok(content) => export(&content, "DOCX"),
-                                    Err(e) => eprintln!("Erro ao ler arquivo MD: {}", e),
+                                if path_clone.exists() {
+                                    match std::fs::read_to_string(&path_clone) {
+                                        Ok(content) => export(&content, "DOCX"),
+                                        Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
+                                    }
+                                } else {
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
@@ -266,8 +260,8 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     class: "text-viewer",
                     div {
                         class: "text-content",
-                        dangerous_inner_html: get_report(data_file_path.clone())
-                            .unwrap_or_else(|e| format!("Erro ao gerar relatório: {}", e))
+                        dangerous_inner_html: get_report(&props.project_name, &props.building_name)
+                            .unwrap_or_else(|e| format!("<h1>Erro ao gerar relatório</h1><p>Detalhes: {}</p><p>Verifique o console para mais informações sobre caminhos de arquivos.</p>", e))
                     }
                 }
             }

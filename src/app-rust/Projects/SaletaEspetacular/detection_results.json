@@ -1,0 +1,24 @@
+[
+    {
+        "path": "/home/asvarius/Área de trabalho/2025-1B-T12-EC06-G04/src/app-rust/Projects/SaletaEspetacular/images/Prédio 1/Fachada 1/seedSafe_ars_noveau.jpeg",
+        "fissura": [
+            {
+                "name": "retracao",
+                "confidence": 0.872114360332489
+            }
+        ]
+    },
+    {
+        "path": "/home/asvarius/Área de trabalho/2025-1B-T12-EC06-G04/src/app-rust/Projects/SaletaEspetacular/images/Prédio 1/Fachada 2/group9_img3.jpg",
+        "fissura": [
+            {
+                "name": "retracao",
+                "confidence": 0.3831844925880432
+            },
+            {
+                "name": "retracao",
+                "confidence": 0.25993505120277405
+            }
+        ]
+    }
+]

@@ -1666,6 +1666,7 @@ dependencies = [
  "open",
  "printpdf",
  "pulldown-cmark 0.9.6",
+ "rand 0.8.5",
  "regex",
  "rfd 0.12.1",
  "serde",
