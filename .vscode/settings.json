@@ -3,5 +3,7 @@
         "functional": "cpp",
         "chrono": "cpp",
         "ostream": "cpp"
-    }
+    },
+    "idf.pythonInstallPath": "/home/lnker/.pyenv/shims/python",
+    "cmake.ignoreCMakeListsMissing": true
 }
