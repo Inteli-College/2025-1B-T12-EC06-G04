@@ -19,19 +19,6 @@ title: Requisitos Funcionais
 
 --- 
 
-### Integração e Recepção de Imagens por Drone
-
-- **ID:** RF-SYS-002
-- **Descrição:** O sistema deve ser capaz de receber imagens automaticamente de dispositivos externos designados para inspeção através de uma interface de comunicação programática ou protocolo definido.
-- **Critérios de Aceitação:**
-  - O sistema deve estabelecer e manter a comunicação com o drone.
-  - As imagens devem ser transferidas com sucesso dos dispositivo externo para o sistema.
-  - A interface de comunicação deve suportar o protocolo e formato de dado exigido pelo dispositivo.
-  - O sistema deve implementar mecanismos de tratamento de erros para falhas na comunicação ou transferência de dados, notificando o problema.
-  - A recepção das imagens deve ocorrer sem perda de dados visuais relevante. <br/><br/>
-
----
-
 ### Validação e Pré-processamento de Formato de Imagem
 
 - **ID:** RF-SYS-003
