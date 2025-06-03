@@ -90,11 +90,6 @@ const config = {
             label: "Documentação",
           },
           {
-            to: "/blog",
-            label: "Blog",
-            position: "left",
-          },
-          {
             href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
             label: "GitHub",
             position: "right",
@@ -109,21 +104,17 @@ const config = {
             items: [
               {
                 label: "Introdução",
-                to: "/docs/Sprint-1/Negocios/",
+                to: "/docs/Sprint-1/",
               },
               {
                 label: "Guia de Início",
-                to: "/docs/Sprint-1/Negocios/",
+                to: "/docs/Sprint-1/",
               },
             ],
           },
           {
             title: "Mais",
             items: [
-              {
-                label: "Blog",
-                to: "/blog",
-              },
               {
                 label: "GitHub",
                 href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
