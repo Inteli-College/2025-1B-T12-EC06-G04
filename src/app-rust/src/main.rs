@@ -10,6 +10,8 @@ mod folders;
 use folders::Folders;
 mod report;
 use report::ReportView;
+mod validation;
+use validation::Validation;
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -35,4 +37,6 @@ pub enum Route {
     Folders {},
     #[route("/report")]
     ReportView {}
+    #[route("/validate")]
+    Validation{},
 }
