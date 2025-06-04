@@ -6,6 +6,8 @@ title: Teste de requisitos
 
 # Objetivos dos testes de requisitos
 
+&emsp;Para os testes de requisitos realizados na sprint 4, o foco foi revisar todos os requisitos elicitados na sprint 1 e corrigi-los, caso não fizessem mais sentido de acordo com o escopo delimitado na sprint 2. Além da revisão, o objetivo foi entender se o produto criado estava de acordo com os requisitos, visto que os RF e RNF foram elicitados levando em conta os aspectos que mais trariam valor à instituição parceira. Dessa forma, com os testes, o foco principal foi entender se a solução agrega valor e possui qualidade conforme o esperado.
+
 # Revisão dos requisitos não funcionais
 
 &emsp;Durante a preparação dos testes, foram encontradas imprecisões nos requisitos não funcionais. Dessa forma, foram revisados os requisitos de tal forma:
@@ -64,4 +66,11 @@ title: Teste de requisitos
 
 # Planejamento dos testes
 
+&emsp;Para preparar os testes, foram analisados os critérios de aceitação e criados os passos para o teste individual de cada requisito. Com essas informações, foi construída a tabela que se encontra na seção do relátorio de resultados e que permite visualizar cada teste, os critérios alcançados e o status do requisito (alcançado/não alcançado).
+
 # Relatório de resultados e análise
+
+|        | Critério 1 | Critério 2 | Critério 3 |
+|--------|------------|------------|------------|
+| Foi alcançado? |  Sim  |  Não  |  Sim  |
+| Observações gerais | tal | tal | tal |
