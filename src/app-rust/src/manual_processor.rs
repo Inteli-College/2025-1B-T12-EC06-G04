@@ -6,6 +6,10 @@ use std::fs;
 use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};
 use serde::Deserialize;
+use crate::Key::Link as KeyLink;
+use chrono::{DateTime, Local};
+use dioxus_router::prelude::Link;
+use crate::Route;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -96,7 +100,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
         facade_names.set(new_facade_names_vec);
     });
 
-    let organize_folders = move |_| {
+    let organize_folders = move |_: Event<FormEvent>| {
         let current_buildings = buildings.read().clone();
         let mut is_processing_writer = is_processing;
         let mut status_writer = status;
@@ -390,12 +394,10 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                         }
                         
                         div { class: "flex justify-end gap-4",
-                            button {
+                            Link {
+                                to: Route::ValidationScreen {},
                                 class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
-                                disabled: is_processing(),
-                                onclick: organize_folders,
-                                i { class: "material-icons", "check" }
-                                if is_processing() { "Organizando..." } else { "Confirmar Organização" }
+                                "Validar Fissuras"
                             }
                         }
                     }

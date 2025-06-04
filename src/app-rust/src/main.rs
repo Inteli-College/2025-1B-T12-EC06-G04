@@ -11,6 +11,7 @@ mod image_processor;
 mod manual_processor;
 mod ui;
 mod report_structures;
+mod validation_screen;
 
 use homepage::HomePage;
 use select_images::SelectImages;
@@ -19,6 +20,7 @@ use create_project::NewProject;
 use ui::Home;
 mod graph;
 use graph::GraphView;
+use validation_screen::ValidationScreen;
 
 #[component]
 fn Process() -> Element {
@@ -62,4 +64,7 @@ pub enum Route {
 
     #[route("/process")]
     Process {},
+
+    #[route("/validate")]
+    ValidationScreen {},
 }
