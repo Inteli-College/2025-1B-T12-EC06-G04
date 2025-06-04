@@ -23,7 +23,7 @@ const config = {
   organizationName: "14 bis", // Usually your GitHub org/user name.
   projectName: "14 bis", // Usually your repo name.
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
@@ -90,11 +90,6 @@ const config = {
             label: "Documentação",
           },
           {
-            to: "/blog",
-            label: "Blog",
-            position: "left",
-          },
-          {
             href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",
             label: "GitHub",
             position: "right",
@@ -109,21 +104,17 @@ const config = {
             items: [
               {
                 label: "Introdução",
-                to: "/docs/sprint-1/negocios/",
+                to: "/docs/Sprint-1/",
               },
               {
                 label: "Guia de Início",
-                to: "/docs/sprint-1/negocios/",
+                to: "/docs/Sprint-1/",
               },
             ],
           },
           {
             title: "Mais",
             items: [
-              {
-                label: "Blog",
-                to: "/blog",
-              },
               {
                 label: "GitHub",
                 href: "https://github.com/Inteli-College/2025-1B-T12-EC06-G04",

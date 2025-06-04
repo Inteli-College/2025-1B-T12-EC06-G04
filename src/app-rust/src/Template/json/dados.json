@@ -1,0 +1,66 @@
+{
+  "nome_projeto": "Galpão Logístico XPTO",
+  "data_analise": "2025-05-18",
+  "nome_responsavel": "Eng. Mariana Lima",
+  "nome_predio": "Galpão 3",
+  "endereco_predio": "Rod. dos Imigrantes, km 22 - Diadema/SP",
+  "numero_andares": 1,
+  "ano_construcao": 2005,
+  "tipo_estrutura": "Estrutura metálica com fundação de concreto",
+  "observacoes_gerais": "Estrutura apresenta sinais de recalque diferencial e movimentação térmica significativa.",
+  "facetas": [
+    {
+      "id": "F01",
+      "orientacao": "Sul",
+      "qtd_rachaduras": 3,
+      "observacoes": "Fissuras próximas a pilares e juntas de dilatação."
+    },
+    {
+      "id": "F02",
+      "orientacao": "Oeste",
+      "qtd_rachaduras": 2,
+      "observacoes": "Rachaduras próximas ao piso e na ligação com o telhado."
+    }
+  ],
+  "fissuras": [
+    {
+      "faceta_id": "F01",
+      "localizacao": "Base do pilar P3",
+      "classificacao": "Estrutural",
+      "descricao": "Fissura com abertura >1 mm, com indícios de infiltração.",
+      "caminho_imagem": "images/fissura_estrutural_1.jpg"
+    },
+    {
+      "faceta_id": "F01",
+      "localizacao": "Junta de dilatação central",
+      "classificacao": "Térmica",
+      "descricao": "Fissura longitudinal contínua por 2 metros.",
+      "caminho_imagem": "images/fissura_termica_1.jpg"
+    },
+    {
+      "faceta_id": "F01",
+      "localizacao": "Encontro entre pilares P2 e viga V5",
+      "classificacao": "Estrutural",
+      "descricao": "Fissura com destaque de concreto e ferragem exposta.",
+      "caminho_imagem": "images/fissura_estrutural_2.jpg"
+    },
+    {
+      "faceta_id": "F02",
+      "localizacao": "Piso industrial, lateral oeste",
+      "classificacao": "Retração plástica",
+      "descricao": "Trincas em padrão reticulado devido à retração no início de cura.",
+      "caminho_imagem": "images/fissura_piso.jpg"
+    },
+    {
+      "faceta_id": "F02",
+      "localizacao": "Conexão entre estrutura metálica e laje",
+      "classificacao": "Deslocamento",
+      "descricao": "Fissura inclinada indicando movimentação diferencial.",
+      "caminho_imagem": "images/fissura_conexao.jpg"
+    }
+  ],
+  "conclusao_geral": "Há indícios de problemas estruturais sérios que exigem intervenção imediata.",
+  "recomendacoes": "Contratar perícia estrutural detalhada, interditar área próxima ao pilar P3 e reparar as juntas.",
+  "funcao_responsavel": "Engenheira Estrutural",
+  "nome_empresa": "Estrutural Diagnósticos Técnicos"
+}

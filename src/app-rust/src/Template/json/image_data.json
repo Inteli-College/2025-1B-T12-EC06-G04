@@ -1,0 +1,23 @@
+{
+    "model_data": {
+        "model_type": "Classification",
+        "algorithm": "Yolo"
+    },
+    "fissures_images": [
+        {
+            "image_path": "path/to/image.png",
+            "fissures": [
+                {
+                    "fissure_id": 0,
+                    "fissure_classification": "thermical",
+                    "model_trust_percentage": 92
+                },
+                {
+                    "fissure_id": 1,
+                    "fissure_classification": "retraction",
+                    "model_trust_percentage": 95
+                }
+            ]
+        }
+    ]
+}
