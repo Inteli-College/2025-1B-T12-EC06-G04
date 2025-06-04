@@ -74,3 +74,5 @@ title: Teste de requisitos
 |--------|------------|------------|------------|
 | Foi alcançado? |  Sim  |  Não  |  Sim  |
 | Observações gerais | tal | tal | tal |
+
+# Conclusão
