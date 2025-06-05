@@ -113,7 +113,7 @@ pub fn HomePage() -> Element {
                 rel: "stylesheet"
             }
 
-            header { class: "flex items-center justify-between bg-blue-600 text-black p-4 shadow",
+            header { class: "flex items-center justify-between bg-blue-600 text-white p-4 shadow",
                 div { class: "flex items-center gap-4",
                     i { class: "material-icons", "menu" }
                     h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
@@ -130,7 +130,7 @@ pub fn HomePage() -> Element {
                 class: "w-4 p-4",
                 input {
                     r#type: "text",
-                    class: "w-full p-2 border rounded",
+                    class: "w-full px-4 py-2 border rounded-lg shadow",
                     placeholder: "Buscar pasta...",
                     oninput: move |e| {
                         search_input.set(e.value().clone());
@@ -143,22 +143,22 @@ pub fn HomePage() -> Element {
                 class: "flex-wrap p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
                 
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg",
                     onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
                     "Mais recente"
                 }
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
                     onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
                     "Mais antigo"
                 }
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
                     onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
                     "A-Z"
                 }
                 button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
+                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
                     onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
                     "Z-A"
                 }
