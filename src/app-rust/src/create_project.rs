@@ -109,16 +109,21 @@ pub fn NewProject() -> Element {
     };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            div { class: "container mx-auto px-4 py-12 max-w-2xl",
-                h1 { class: "text-3xl font-bold text-center mb-8", "Criar Novo Projeto" }
+        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans", // "main"
+            
+            div { class: "container mx-auto px-4 py-12 max-w-2xl", //div central
 
-                div { class: "bg-white rounded-lg shadow-md p-6 space-y-6",
+                h1 { style: "display: flex; justify-content: center; color: black; font-weight: bold; padding: 12px 0; font-size: 1.5rem", "Criar Novo Projeto" }
 
+                // Formulário
+                div { class: "bg-white rounded-lg shadow-md p-6 flex align-center flex-col gap-6",
+                      style: "max-width: 800px; margin: auto; width: 100%;",
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Nome do Projeto" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "text-transform: capitalize; border-radius: 8px;",
                             r#type: "text",
                             value: "{name()}",
                             oninput: move |e| name.set(e.value())
@@ -126,9 +131,11 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Descrição" }
                         textarea {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "resize: none; border-radius: 8px;",
                             value: "{description()}",
                             rows: "4",
                             oninput: move |e| description.set(e.value())
@@ -136,18 +143,23 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Líder responsável pelo projeto" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "text-transform: capitalize; border-radius: 8px;",
                             r#type: "text",
                             value: "{leader()}",
                             oninput: move |e| leader.set(e.value())
                         }
                     }
+
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Tipo de estrutura do edifício" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "text-transform: capitalize; border-radius: 8px;",
                             r#type: "text",
                             value: "{structure_type()}",
                             oninput: move |e| structure_type.set(e.value())
@@ -155,9 +167,11 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Ano" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "text-transform: capitalize; border-radius: 8px;",
                             r#type: "number",
                             value: "{year()}",
                             min: "1800",
@@ -167,9 +181,11 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
+                        style: "gap:2px",
                         label { class: "block text-gray-700 mb-1", "Observações gerais" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            style: "text-transform: capitalize; border-radius: 8px;",
                             r#type: "text",
                             value: "{observations()}",
                             oninput: move |e| observations.set(e.value())
@@ -177,7 +193,7 @@ pub fn NewProject() -> Element {
                     }
 
                     button {
-                        class: "w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+                        style:"background-color: blue; color: white; border-radius: 12px; padding: 8px 16px; cursor: pointer; bold",
                         disabled: is_creating(),
                         onclick: create_project,
                         if is_creating() { "Criando projeto..." } else { "Criar Projeto" }
