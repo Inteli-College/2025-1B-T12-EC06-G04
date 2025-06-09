@@ -154,8 +154,8 @@ Essa proposta pode ser usada como base de negociação comercial e como document
 ---
 ## Referências
 
-https://www.bcb.gov.br/estabilidadefinanceira/fechamentodolar
+BANCO CENTRAL DO BRASIL. Fechamento de dólar. Disponível em: https://www.bcb.gov.br/estabilidadefinanceira/fechamentodolar. Acesso em: 4 jun. 2025.
 
-https://sebrae.com.br/sites/PortalSebrae/artigos/entenda-e-calcule-corretamente-a-margem-de-lucro,f2bbca017749e410VgnVCM1000003b74010aRCRD
+SEBRAE. Entenda e calcule corretamente a margem de lucro. Disponível em: https://sebrae.com.br/sites/PortalSebrae/artigos/entenda-e-calcule-corretamente-a-margem-de-lucro,f2bbca017749e410VgnVCM1000003b74010aRCRD. Acesso em: 4 jun. 2025.
 
-https://www.contabilizei.com.br/contabilidade-online/contabilidade-para-empresas-profissionais-ti/
+CONTABILIZEI. Contabilidade para empresas de profissionais de TI. Disponível em: https://www.contabilizei.com.br/contabilidade-online/contabilidade-para-empresas-profissionais-ti/. Acesso em: 4 jun. 2025.
