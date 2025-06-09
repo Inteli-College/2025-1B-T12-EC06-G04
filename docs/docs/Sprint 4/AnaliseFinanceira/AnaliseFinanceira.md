@@ -5,17 +5,17 @@ sidebar_position: 0
 # Análise financeira do projeto para o IPT
 
 ## 1. Visão Geral do Projeto
-Este projeto consiste no desenvolvimento de um aplicativo desktop offline, capaz de realizar a análise automatizada de fissuras em edifícios a partir de imagens, classificando-as como **térmicas** ou de **retração**. O projeto utiliza o **YOLO**, um modelo de classificação de imagens utilizado para diferenciar dois tipos específicos de fissuras, gráficos analíticos e geração de relatórios técnicos, sendo desenvolvido com tecnologias de alto desempenho como Rust e Python.
+&emsp; Este projeto consiste no desenvolvimento de um aplicativo desktop offline, capaz de realizar a análise automatizada de fissuras em edifícios a partir de imagens, classificando-as como **térmicas** ou de **retração**. O projeto utiliza o **YOLO**, um modelo de classificação de imagens utilizado para diferenciar dois tipos específicos de fissuras, gráficos analíticos e geração de relatórios técnicos, sendo desenvolvido com tecnologias de alto desempenho como Rust e Python.
 
-O cliente é o Instituto de Pesquisas Tecnológicas (IPT), uma instituição pública, o que exige qualidade de entrega compatível com ambiente científico e institucional.
+&emsp; O cliente é o Instituto de Pesquisas Tecnológicas (IPT), uma instituição pública, o que exige qualidade de entrega compatível com ambiente científico e institucional.
 
 **Tempo de execução do projeto:** 2 meses
 **Modelo de contrato:** Projeto fechado + manutenção mensal (SLA de 48h)
 
 ---
 ## 2. Estrutura da Equipe
-Muitos projetos de tecnologia falham não pela ausência de desenvolvedores, mas por uma má composição da equipe. Aqui, na startup 14 Bis, estruturamos a equipe com base em papéis funcionais e complementares, para garantir não só a entrega, mas a excelência técnica, a segurança da aplicação, e uma experiência de uso adequada ao público-alvo do IPT.
-Todas as funções estão conectadas à minimização de riscos operacionais e cada um tem uma justificativa técnica clara e estratégica para o projeto desenvolvido.
+&emsp; Muitos projetos de tecnologia falham não pela ausência de desenvolvedores, mas por uma má composição da equipe. Aqui, na startup 14 Bis, estruturamos a equipe com base em papéis funcionais e complementares, para garantir não só a entrega, mas a excelência técnica, a segurança da aplicação, e uma experiência de uso adequada ao público-alvo do IPT.
+&emsp; Todas as funções estão conectadas à minimização de riscos operacionais e cada um tem uma justificativa técnica clara e estratégica para o projeto desenvolvido.
 
 | Cargo                     | Qtde | Justificativa Crítica                                                                                                                                                      |
 | ------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +32,7 @@ Todas as funções estão conectadas à minimização de riscos operacionais e c
 
 ## 3. Custos da Equipe e Ferramentas
 ### 3.1 Custos com a Equipe (PJ)
-Remunerações estão dentro da média de mercado para junho/2025. Cargos mais especializados, como Dev Sênior e Analista de Segurança, possuem valores compatíveis com sua criticidade.
+&emsp; Remunerações estão dentro da média de mercado para junho/2025. Cargos mais especializados, como Dev Sênior e Analista de Segurança, possuem valores compatíveis com sua criticidade.
 
 | Cargo                 | Quantidade | Valor Médio PJ/mês | Total Mensal |
 | --------------------- | ---------- | ------------------ | ------------ |
@@ -51,7 +51,7 @@ Remunerações estão dentro da média de mercado para junho/2025. Cargos mais e
 _Valores com base em mercado para contratos PJ (jun/2025), considerando o perfil da equipe e referência em sites como [Glassdoor](https://www.glassdoor.com.br/index.htm) e [Revelo](https://www.revelo.com.br/)._
 
 ### 3.2 Ferramentas e Infraestrutura
-Considerando que o projeto é 100% remoto, os custos com infraestrutura física são eliminados. No entanto, há despesas com ferramentas e serviços essenciais:
+&emsp; Considerando que o projeto é 100% remoto, os custos com infraestrutura física são eliminados. No entanto, há despesas com ferramentas e serviços essenciais:
 | Ferramenta          | Qtde Usuários | Valor Mensal/Usuário (USD/R$) | Cotação 04/06/2025 (R\$ 5,64) | Custo Mensal (R\$)    |
 | ------------------- | ------------- | -------------------------- | ----------------------------- | --------------------- |
 | GitHub Team         | 7             | \$4                        | R\$ 5,64                      | R\$ 158,00            |
@@ -74,41 +74,67 @@ _Câmbio de referência: US$ 1 = R$ 5,64 (cotação de 04/06/2025, Banco Central
 
 - **Google Workspace Business Standard (8 usuários):** Suporte à comunicação formal com o cliente (via Gmail), armazenamento de documentos (Drive), reuniões (Google Meet) e integração com calendários. Utilizado tanto para documentação interna quanto para comunicação institucional com o IPT.
 
-Apesar de parecer um custo elevado, essas ferramentas são importantes para manter qualidade e governança no projeto. Como o cliente é uma instituição pública, com potencial para fiscalizações e auditorias, ferramentas que garantem transparência, backup de decisões e histórico de atividades são indispensáveis.
+&emsp; Apesar de parecer um custo elevado, essas ferramentas são importantes para manter qualidade e governança no projeto. Como o cliente é uma instituição pública, com potencial para fiscalizações e auditorias, ferramentas que garantem transparência, backup de decisões e histórico de atividades são indispensáveis.
 
-Além disso, ao adotar soluções como GitHub, Notion e Slack — todas líderes em seus segmentos — é possível garantir a produtividade e integração contínua entre as partes da equipe. Além do mais o custo representa menos de 5% do orçamento total e tem alto retorno sobre investimento em termos de redução de retrabalho, melhoria da comunicação, transparência  e rastreabilidade.
-
----
-
-## 4. Carga Tributária (Simples Nacional + Fator R)
-
-A empresa responsável pelo projeto está enquadrada no Simples Nacional, regime tributário simplificado voltado a micro e pequenas empresas. Por se tratar de uma empresa de prestação de serviços técnicos em tecnologia da informação (TI), como o desenvolvimento de software sob demanda e manutenção, sua tributação recairia, em regra, sobre a Tabela V do Simples Nacional, que possui alíquotas mais elevadas — chegando a 22,45%.
-
-No entanto, aplica-se o Fator R, um mecanismo do Simples Nacional que permite a migração para a Tabela III quando os custos com folha de pagamento (incluindo pró-labore, salários e encargos) forem superiores a 28% da receita bruta dos últimos 12 meses. No caso deste projeto:
-
-- A equipe técnica é composta por 8 pessoas atuando em regime PJ (Pessoa Jurídica), com custos elevados proporcionalmente à receita;
-
-- O projeto gerará uma receita estimada de R$ 250.000,00 ao longo de dois meses;
-
-- Os custos com pessoal representam mais de 50% da receita, o que habilita a empresa ao benefício do Fator R com segurança jurídica.
-
-Tendo em vista isso:
-
-**Faixa de receita estimada:** R$ 250.000,00 (projeto entregue em 2 meses)
-
-**Faixa aplicável:** 4ª Faixa (de R$ 180.000,01 até R$ 360.000,00)
-
-**Alíquota nominal:** 16,93%
-
-**Alíquota efetiva (com desconto)**: 13,5% a 15%
-
-Para segurança, utilizaremos uma alíquota de **15% sobre a receita bruta**.
+&emsp; Além disso, ao adotar soluções como GitHub, Notion e Slack — todas líderes em seus segmentos — é possível garantir a produtividade e integração contínua entre as partes da equipe. Além do mais o custo representa menos de 5% do orçamento total e tem alto retorno sobre investimento em termos de redução de retrabalho, melhoria da comunicação, transparência  e rastreabilidade.
 
 ---
 
-## 5. Precificação e Margem de Lucro(20%)
+## 4. Carga Tributária e Cálculo de Impostos (Simples Nacional + Fator R)
+&emsp; A empresa responsável pelo projeto está enquadrada no Simples Nacional, regime tributário simplificado para micro e pequenas empresas. Como atuamos na área de desenvolvimento de software sob demanda, seríamos enquadrados originalmente na Tabela V — a mais onerosa —, com alíquotas que podem chegar a 22,45%.
 
-A margem de **20%** é prática comum no setor de serviços de tecnologia para:
+&emsp; No entanto, há um mecanismo chamado Fator R, que permite migrar para a Tabela III (com alíquotas menores), caso mais de 28% da receita bruta seja destinada à folha de pagamento (incluindo pró-labore e pagamentos a sócios e colaboradores PJ).
+
+### 4.1 Apuração do Fator R
+&emsp; Para este projeto, temos:
+
+- Receita estimada: R$ 250.000,00 (em dois meses)
+
+- Custo com equipe: R$ 162.000,00
+
+- Percentual de custo com equipe sobre receita: 64,8%
+
+Como 64,8% é superior a 28%, a empresa se enquadra no Fator R com folga e pode tributar pela Tabela III, que possui alíquotas mais vantajosas.
+
+### 4.2 Cálculo da Alíquota Efetiva
+Segundo o Anexo III do Simples Nacional (vigente em 2025), a 4ª faixa (receita entre R$ 180.000,01 e R$ 360.000,00) possui:
+
+- Alíquota nominal: 16,93%
+
+- Parcela a deduzir: R$ 9.585,50
+
+Para calcular a alíquota efetiva, utiliza-se a fórmula:
+
+**Alíquota efetiva = (Receita Bruta × Alíquota Nominal - Parcela a Deduzir) ÷ Receita Bruta**
+
+Aplicando os valores:
+
+- Receita Bruta × Alíquota Nominal = R$ 250.000,00 × 16,93% = R$ 42.325,00
+
+- Subtraindo a parcela dedutível: 42.325,00 - 9.585,50 = R$ 32.739,50
+
+- Alíquota efetiva = 32.739,50 ÷ 250.000,00 = 13,1%
+
+Para manter uma margem de segurança (variações cambiais, erros operacionais, arredondamentos), adotamos 15% como alíquota conservadora.
+
+### 4.3 Valor Estimado de Imposto
+Com base na alíquota de 15% aplicada sobre a receita estimada líquida de impostos, temos:
+
+- Base de cálculo estimada (sem imposto): R$ 198.834,94
+
+- Imposto estimado: R$ 198.834,94 × 15% = R$ 29.825,24
+
+Este valor é considerado como custo obrigatório e incluso na precificação final. A adoção de uma alíquota ligeiramente maior que a real garante previsibilidade financeira mesmo diante de oscilações legais ou operacionais.
+
+---
+
+## 5. Margem Operacional e Lucro
+
+&emsp; Margem operacional é uma reserva financeira destinada a cobrir custos extras e imprevisíveis, como revisões, retrabalho, suporte adicional e variações cambiais. Essa margem assegura a saúde financeira do projeto diante de incertezas e é prática comum no setor de tecnologia variar entre 10% a 20%.
+
+&emsp; Lucro é o ganho real da empresa, o retorno financeiro pelo valor agregado e pelo risco do projeto, após todos os custos e despesas (inclusive a margem operacional) serem cobertos.
+
+A margem Operacional de **20%** é prática comum no setor de serviços de tecnologia para:
 
 - Cobrir riscos (revisões, retrabalho, suporte adicional).
 
@@ -122,15 +148,22 @@ A margem de 20% está alinhada com estudos do [Sebrae](https://sebrae.com.br/sit
 
 ## 6. Precificação Final
 
-| Item                            | Valor              |
-| ------------------------------- | ------------------ |
-| Custo de equipe (2 meses)       | R\$ 162.000,00        |
-| Ferramentas (2 meses)           | R\$ 3.095,78       |
-| **Subtotal operacional**        | R\$ 165.695,78     |
-| **Lucro (20%)**                 | R\$ 33.139,16      |
-| **Preço de venda**     | **R\$ 198.834,94** |
-| Impostos Simples Nacional (15%) | R\$ 29.825,24      |
-| **Preço final com impostos**    | **R\$ 228.060,18** |
+| Item                                 | Valor              |
+| ------------------------------------ | ------------------ |
+| Custo de equipe (2 meses)            | R\$ 162.000,00     |
+| Ferramentas (2 meses)                | R\$ 3.095,78       |
+| **Subtotal operacional**             | R\$ 165.695,78     |
+| **Margem operacional (20%)**         | R\$ 33.139,16      |
+| **Subtotal com margem**              | R\$ 198.834,94     |
+
+---
+| Item                                 | Valor              |
+| ------------------------------------ | ------------------ |
+| Subtotal com margem              | R\$ 198.834,94     |
+| **Lucro estimado (15%)**             | R\$ 29.825,24      |
+| **Preço de venda antes de impostos** | R\$ 228.660,18     |
+| Impostos Simples Nacional (15%)      | R\$ 34.299,03      |
+| **Preço final com impostos**         | **R\$ 262.959,21** |
 
 ---
 ## 7. Precificação da Manutenção Mensal (SLA de 48h)
