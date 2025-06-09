@@ -1,12 +1,15 @@
-use dioxus::prelude::*;
-use std::path::{Path, PathBuf};
-use chrono::{DateTime, Local};
-use dioxus_router::prelude::Link;
 use crate::Route;
+use chrono::{DateTime, Local};
+use dioxus::prelude::*;
+use dioxus_router::prelude::Link;
+use std::path::{Path, PathBuf};
 
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
-        if ancestor.file_name().map_or(false, |name| name == "Projects") {
+        if ancestor
+            .file_name()
+            .map_or(false, |name| name == "Projects")
+        {
             return path.strip_prefix(ancestor).ok().map(|p| p.to_path_buf());
         }
     }
@@ -31,24 +34,34 @@ pub fn HomePage() -> Element {
     let mut entries: Vec<_> = binding.path_names.iter().collect();
 
     entries.sort_by(|a, b| {
-        let date_a = a.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
-        let date_b = b.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
-    
+        let date_a = a
+            .created
+            .as_ref()
+            .and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+        let date_b = b
+            .created
+            .as_ref()
+            .and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+
         // Aplica o filtro de data
         let date_cmp = match *date_order {
             SortDateOrder::MaisRecente => date_b.cmp(&date_a),
             SortDateOrder::MaisAntigo => date_a.cmp(&date_b),
         };
-    
+
         // Se as datas forem iguais ou inexistentes, aplica o filtro alfabético
         if date_cmp == std::cmp::Ordering::Equal {
-            let name_a = a.path.file_name()
+            let name_a = a
+                .path
+                .file_name()
                 .map(|n| n.to_string_lossy().to_lowercase())
                 .unwrap_or_default();
-            let name_b = b.path.file_name()
+            let name_b = b
+                .path
+                .file_name()
                 .map(|n| n.to_string_lossy().to_lowercase())
                 .unwrap_or_default();
-    
+
             match *alphabetical_order {
                 SortAlphabeticOrder::AZ => name_a.cmp(&name_b),
                 SortAlphabeticOrder::ZA => name_b.cmp(&name_a),
@@ -57,12 +70,11 @@ pub fn HomePage() -> Element {
             date_cmp
         }
     });
-    
-    
+
     if *alphabetical_order == SortAlphabeticOrder::ZA {
         entries.reverse();
     }
-    
+
     use_effect(move || {
         let new_path = processed_folder_signal.read().clone();
         files.write().update_base_path_if_different(new_path);
@@ -70,7 +82,6 @@ pub fn HomePage() -> Element {
 
     // pesquisa do usuário
     let mut search_input = use_signal(|| String::new());
-
 
     let folder_cards = entries.iter().enumerate()
     .filter_map(|(_dir_id, entry)| {
@@ -124,50 +135,55 @@ pub fn HomePage() -> Element {
                     "logout"
                 }
             }
-
-            // barra de pesquisa
             div {
-                class: "w-4 p-4",
-                input {
-                    r#type: "text",
-                    class: "w-full px-4 py-2 border rounded-lg shadow",
-                    placeholder: "Buscar pasta...",
-                    oninput: move |e| {
-                        search_input.set(e.value().clone());
-                    },
-                    value: "{search_input}",
+                style: "display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; width: 100%; padding: 8px 24px;",
+                // barra de pesquisa
+                div {
+                    class: "w-4",
+                    style: "",
+                    input {
+                        r#type: "text",
+                        class: "px-4 py-2 border rounded-lg shadow",
+                        style: "width: 304px;",
+                        placeholder: "Buscar pasta...",
+                        oninput: move |e| {
+                            search_input.set(e.value().clone());
+                        },
+                        value: "{search_input}",
+                    }
+                }
+
+                div {
+                    // container com todos os botões em uma única linha
+                    class: "flex-wrap flex grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6",
+                    style:"",
+                    button {
+                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg",
+                        onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
+                        "Mais recente"
+                    }
+                    button {
+                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
+                        onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
+                        "Mais antigo"
+                    }
+                    button {
+                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
+                        onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
+                        "A-Z"
+                    }
+                    button {
+                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
+                        onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
+                        "Z-A"
+                    }
                 }
             }
-            div {
-                // container com todos os botões em uma única linha
-                class: "flex-wrap p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg",
-                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
-                    "Mais recente"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
-                    "Mais antigo"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
-                    "A-Z"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
-                    "Z-A"
-                }
-            }
 
-        
 
             main {
-                class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
+                class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6",
+                style:"background-color:blue, max width: 90%;",
                 { folder_cards.into_iter() }
 
                 Link {
@@ -179,7 +195,7 @@ pub fn HomePage() -> Element {
                         span { "Relatório" }
                     }
                 }
-                
+
             }
 
             if let Some(err) = files.read().err.as_ref() {
@@ -192,17 +208,17 @@ pub fn HomePage() -> Element {
                     }
                 }
             }
-    
+
             // Botão para criar o projeto
             Link {
                 to: Route::NewProject {},
                 button {
-                    class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
+                    class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg rounded-full",
+                    style: "padding: 10px 10px 5px 10px",
                     title: "Nova Pasta",
                     i { class: "material-icons", "add" }
                 }
             }
-
         }
     }
 }
@@ -240,7 +256,11 @@ impl Files {
         };
 
         if let Err(e) = std::fs::create_dir_all(&base_path) {
-            eprintln!("Falha ao criar diretório base em Files::new: {} ({:?})", base_path.display(), e);
+            eprintln!(
+                "Falha ao criar diretório base em Files::new: {} ({:?})",
+                base_path.display(),
+                e
+            );
         }
 
         let current_path = base_path.clone();
@@ -266,7 +286,11 @@ impl Files {
             self.base_path = new_base_path.clone();
             self.current_path = new_base_path;
             if let Err(e) = std::fs::create_dir_all(&self.base_path) {
-                self.err = Some(format!("Falha ao criar novo diretório base {}: {:?}", self.base_path.display(), e));
+                self.err = Some(format!(
+                    "Falha ao criar novo diretório base {}: {:?}",
+                    self.base_path.display(),
+                    e
+                ));
             } else {
                 self.err = None;
             }
@@ -290,7 +314,8 @@ impl Files {
         for entry in collected {
             if let Ok(entry) = entry {
                 let path = entry.path();
-                let created = entry.metadata()
+                let created = entry
+                    .metadata()
                     .and_then(|m| m.created())
                     .ok()
                     .and_then(|time| {
@@ -304,7 +329,11 @@ impl Files {
                     None
                 };
 
-                self.path_names.push(FileEntry { path, created, description });
+                self.path_names.push(FileEntry {
+                    path,
+                    created,
+                    description,
+                });
             }
         }
     }
