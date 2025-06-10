@@ -1,23 +1,32 @@
+// Import de bibliotecas externas
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder};
+use dioxus::desktop::{Config, WindowBuilder};
 use std::path::PathBuf;
 
+mod pages {
+    pub mod report;
+    pub mod proccess;
+}
+mod utils {
+    pub mod file_manager;
+    pub mod report_generator;
+}
+
+// Import de arquivos locais
 mod homepage;
 mod select_images;
-mod report;
 mod create_project;
 mod image_processor;
 mod manual_processor;
-mod ui;
 mod report_structures;
+mod graph;
 
 use homepage::HomePage;
 use select_images::SelectImages;
-use report::ReportView;
+use pages::report::ReportView;
 use create_project::NewProject;
-use ui::Home;
-mod graph;
+use pages::proccess::Process;
 use graph::GraphView;
 
 #[component]
