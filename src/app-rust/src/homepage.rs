@@ -115,9 +115,33 @@ pub fn HomePage() -> Element {
     // --- Início do frontend ---
     rsx! {
         style { // Estilização para o 
-            ".selected-filter {{ background-color:oklch(54.6% 0.245 262.881) !important; color:oklch(98.5% 0 0) !important; border: none !important; border: 2px solid oklch(54.6% 0.245 262.881) !important; box-sizing: border-box;}}
-             .unselected-filter {{ background-color: oklch(96.7% 0.003 264.542); color: oklch(42.4% 0.199 265.638); oklch(42.4% 0.199 265.638); border: 2px solid oklch(54.6% 0.245 262.881); box-sizing: border-box; hover:bg-blue-200}}
-             .unselected-filter:hover {{ background-color: oklch(93.2% 0.032 255.585)}}
+            ".selected-filter {{ 
+                background: linear-gradient(135deg, oklch(54.6% 0.245 262.881) 0%, oklch(0.4753 0.2363 262.881) 100%) !important; 
+                color:oklch(98.5% 0 0) !important; 
+                border: none !important; 
+                border: 2px solid oklch(54.6% 0.245 262.881) !important;
+                box-sizing: border-box;
+            }}
+
+             .unselected-filter {{ 
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                color: oklch(42.4% 0.199 265.638);  
+                border: 2px solid oklch(54.6% 0.245 262.881); 
+                box-sizing: border-box; 
+                hover:bg-blue-200
+            }}
+
+            .selected-filter:hover, .unselected-filter:hover {{
+                transform: translateY(-1px) scale(1.01);
+                box-shadow: 
+                    0 8px 25px rgba(0, 0, 0, 0.08),
+                    0 4px 10px rgba(0, 0, 0, 0.03);
+                transition: all 0.2s cubic-bezier(0.2, 0, 0.1, 0.5);
+            }}
+
+            .unselected-filter:hover {{ 
+                background: oklch(93.2% 0.032 255.585)
+            }}
 
             .filter-icon {{
                 transition: transform 0.3s ease-in-out;
@@ -134,7 +158,6 @@ pub fn HomePage() -> Element {
                     rgba(248, 250, 252, 0.8) 50%,
                     rgba(241, 245, 249, 0.7) 75%,
                     rgba(236, 240, 244, 0.8) 100%);
-                
                 border: 1px solid rgba(255, 255, 255, 0.4);
                 border-radius: 12px;
                 padding: 1.5rem;
@@ -147,11 +170,26 @@ pub fn HomePage() -> Element {
             }}
 
             .folders:hover {{
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 
-                0 8px 25px rgba(0, 0, 0, 0.12),
-                0 4px 10px rgba(0, 0, 0, 0.08);
-            border-color: rgba(59, 130, 246, 0.3);
+                transform: translateY(-4px) scale(1.02);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.08);
+                border-color: rgba(59, 130, 246, 0.3);
+            }}
+            
+            .box {{
+                backdrop-filter: blur(10px);
+                box-shadow: 
+                    0 2px 8px rgba(0, 0, 0, 0.05),
+                    0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s cubic-bezier(0.3, 0, 0.1, 1);
+                cursor: pointer;
+            }}
+
+            .box:hover {{
+                transform: translateY(-1.5px) scale(1.009);
+                box-shadow: 
+                    0 8px 25px rgba(0, 0, 0, 0.12),
+                    0 4px 10px rgba(0, 0, 0, 0.08);
+                border-color: rgba(59, 130, 246, 0.3);
             }}
 
             .filter-buttons-container {{
@@ -211,7 +249,7 @@ pub fn HomePage() -> Element {
                 div {
                     style: "display: flex; align-items: center; gap: 10px;",
                     button {
-                        class: "bg-gray-200 hover:bg-gray-300 rounded-full shadow",
+                        class: "bg-gray-200 hover:bg-gray-300 rounded-full shadow box",
                         style: "display: flex; align-items: center; justify-content: center; padding: 8px;",
                         onclick: move |_| show_filters.toggle(),
                         
@@ -269,7 +307,8 @@ pub fn HomePage() -> Element {
                 { folder_cards.into_iter() }
 
                 Link {
-                    class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
+                    class: "fixed bottom-6 left-6 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg box",
+                    style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);",
                     to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },
                     button {
                         class: "flex items-center gap-2",
@@ -294,8 +333,8 @@ pub fn HomePage() -> Element {
             Link {
                 to: Route::NewProject {},
                 button {
-                    class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg rounded-full",
-                    style: "padding: 10px 10px 5px 10px",
+                    class: "fixed bottom-6 right-6 shadow-lg rounded-full box",
+                    style: "padding: 10px 10px 5px 10px; background: linear-gradient(135deg, #fefefe 0%, #f5f5f5 100%); color: oklch(28.2% 0.091 267.935); border: 1px solid #ddd",
                     title: "Nova Pasta",
                     i { class: "material-icons", "add" }
                 }

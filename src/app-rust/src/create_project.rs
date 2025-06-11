@@ -110,16 +110,41 @@ pub fn NewProject() -> Element {
 
     rsx! {
         div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans", // "main"
+              style: "background: radial-gradient(circle at center, #ffffff, #f0f8ff, #e0f2e1)",
             
             div { class: "container mx-auto px-4 py-12 max-w-2xl", //div central
 
-                h1 { style: "display: flex; justify-content: center; color: black; font-weight: bold; padding: 12px 0; font-size: 1.5rem", "Criar Novo Projeto" }
+                div {
+                    style:"display: flex; justify-content: space-between; align-items: center; gap: 12px;",
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
+                    },
+                    h1 {
+                        style: "display: flex; justify-content: center; color: black; font-weight: bold; padding: 12px 0; font-size: 1.5rem",
+                        "Criar Novo Projeto"
+                    },
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
+                    },
+                }
+                
+                Link {
+                    to: Route::HomePage {},
+                    class: "fixed top-6 left-6",
+                    style:"",
+                    button {
+                        class: "px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-md shadow",
+                        onclick: handle_back,
+                        title: "Voltar para a página inicial",
+                        i { class: "material-icons", "arrow_back" }
+                    }
+                }
 
                 // Formulário
-                div { class: "bg-white rounded-lg shadow-md p-6 flex align-center flex-col gap-6",
-                      style: "max-width: 800px; margin: auto; width: 100%;",
+                div { class: "rounded-lg shadow-md p-6 flex align-center flex-col gap-6",
+                      style: "max-width: 800px; margin: auto; width: 100%; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.03), 0 4px 10px rgba(0, 0, 0, 0.01); background: linear-gradient(135deg, #fefefe 0%, #f5f5f5 100%); color: #333;",
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Nome do Projeto" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -131,7 +156,7 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Descrição" }
                         textarea {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -143,7 +168,7 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Líder responsável pelo projeto" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -155,7 +180,7 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Tipo de estrutura do edifício" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -167,7 +192,7 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Ano" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -181,7 +206,7 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        style: "gap:2px",
+                        style: "gap:4px",
                         label { class: "block text-gray-700 mb-1", "Observações gerais" }
                         input {
                             class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
@@ -193,7 +218,7 @@ pub fn NewProject() -> Element {
                     }
 
                     button {
-                        style:"background-color: blue; color: white; border-radius: 12px; padding: 8px 16px; cursor: pointer; bold",
+                        style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border-radius: 12px; padding: 8px 16px; cursor: pointer; font-weight: 600",
                         disabled: is_creating(),
                         onclick: create_project,
                         if is_creating() { "Criando projeto..." } else { "Criar Projeto" }
@@ -203,15 +228,6 @@ pub fn NewProject() -> Element {
                         p { class: "text-center text-gray-700", "{status()}" }
                         
                         div { class: "flex justify-between mt-4",
-                            Link {
-                                to: Route::HomePage {},
-                                button {
-                                    class: "px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-md shadow",
-                                    onclick: handle_back,
-                                    title: "Voltar para a página inicial",
-                                    i { class: "material-icons", "arrow_back" }
-                                }
-                            }
                             
                             if let Some(_) = images_path() {
                                 Link {
