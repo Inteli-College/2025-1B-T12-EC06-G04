@@ -23,9 +23,10 @@ pub fn HomePage() -> Element {
 
     let mut files = use_signal(|| Files::new(initial_path_from_state));
 
-    // variáveis para o filtros de ordenação alfabética e por data
     let mut sort_alphabetical_order = use_signal(|| SortAlphabeticOrder::AZ);
     let mut sort_date_order = use_signal(|| SortDateOrder::MaisRecente);
+
+    let mut show_filters = use_signal(|| false);
 
     let alphabetical_order = sort_alphabetical_order.read();
     let date_order = sort_date_order.read();
@@ -43,13 +44,11 @@ pub fn HomePage() -> Element {
             .as_ref()
             .and_then(|s| DateTime::parse_from_rfc3339(s).ok());
 
-        // Aplica o filtro de data
         let date_cmp = match *date_order {
             SortDateOrder::MaisRecente => date_b.cmp(&date_a),
             SortDateOrder::MaisAntigo => date_a.cmp(&date_b),
         };
 
-        // Se as datas forem iguais ou inexistentes, aplica o filtro alfabético
         if date_cmp == std::cmp::Ordering::Equal {
             let name_a = a
                 .path
@@ -80,45 +79,103 @@ pub fn HomePage() -> Element {
         files.write().update_base_path_if_different(new_path);
     });
 
-    // pesquisa do usuário
     let mut search_input = use_signal(|| String::new());
 
     let folder_cards = entries.iter().enumerate()
-    .filter_map(|(_dir_id, entry)| {
-        let path = &entry.path;
-        let folder_name = path.file_name()?.to_string_lossy();
-        let path_display = display_from_projects(path)
-            .map(|p| p.display().to_string())
-            .unwrap_or_else(|| path.display().to_string());
-        let created = entry.created.clone().unwrap_or_default();
-        let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
+        .filter_map(|(_dir_id, entry)| {
+            let path = &entry.path;
+            let folder_name = path.file_name()?.to_string_lossy();
+            let path_display = display_from_projects(path)
+                .map(|p| p.display().to_string())
+                .unwrap_or_else(|| path.display().to_string());
+            let created = entry.created.clone().unwrap_or_default();
+            let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
 
-        // Aplicando a pesquisa do usuário
-        let search = search_input.read().to_lowercase();
-        if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
-            return None;
+            let search = search_input.read().to_lowercase();
+            if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
+                return None;
+            }
+
+            Some(rsx!(
+                Link {
+                    to: Route::GraphView { project_name: folder_name.to_string() },
+                    class: "folders flex flex-col items-center text-center cursor-pointer",
+                    key: "{path_display}",
+                    i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
+                    h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
+                    p { class: "text-xs text-gray-400 mt-1", "{created}" }
+                    p { class: "text-xs text-gray-600 mt-1", "{description}" }
+                }
+            ))
+        })
+        .filter_map(Result::ok)
+        .collect::<Vec<_>>();
+
+
+    // --- Início do frontend ---
+    rsx! {
+        style { // Estilização para o 
+            ".selected-filter {{ background-color:oklch(54.6% 0.245 262.881) !important; color:oklch(98.5% 0 0) !important; border: none !important; border: 2px solid oklch(54.6% 0.245 262.881) !important; box-sizing: border-box;}}
+             .unselected-filter {{ background-color: oklch(96.7% 0.003 264.542); color: oklch(42.4% 0.199 265.638); oklch(42.4% 0.199 265.638); border: 2px solid oklch(54.6% 0.245 262.881); box-sizing: border-box; hover:bg-blue-200}}
+             .unselected-filter:hover {{ background-color: oklch(93.2% 0.032 255.585)}}
+
+            .filter-icon {{
+                transition: transform 0.3s ease-in-out;
+            }}
+            
+            .filter-icon-active {{
+                transform: rotate(180deg);
+            }}
+
+            .folders {{
+                background: linear-gradient(145deg, 
+                    rgba(255, 255, 255, 0.9) 0%,
+                    rgba(255, 255, 255, 0.7) 25%,
+                    rgba(248, 250, 252, 0.8) 50%,
+                    rgba(241, 245, 249, 0.7) 75%,
+                    rgba(236, 240, 244, 0.8) 100%);
+                
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                border-radius: 12px;
+                padding: 1.5rem;
+                backdrop-filter: blur(10px);
+                box-shadow: 
+                    0 2px 8px rgba(0, 0, 0, 0.05),
+                    0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+            }}
+
+            .folders:hover {{
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.12),
+                0 4px 10px rgba(0, 0, 0, 0.08);
+            border-color: rgba(59, 130, 246, 0.3);
+            }}
+
+            .filter-buttons-container {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px; 
+                animation: fadeIn 0.4s ease-out forwards;
+            }}
+            @keyframes fadeIn {{
+                from {{
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }}
+                to {{
+                    opacity: 1;
+                    transform: translateY(0);
+                }}
+            }}"
         }
 
-        Some(rsx!(
-            Link {
-                to: Route::GraphView { project_name: folder_name.to_string() },
-                class: "flex flex-col items-center text-center bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg hover:bg-blue-50 transition duration-300 ease-in-out",
-                key: "{path_display}",
-                i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
-                h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
-                p { class: "text-xs text-gray-400 mt-1", "{created}" }
-                p { class: "text-xs text-gray-600 mt-1", "{description}" }
-            }
-        ))
-    })
-    .filter_map(Result::ok)
-    .collect::<Vec<_>>();
+        document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
-    // aqui começa o front
-    rsx! {
-        document::Stylesheet { href: asset!("/assets/tailwind.css") } // puxa as classes do tailwind
-
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
+        body { class: "min-h-screen  text-gray-900 font-sans",
+            style:"background: radial-gradient(circle at center, #ffffff, #f0f8ff, #e0f2e1)",
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
@@ -135,47 +192,72 @@ pub fn HomePage() -> Element {
                     "logout"
                 }
             }
+
             div {
-                style: "display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; width: 100%; padding: 8px 24px;",
-                // barra de pesquisa
+                style: "display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; width: 100%; padding: 16px 24px;",
+                // Barra de pesquisa
                 div {
                     class: "w-4",
-                    style: "",
                     input {
                         r#type: "text",
                         class: "px-4 py-2 border rounded-lg shadow",
                         style: "width: 304px;",
                         placeholder: "Buscar pasta...",
-                        oninput: move |e| {
-                            search_input.set(e.value().clone());
-                        },
+                        oninput: move |e| search_input.set(e.value().clone()),
                         value: "{search_input}",
                     }
                 }
 
                 div {
-                    // container com todos os botões em uma única linha
-                    class: "flex-wrap flex grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6",
-                    style:"",
+                    style: "display: flex; align-items: center; gap: 10px;",
                     button {
-                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg",
-                        onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
-                        "Mais recente"
+                        class: "bg-gray-200 hover:bg-gray-300 rounded-full shadow",
+                        style: "display: flex; align-items: center; justify-content: center; padding: 8px;",
+                        onclick: move |_| show_filters.toggle(),
+                        
+                        i {
+                            class: if *show_filters.read() {
+                                "material-icons filter-icon filter-icon-active"
+                            } else {
+                                "material-icons filter-icon"
+                            },
+                            "filter_list"
+                        }
                     }
-                    button {
-                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                        onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
-                        "Mais antigo"
-                    }
-                    button {
-                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                        onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
-                        "A-Z"
-                    }
-                    button {
-                        class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-lg",
-                        onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
-                        "Z-A"
+
+                    if *show_filters.read() {
+                        div {
+                            class: "filter-buttons-container",
+                            
+                            button {
+                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
+                                    if *date_order == SortDateOrder::MaisRecente { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                ),
+                                onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
+                                "Mais recente"
+                            }
+                            button {
+                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
+                                    if *date_order == SortDateOrder::MaisAntigo { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                ),
+                                onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
+                                "Mais antigo"
+                            }
+                            button {
+                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::AZ { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                ),
+                                onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
+                                "A-Z"
+                            }
+                            button {
+                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::ZA { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                ),
+                                onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
+                                "Z-A"
+                            }
+                        }
                     }
                 }
             }
@@ -188,7 +270,7 @@ pub fn HomePage() -> Element {
 
                 Link {
                     class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
-                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },  // ajuste para o nome da rota correta
+                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },
                     button {
                         class: "flex items-center gap-2",
                         i { class: "material-icons", "assessment" }
@@ -209,7 +291,6 @@ pub fn HomePage() -> Element {
                 }
             }
 
-            // Botão para criar o projeto
             Link {
                 to: Route::NewProject {},
                 button {
