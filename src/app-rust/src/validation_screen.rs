@@ -5,18 +5,21 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use crate::create_project::PROJECT_NAME;
 
+// Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct FissuraValidation {
     pub name: String,
     pub confidence: f64,
 }
 
+// Estrutura para os dados de validação de imagem
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ImageValidationData {
     pub path: String,
     pub fissura: Vec<FissuraValidation>,
 }
 
+// Estado de validação da imagem para a UI
 #[derive(Clone, PartialEq)]
 pub struct ImageValidationState {
     pub path: String,
@@ -25,6 +28,7 @@ pub struct ImageValidationState {
     pub has_been_viewed: bool,
 }
 
+// Resultados da validação a serem salvos
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ValidationResults {
     pub total_images: usize,
@@ -33,6 +37,14 @@ pub struct ValidationResults {
     pub project_name: String,
 }
 
+/// Carrega os dados de detecção do arquivo JSON.
+///
+/// Argumentos:
+/// * `project_name` - O nome do projeto.
+///
+/// Retorna:
+/// Um `Result` contendo um vetor de `ImageValidationData` em caso de sucesso,
+/// ou uma `String` de erro em caso de falha.
 fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData>, String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
@@ -48,6 +60,14 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
         .map_err(|e| format!("Erro ao parsear JSON: {}", e))
 }
 
+/// Salva os resultados da validação em um arquivo JSON.
+///
+/// Argumentos:
+/// * `project_name` - O nome do projeto.
+/// * `results` - Uma referência à estrutura `ValidationResults` a ser salva.
+///
+/// Retorna:
+/// Um `Result` vazio em caso de sucesso, ou uma `String` de erro em caso de falha.
 fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) -> Result<(), String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let validation_path = base_dir.join("Projects").join(project_name).join("validation_results.json");
@@ -61,17 +81,24 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
     Ok(())
 }
 
+/// Componente principal da tela de validação.
 #[component]
 pub fn ValidationScreen() -> Element {
     let navigator = use_navigator();
+    // Sinal para o índice da imagem atual na galeria
     let mut current_image_index = use_signal(|| 0usize);
+    // Sinal para os dados de validação de todas as imagens
     let mut validation_data = use_signal(|| Vec::<ImageValidationState>::new());
+    // Sinal para indicar se os dados estão sendo carregados
     let mut loading = use_signal(|| true);
+    // Sinal para armazenar mensagens de erro
     let mut error_message = use_signal(|| String::new());
+    // Sinal para controlar a exibição do diálogo de confirmação
     let mut show_confirmation_dialog = use_signal(|| false);
+    // Sinal para exibir mensagens de status ao usuário
     let mut status_message = use_signal(|| String::new());
 
-    // Carregar dados na inicialização
+    // Efeito para carregar os dados na inicialização do componente
     use_effect(move || {
         spawn(async move {
             match PROJECT_NAME.try_read() {
@@ -113,7 +140,7 @@ pub fn ValidationScreen() -> Element {
     let current_idx = current_image_index();
     let has_images = total_images > 0;
 
-    // Marcar imagem atual como visualizada
+    // Efeito para marcar a imagem atual como visualizada
     use_effect(move || {
         if has_images && current_idx < total_images {
             let mut data = validation_data.write();
@@ -121,18 +148,21 @@ pub fn ValidationScreen() -> Element {
         }
     });
 
+    // Função para avançar para a próxima imagem
     let next_image = move |_| {
         if current_idx < total_images - 1 {
             current_image_index.set(current_idx + 1);
         }
     };
 
+    // Função para voltar para a imagem anterior
     let previous_image = move |_| {
         if current_idx > 0 {
             current_image_index.set(current_idx - 1);
         }
     };
 
+    // Função para alternar o status de incorreto da imagem atual
     let toggle_incorrect = move |_| {
         if has_images && current_idx < total_images {
             let mut data = validation_data.write();
@@ -140,6 +170,7 @@ pub fn ValidationScreen() -> Element {
         }
     };
 
+    // Função para confirmar a validação e salvar os resultados
     let mut confirm_validation = move || {
         spawn(async move {
             match PROJECT_NAME.try_read() {
@@ -162,7 +193,7 @@ pub fn ValidationScreen() -> Element {
                         match salvar_resultados_validacao(project_name, &results) {
                             Ok(_) => {
                                 status_message.set("Validação salva com sucesso!".to_string());
-                                // Navegar de volta ou para próxima tela
+                                // Navegar de volta ou para a próxima tela após 2 segundos
                                 tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                                 navigator.go_back();
                             }
@@ -180,6 +211,7 @@ pub fn ValidationScreen() -> Element {
         show_confirmation_dialog.set(false);
     };
 
+    // Função para tentar confirmar a validação, mostrando diálogo se nem todas as imagens foram visualizadas
     let attempt_confirm = move |_| {
         let data = validation_data.read();
         let all_viewed = data.iter().all(|img| img.has_been_viewed);
@@ -191,10 +223,12 @@ pub fn ValidationScreen() -> Element {
         }
     };
 
+    // Função para fechar o diálogo de confirmação
     let close_dialog = move |_| {
         show_confirmation_dialog.set(false);
     };
 
+    // Exibição de tela de carregamento
     if loading() {
         return rsx! {
             div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
@@ -206,6 +240,7 @@ pub fn ValidationScreen() -> Element {
         };
     }
 
+    // Exibição de tela de erro
     if !error_message().is_empty() {
         return rsx! {
             div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
@@ -225,6 +260,7 @@ pub fn ValidationScreen() -> Element {
         };
     }
 
+    // Exibição quando não há imagens para validar
     if total_images == 0 {
         return rsx! {
             div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
@@ -242,19 +278,31 @@ pub fn ValidationScreen() -> Element {
         };
     }
 
+    // Obtém a imagem atual a ser exibida
     let current_image = &validation_data.read()[current_idx];
+    // Conta as imagens visualizadas
     let viewed_count = validation_data.read().iter().filter(|img| img.has_been_viewed).count();
+    // Conta as imagens marcadas como incorretas
     let incorrect_count = validation_data.read().iter().filter(|img| img.is_incorrect).count();
+
+    // Determina a classificação da fissura para exibição
+    let fissura_classification = if !current_image.fissuras.is_empty() {
+        current_image.fissuras[0].name.clone() // Pega a primeira fissura detectada
+    } else {
+        "Nenhuma Fissura Detectada".to_string()
+    };
 
     rsx! {
         div { class: "min-h-screen bg-gray-100",
+            // Importa a folha de estilos Tailwind CSS
             document::Stylesheet { href: asset!("/assets/tailwind.css") }
+            // Importa ícones do Material Design
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
             }
 
-            // Header
+            // Cabeçalho da página
             div { class: "bg-white shadow-sm border-b",
                 div { class: "container mx-auto px-6 py-4",
                     div { class: "flex items-center justify-between",
@@ -277,7 +325,7 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Progress Bar
+            // Barra de progresso
             div { class: "bg-white border-b",
                 div { class: "container mx-auto px-6 py-2",
                     div { class: "w-full bg-gray-200 rounded-full h-2",
@@ -289,14 +337,21 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Main Content
+            // Conteúdo principal
             div { class: "container mx-auto px-6 py-8",
                 div { class: "grid grid-cols-1 lg:grid-cols-3 gap-8",
                     
-                    // Image Display (Left Side - 2/3 width)
+                    // Exibição da imagem (lado esquerdo - 2/3 da largura)
                     div { class: "lg:col-span-2",
                         div { class: "bg-white rounded-lg shadow-md overflow-hidden",
                             div { class: "p-6",
+                                // Título da classificação da fissura
+                                h2 { 
+                                    class: "text-center text-3xl font-extrabold mb-4",
+                                    // Estilo condicional para "Retração" e "Térmica"
+                                    class: if fissura_classification == "retracao" { "text-red-600" } else if fissura_classification == "termica" { "text-orange-600" } else { "text-gray-800" },
+                                    "{fissura_classification.to_uppercase()}"
+                                }
                                 div { class: "aspect-w-16 aspect-h-12 bg-gray-100 rounded-lg overflow-hidden mb-4",
                                     img {
                                         src: "file://{current_image.path}",
@@ -305,9 +360,10 @@ pub fn ValidationScreen() -> Element {
                                     }
                                 }
                                 
+                                // Botões de navegação e status da imagem
                                 div { class: "flex items-center justify-between",
                                     button {
-                                        class: "flex items-center gap-2 px-4 py-2 bg-red-600 text-red rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
+                                        class: "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
                                         disabled: current_idx == 0,
                                         onclick: previous_image,
                                         i { class: "material-icons", "arrow_back" }
@@ -315,7 +371,7 @@ pub fn ValidationScreen() -> Element {
                                     }
                                     
                                     button {
-                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-black font-medium transition-colors {}",
+                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-white font-medium transition-colors {}",
                                             if current_image.is_incorrect { "bg-red-600 hover:bg-red-700" } else { "bg-gray-400 hover:bg-gray-500" }
                                         ),
                                         onclick: toggle_incorrect,
@@ -337,10 +393,10 @@ pub fn ValidationScreen() -> Element {
                         }
                     }
 
-                    // Information Panel (Right Side - 1/3 width)
+                    // Painel de informações (lado direito - 1/3 da largura)
                     div { class: "space-y-6",
                         
-                        // Image Info
+                        // Informações da imagem
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Informações da Imagem" }
                             div { class: "space-y-3",
@@ -369,7 +425,7 @@ pub fn ValidationScreen() -> Element {
                             }
                         }
 
-                        // Fissures Detected
+                        // Fissuras detectadas
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Fissuras Detectadas" }
                             if current_image.fissuras.is_empty() {
@@ -393,17 +449,17 @@ pub fn ValidationScreen() -> Element {
                             }
                         }
 
-                        // Action Buttons
+                        // Botões de ação
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
                             div { class: "space-y-3",
                                 button {
-                                    class: "w-full px-4 py-3 bg-green-600 text-black rounded-md hover:bg-green-700 font-medium",
+                                    class: "w-full px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium",
                                     onclick: attempt_confirm,
                                     "Confirmar Validação"
                                 }
                                 button {
-                                    class: "w-full px-4 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700",
+                                    class: "w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
                                     onclick: move |_| navigator.go_back(),
                                     "Cancelar"
                                 }
@@ -419,7 +475,7 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Confirmation Dialog
+            // Diálogo de confirmação
             if show_confirmation_dialog() {
                 div { class: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50",
                     div { class: "bg-white rounded-lg shadow-xl p-6 max-w-md mx-4",
@@ -431,12 +487,12 @@ pub fn ValidationScreen() -> Element {
                             }
                             div { class: "flex gap-4 justify-center",
                                 button {
-                                    class: "px-6 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700",
+                                    class: "px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
                                     onclick: close_dialog,
                                     "Cancelar"
                                 }
                                 button {
-                                    class: "px-6 py-2 bg-yellow-600 text-black rounded-md hover:bg-yellow-700",
+                                    class: "px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700",
                                     onclick: move |_| confirm_validation(),
                                     "Confirmar Mesmo Assim"
                                 }
