@@ -98,6 +98,7 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     // Canonicalize is good for verifying, but File::open takes the direct path.
     let file = File::open(&absolute_json_path).map_err(|e| { 
         eprintln!("[RUST graph.rs] Error opening JSON file at '{:?}': {}", absolute_json_path, e);
+        eprintln!("[RUST graph.rs] Verifique se o arquivo 'detection_results.json' existe no diretório do projeto");
         JsonReadError::Io(e)
     })?;
     let reader = BufReader::new(file);
