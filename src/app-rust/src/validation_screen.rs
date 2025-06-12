@@ -3,7 +3,7 @@ use dioxus_router::prelude::*;
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use crate::create_project::PROJECT_NAME;
+use crate::create_project::PROJECT_NAME; // Importa o GlobalSignal
 
 // Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
@@ -15,7 +15,7 @@ pub struct FissuraValidation {
 // Estrutura para os dados de validação de imagem
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ImageValidationData {
-    pub path: String,
+    pub path: String, // Este path deve ser relativo à pasta do projeto (ex: "images/fachada-Leste/img1.jpg")
     pub fissura: Vec<FissuraValidation>,
 }
 
@@ -37,14 +37,6 @@ pub struct ValidationResults {
     pub project_name: String,
 }
 
-/// Carrega os dados de detecção do arquivo JSON.
-///
-/// Argumentos:
-/// * `project_name` - O nome do projeto.
-///
-/// Retorna:
-/// Um `Result` contendo um vetor de `ImageValidationData` em caso de sucesso,
-/// ou uma `String` de erro em caso de falha.
 fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData>, String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
@@ -60,14 +52,7 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
         .map_err(|e| format!("Erro ao parsear JSON: {}", e))
 }
 
-/// Salva os resultados da validação em um arquivo JSON.
-///
-/// Argumentos:
-/// * `project_name` - O nome do projeto.
-/// * `results` - Uma referência à estrutura `ValidationResults` a ser salva.
-///
-/// Retorna:
-/// Um `Result` vazio em caso de sucesso, ou uma `String` de erro em caso de falha.
+
 fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) -> Result<(), String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let validation_path = base_dir.join("Projects").join(project_name).join("validation_results.json");
@@ -98,13 +83,41 @@ pub fn ValidationScreen() -> Element {
     // Sinal para exibir mensagens de status ao usuário
     let mut status_message = use_signal(|| String::new());
 
+    // Sinal para armazenar o CAMINHO DA PASTA DO PROJETO relativo ao CARGO_MANIFEST_DIR (para src da imagem)
+    let mut project_folder_relative_path: Signal<Option<String>> = use_signal(|| None);
+    // Sinal para armazenar apenas o NOME DO PROJETO (para UI e carregamento de JSON)
+    let mut project_display_name: Signal<Option<String>> = use_signal(|| None);
+
     // Efeito para carregar os dados na inicialização do componente
     use_effect(move || {
         spawn(async move {
+            // Acessar PROJECT_NAME diretamente como GlobalSignal
             match PROJECT_NAME.try_read() {
-                Ok(guard) => {
-                    if let Some(project_name) = &*guard {
-                        match carregar_dados_deteccao(project_name) {
+                Ok(project_name_guard) => {
+                    if let Some(absolute_project_path_str) = &*project_name_guard { // absolute_project_path_str é &String
+                        // Converte a String para PathBuf para usar métodos de caminho de arquivo
+                        let absolute_project_path_buf = PathBuf::from(absolute_project_path_str);
+
+                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+
+                        // Calcula o caminho relativo da pasta do projeto em relação à raiz da aplicação
+                        let relative_path_opt = absolute_project_path_buf.strip_prefix(&base_dir) // Usa PathBuf aqui
+                            .ok() // Isso agora funciona, pois strip_prefix retorna Result
+                            .and_then(|p| p.to_str())
+                            .map(|s| s.to_string());
+                        
+                        // Define o sinal com o caminho relativo para uso na src da imagem
+                        project_folder_relative_path.set(relative_path_opt); // Ex: Some("Projects/milagre_parte_2_")
+
+                        // Extrai apenas o nome do projeto (ex: "milagre_parte_2_") para exibição na UI e carregamento de JSON
+                        let p_name_only = absolute_project_path_buf.file_name() // Usa PathBuf aqui
+                                                     .and_then(|os_str| os_str.to_str())
+                                                     .map(|s| s.to_string());
+                        // Define o sinal com o nome do projeto para UI
+                        project_display_name.set(p_name_only.clone()); // Ex: Some("milagre_parte_2_")
+
+                        // carregar_dados_deteccao espera o NOME SIMPLES do projeto
+                        match carregar_dados_deteccao(p_name_only.unwrap_or_default().as_str()) {
                             Ok(data) => {
                                 let validation_states: Vec<ImageValidationState> = data
                                     .into_iter()
@@ -124,12 +137,12 @@ pub fn ValidationScreen() -> Element {
                             }
                         }
                     } else {
-                        error_message.set("Nome do projeto não encontrado".to_string());
+                        error_message.set("Caminho do projeto não encontrado".to_string());
                         loading.set(false);
                     }
                 }
                 Err(_) => {
-                    error_message.set("Erro ao acessar nome do projeto".to_string());
+                    error_message.set("Erro ao acessar caminho do projeto (GlobalSignal)".to_string());
                     loading.set(false);
                 }
             }
@@ -173,38 +186,49 @@ pub fn ValidationScreen() -> Element {
     // Função para confirmar a validação e salvar os resultados
     let mut confirm_validation = move || {
         spawn(async move {
-            match PROJECT_NAME.try_read() {
-                Ok(guard) => {
-                    if let Some(project_name) = &*guard {
-                        let data = validation_data.read();
-                        let incorrect_images: Vec<String> = data
-                            .iter()
-                            .filter(|img| img.is_incorrect)
-                            .map(|img| img.path.clone())
-                            .collect();
+            // Usa o nome do projeto do sinal project_display_name
+            let project_name_for_save = project_display_name.read().clone()
+                .unwrap_or_else(|| {
+                    eprintln!("Aviso: Nome do projeto para salvar não disponível, tentando ler de PROJECT_NAME.");
+                    // Fallback: tenta ler diretamente do sinal global se project_display_name estiver vazio
+                    PROJECT_NAME.try_read()
+                        .ok()
+                        .and_then(|guard| 
+                            guard.as_ref() // Obtém &String
+                                .map(|s| {
+                                    // Converte &String para PathBuf para usar file_name()
+                                    PathBuf::from(s).file_name()
+                                        .and_then(|os| os.to_str())
+                                        .map(|s| s.to_string())
+                                })
+                                .flatten() // Achata Option<Option<String>> para Option<String>
+                        ) 
+                        .unwrap_or_else(|| "unknown_project".to_string())
+                });
 
-                        let results = ValidationResults {
-                            total_images: data.len(),
-                            incorrect_images,
-                            validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-                            project_name: project_name.clone(),
-                        };
+            let data = validation_data.read();
+            let incorrect_images: Vec<String> = data
+                .iter()
+                .filter(|img| img.is_incorrect)
+                .map(|img| img.path.clone())
+                .collect();
 
-                        match salvar_resultados_validacao(project_name, &results) {
-                            Ok(_) => {
-                                status_message.set("Validação salva com sucesso!".to_string());
-                                // Navegar de volta ou para a próxima tela após 2 segundos
-                                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                                navigator.go_back();
-                            }
-                            Err(e) => {
-                                status_message.set(format!("Erro ao salvar validação: {}", e));
-                            }
-                        }
-                    }
+            let results = ValidationResults {
+                total_images: data.len(),
+                incorrect_images,
+                validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+                project_name: project_name_for_save.clone(),
+            };
+
+            match salvar_resultados_validacao(&project_name_for_save, &results) {
+                Ok(_) => {
+                    status_message.set("Validação salva com sucesso!".to_string());
+                    // Navegar de volta ou para a próxima tela após 2 segundos
+                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                    navigator.go_back();
                 }
-                Err(_) => {
-                    status_message.set("Erro ao acessar projeto".to_string());
+                Err(e) => {
+                    status_message.set(format!("Erro ao salvar validação: {}", e));
                 }
             }
         });
@@ -292,6 +316,15 @@ pub fn ValidationScreen() -> Element {
         "Nenhuma Fissura Detectada".to_string()
     };
 
+    // NOVO: Lógica para obter o caminho COMPLETO para a src da imagem usando o caminho relativo do projeto
+    let image_src_path: String = if let Some(project_rel_path_str) = project_folder_relative_path.read().clone() {
+        // Constrói o caminho completo: "Projects/NomeDoProjeto/images/Predio-1/..."
+        format!("{}/{}", project_rel_path_str, current_image.path) 
+    } else {
+        eprintln!("Aviso: Caminho relativo do projeto não disponível para imagem. Usando caminho original da imagem: {}", current_image.path);
+        current_image.path.clone()
+    };
+
     rsx! {
         div { class: "min-h-screen bg-gray-100",
             // Importa a folha de estilos Tailwind CSS
@@ -307,7 +340,15 @@ pub fn ValidationScreen() -> Element {
                 div { class: "container mx-auto px-6 py-4",
                     div { class: "flex items-center justify-between",
                         div {
-                            h1 { class: "text-2xl font-bold text-gray-800", "Validação de Fissuras" }
+                            h1 { 
+                                class: "text-2xl font-bold text-gray-800", 
+                                "Validação de Fissuras para ",
+                                if let Some(name) = project_display_name.read().as_ref() {
+                                    "{name}"
+                                } else {
+                                    "o Projeto"
+                                }
+                            }
                             p { class: "text-gray-600", "Selecione as imagens com detecções incorretas" }
                         }
                         div { class: "text-right",
@@ -354,7 +395,7 @@ pub fn ValidationScreen() -> Element {
                                 }
                                 div { class: "aspect-w-16 aspect-h-12 bg-gray-100 rounded-lg overflow-hidden mb-4",
                                     img {
-                                        src: "file://{current_image.path}",
+                                        src: "project-image://{image_src_path}", // Usando o novo caminho corrigido
                                         class: "w-full h-full object-contain",
                                         alt: "Imagem para validação"
                                     }
@@ -402,6 +443,7 @@ pub fn ValidationScreen() -> Element {
                             div { class: "space-y-3",
                                 div {
                                     span { class: "font-medium text-gray-700", "Caminho: " }
+                                    // Mostra apenas o nome do arquivo da imagem
                                     span { class: "text-sm text-gray-600 break-all", "{current_image.path.split('/').last().unwrap_or(&current_image.path)}" }
                                 }
                                 div {

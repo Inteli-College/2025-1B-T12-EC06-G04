@@ -2,6 +2,9 @@ use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use dioxus::{desktop::Config, desktop::WindowBuilder};
 use std::path::PathBuf;
+use std::fs;
+use dioxus_desktop::wry::http::{Request, Response, StatusCode}; 
+use std::borrow::Cow; 
 
 mod homepage;
 mod select_images;
@@ -30,10 +33,61 @@ fn Process() -> Element {
 }
 
 fn main() {
+    // Obter o diretório base do CARGO_MANIFEST_DIR
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let projects_dir = base_dir.join("Projects");
+
+    // Configurar o Dioxus Desktop
     dioxus::LaunchBuilder::desktop()
-        .with_cfg(Config::new().with_window(WindowBuilder::new().with_resizable(true)))
+        .with_cfg(
+            Config::new()
+                .with_window(WindowBuilder::new().with_resizable(true))
+                .with_custom_protocol("project-image", move |request: Request<Vec<u8>>| {
+                    let path_str = request.uri().path();
+                    let relative_path = PathBuf::from(path_str.trim_start_matches('/'));
+                    let full_path = projects_dir.join(&relative_path);
+
+                    match fs::read(&full_path) {
+                        Ok(bytes) => {
+                            Response::builder()
+                                .status(StatusCode::OK)
+                                .header("Content-Type", guess_mime_type(&full_path))
+                                .body(Cow::from(bytes))
+                                .unwrap_or_else(|_| {
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Cow::from(Vec::new()))
+                                        .unwrap()
+                                })
+                        }
+                        Err(e) => {
+                            eprintln!("Erro ao ler arquivo {}: {:?}", full_path.display(), e);
+                            Response::builder()
+                                .status(StatusCode::NOT_FOUND)
+                                .body(Cow::from(Vec::new())) 
+                                .unwrap_or_else(|_| {
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Cow::from(Vec::new()))
+                                        .unwrap()
+                                })
+                        }
+                    }
+                })
+        )
         .launch(App);
 }
+
+fn guess_mime_type(path: &PathBuf) -> &'static str {
+    match path.extension().and_then(|s| s.to_str()) {
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("svg") => "image/svg+xml",
+        _ => "application/octet-stream", // Tipo genérico para o que não for reconhecido
+    }
+}
+
 
 #[component]
 fn App() -> Element {
