@@ -71,7 +71,7 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     // Construct path relative to the CWD printed above.
     // If CWD is ".../src/app-rust/src", then "../Projects/..." should be correct
     // if the target is ".../src/app-rust/Projects/..."
-    let json_path_str = format!("../Projects/{}/detection_results.json", project_name);
+    let json_path_str = format!("Projects/{}/detection_results.json", project_name);
     
     // Resolve this potentially relative path against the CWD to get an absolute path for File::open
     // std::fs::canonicalize can also be used for more robust absolute path resolution.

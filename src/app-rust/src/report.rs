@@ -101,7 +101,7 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
         }
     };
 
-    let detection_json_path_str = format!("../Projects/{}/detection_results.json", project_name_prop);
+    let detection_json_path_str = format!("Projects/{}/detection_results.json", project_name_prop);
     let absolute_detection_json_path = Path::new(&cwd_string).join(&detection_json_path_str);
 
     println!("[RUST report.rs] Attempting to read detection_results.json from (absolute constructed): {:?}", absolute_detection_json_path);
