@@ -15,14 +15,14 @@ pub struct FissuraValidation {
 // Estrutura para os dados de validação de imagem
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ImageValidationData {
-    pub path: String, // Este path deve ser relativo à pasta do projeto (ex: "images/fachada-Leste/img1.jpg")
+    pub path: String, 
     pub fissura: Vec<FissuraValidation>,
 }
 
 // Estado de validação da imagem para a UI
 #[derive(Clone, PartialEq)]
 pub struct ImageValidationState {
-    pub path: String,
+    pub path: String, 
     pub fissuras: Vec<FissuraValidation>,
     pub is_incorrect: bool,
     pub has_been_viewed: bool,
@@ -37,6 +37,7 @@ pub struct ValidationResults {
     pub project_name: String,
 }
 
+// Função para carregar os dados de detecção de fissuras a partir de um arquivo JSON.
 fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData>, String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
@@ -52,7 +53,7 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
         .map_err(|e| format!("Erro ao parsear JSON: {}", e))
 }
 
-
+// Função para salvar os resultados da validação em um arquivo JSON.
 fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) -> Result<(), String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let validation_path = base_dir.join("Projects").join(project_name).join("validation_results.json");
@@ -70,62 +71,79 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
 #[component]
 pub fn ValidationScreen() -> Element {
     let navigator = use_navigator();
-    // Sinal para o índice da imagem atual na galeria
     let mut current_image_index = use_signal(|| 0usize);
-    // Sinal para os dados de validação de todas as imagens
     let mut validation_data = use_signal(|| Vec::<ImageValidationState>::new());
-    // Sinal para indicar se os dados estão sendo carregados
     let mut loading = use_signal(|| true);
-    // Sinal para armazenar mensagens de erro
     let mut error_message = use_signal(|| String::new());
-    // Sinal para controlar a exibição do diálogo de confirmação
     let mut show_confirmation_dialog = use_signal(|| false);
-    // Sinal para exibir mensagens de status ao usuário
     let mut status_message = use_signal(|| String::new());
-
-    // Sinal para armazenar o CAMINHO DA PASTA DO PROJETO relativo ao CARGO_MANIFEST_DIR (para src da imagem)
-    let mut project_folder_relative_path: Signal<Option<String>> = use_signal(|| None);
-    // Sinal para armazenar apenas o NOME DO PROJETO (para UI e carregamento de JSON)
     let mut project_display_name: Signal<Option<String>> = use_signal(|| None);
+    let mut project_folder_name: Signal<Option<String>> = use_signal(|| None);
+
+    // CORREÇÃO: projects_root_dir_signal precisa ser um Signal<PathBuf>
+    // Você pode usar use_context_provider para criar um sinal inicial,
+    // ou simplesmente criar um signal aqui se ele for usado apenas neste componente.
+    let projects_root_dir_signal = use_signal(|| {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects")
+    });
 
     // Efeito para carregar os dados na inicialização do componente
     use_effect(move || {
+        // Clonamos o sinal para poder movê-lo para o bloco assíncrono.
+        let projects_root_dir_for_strip = projects_root_dir_signal.clone(); 
+
         spawn(async move {
             // Acessar PROJECT_NAME diretamente como GlobalSignal
             match PROJECT_NAME.try_read() {
                 Ok(project_name_guard) => {
-                    if let Some(absolute_project_path_str) = &*project_name_guard { // absolute_project_path_str é &String
-                        // Converte a String para PathBuf para usar métodos de caminho de arquivo
+                    if let Some(absolute_project_path_str) = &*project_name_guard { 
                         let absolute_project_path_buf = PathBuf::from(absolute_project_path_str);
-
-                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-
-                        // Calcula o caminho relativo da pasta do projeto em relação à raiz da aplicação
-                        let relative_path_opt = absolute_project_path_buf.strip_prefix(&base_dir) // Usa PathBuf aqui
-                            .ok() // Isso agora funciona, pois strip_prefix retorna Result
-                            .and_then(|p| p.to_str())
-                            .map(|s| s.to_string());
                         
-                        // Define o sinal com o caminho relativo para uso na src da imagem
-                        project_folder_relative_path.set(relative_path_opt); // Ex: Some("Projects/milagre_parte_2_")
-
-                        // Extrai apenas o nome do projeto (ex: "milagre_parte_2_") para exibição na UI e carregamento de JSON
-                        let p_name_only = absolute_project_path_buf.file_name() // Usa PathBuf aqui
+                        let p_name_only = absolute_project_path_buf.file_name()
                                                      .and_then(|os_str| os_str.to_str())
                                                      .map(|s| s.to_string());
-                        // Define o sinal com o nome do projeto para UI
-                        project_display_name.set(p_name_only.clone()); // Ex: Some("milagre_parte_2_")
+                        
+                        project_display_name.set(p_name_only.clone()); 
+                        project_folder_name.set(p_name_only.clone());
 
-                        // carregar_dados_deteccao espera o NOME SIMPLES do projeto
                         match carregar_dados_deteccao(p_name_only.unwrap_or_default().as_str()) {
                             Ok(data) => {
                                 let validation_states: Vec<ImageValidationState> = data
                                     .into_iter()
-                                    .map(|img| ImageValidationState {
-                                        path: img.path,
-                                        fissuras: img.fissura,
-                                        is_incorrect: false,
-                                        has_been_viewed: false,
+                                    .filter_map(|img| {
+                                        eprintln!("DEBUG: Imagem original do JSON: {}", img.path);
+                                        let full_image_path_from_json = PathBuf::from(&img.path);
+                                        eprintln!("DEBUG: full_image_path_from_json (PathBuf): {:?}", full_image_path_from_json);
+                                        eprintln!("DEBUG: is_absolute: {}", full_image_path_from_json.is_absolute());
+                                        
+                                        // Acessa o valor do Signal PathBuf usando .read()
+                                        let projects_root_dir_val = projects_root_dir_for_strip.read();
+                                        eprintln!("DEBUG: projects_root_dir_val (PathBuf): {:?}", projects_root_dir_val);
+                                        
+                                        let relative_image_path = if full_image_path_from_json.is_absolute() {
+                                            let stripped = full_image_path_from_json.strip_prefix(&*projects_root_dir_val); // Usa &* para dereferenciar o valor lido
+                                            eprintln!("DEBUG: strip_prefix result (relative to Projects/): {:?}", stripped);
+                                            stripped
+                                                .ok()
+                                                .and_then(|p| p.to_str())
+                                                .map(|s| s.to_string())
+                                        } else {
+                                            eprintln!("DEBUG: path já é relativo, usando diretamente. (Este caso é menos esperado se o JSON contiver caminhos absolutos)");
+                                            Some(img.path.clone()) 
+                                        };
+
+                                        eprintln!("DEBUG: Caminho relativo final (Option<String>): {:?}", relative_image_path);
+
+                                        // Se não conseguir obter um caminho relativo, ignora a imagem.
+                                        relative_image_path.map(|rel_path| {
+                                            eprintln!("DEBUG: Adicionando imagem com caminho relativo: {}", rel_path);
+                                            ImageValidationState {
+                                                path: rel_path,
+                                                fissuras: img.fissura,
+                                                is_incorrect: false,
+                                                has_been_viewed: false,
+                                            }
+                                        })
                                     })
                                     .collect();
                                 validation_data.set(validation_states);
@@ -194,14 +212,13 @@ pub fn ValidationScreen() -> Element {
                     PROJECT_NAME.try_read()
                         .ok()
                         .and_then(|guard| 
-                            guard.as_ref() // Obtém &String
+                            guard.as_ref() 
                                 .map(|s| {
-                                    // Converte &String para PathBuf para usar file_name()
                                     PathBuf::from(s).file_name()
                                         .and_then(|os| os.to_str())
                                         .map(|s| s.to_string())
                                 })
-                                .flatten() // Achata Option<Option<String>> para Option<String>
+                                .flatten() 
                         ) 
                         .unwrap_or_else(|| "unknown_project".to_string())
                 });
@@ -223,7 +240,6 @@ pub fn ValidationScreen() -> Element {
             match salvar_resultados_validacao(&project_name_for_save, &results) {
                 Ok(_) => {
                     status_message.set("Validação salva com sucesso!".to_string());
-                    // Navegar de volta ou para a próxima tela após 2 segundos
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                     navigator.go_back();
                 }
@@ -304,38 +320,31 @@ pub fn ValidationScreen() -> Element {
 
     // Obtém a imagem atual a ser exibida
     let current_image = &validation_data.read()[current_idx];
-    // Conta as imagens visualizadas
     let viewed_count = validation_data.read().iter().filter(|img| img.has_been_viewed).count();
-    // Conta as imagens marcadas como incorretas
     let incorrect_count = validation_data.read().iter().filter(|img| img.is_incorrect).count();
 
     // Determina a classificação da fissura para exibição
     let fissura_classification = if !current_image.fissuras.is_empty() {
-        current_image.fissuras[0].name.clone() // Pega a primeira fissura detectada
+        current_image.fissuras[0].name.clone() 
     } else {
         "Nenhuma Fissura Detectada".to_string()
     };
 
-    // NOVO: Lógica para obter o caminho COMPLETO para a src da imagem usando o caminho relativo do projeto
-    let image_src_path: String = if let Some(project_rel_path_str) = project_folder_relative_path.read().clone() {
-        // Constrói o caminho completo: "Projects/NomeDoProjeto/images/Predio-1/..."
-        format!("{}/{}", project_rel_path_str, current_image.path) 
+    let image_src_path: String = if let Some(project_folder_name_val) = project_folder_name.read().as_ref() {
+        format!("{}/{}", project_folder_name_val, current_image.path) 
     } else {
-        eprintln!("Aviso: Caminho relativo do projeto não disponível para imagem. Usando caminho original da imagem: {}", current_image.path);
+        eprintln!("Aviso: Nome da pasta do projeto não disponível. Usando caminho original da imagem: {}", current_image.path);
         current_image.path.clone()
     };
 
     rsx! {
         div { class: "min-h-screen bg-gray-100",
-            // Importa a folha de estilos Tailwind CSS
             document::Stylesheet { href: asset!("/assets/tailwind.css") }
-            // Importa ícones do Material Design
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
             }
 
-            // Cabeçalho da página
             div { class: "bg-white shadow-sm border-b",
                 div { class: "container mx-auto px-6 py-4",
                     div { class: "flex items-center justify-between",
@@ -366,7 +375,6 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Barra de progresso
             div { class: "bg-white border-b",
                 div { class: "container mx-auto px-6 py-2",
                     div { class: "w-full bg-gray-200 rounded-full h-2",
@@ -378,30 +386,25 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Conteúdo principal
             div { class: "container mx-auto px-6 py-8",
                 div { class: "grid grid-cols-1 lg:grid-cols-3 gap-8",
                     
-                    // Exibição da imagem (lado esquerdo - 2/3 da largura)
                     div { class: "lg:col-span-2",
                         div { class: "bg-white rounded-lg shadow-md overflow-hidden",
                             div { class: "p-6",
-                                // Título da classificação da fissura
                                 h2 { 
                                     class: "text-center text-3xl font-extrabold mb-4",
-                                    // Estilo condicional para "Retração" e "Térmica"
                                     class: if fissura_classification == "retracao" { "text-red-600" } else if fissura_classification == "termica" { "text-orange-600" } else { "text-gray-800" },
                                     "{fissura_classification.to_uppercase()}"
                                 }
                                 div { class: "aspect-w-16 aspect-h-12 bg-gray-100 rounded-lg overflow-hidden mb-4",
                                     img {
-                                        src: "project-image://{image_src_path}", // Usando o novo caminho corrigido
+                                        src: "project-image://{image_src_path}", 
                                         class: "w-full h-full object-contain",
                                         alt: "Imagem para validação"
                                     }
                                 }
                                 
-                                // Botões de navegação e status da imagem
                                 div { class: "flex items-center justify-between",
                                     button {
                                         class: "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
@@ -434,16 +437,13 @@ pub fn ValidationScreen() -> Element {
                         }
                     }
 
-                    // Painel de informações (lado direito - 1/3 da largura)
                     div { class: "space-y-6",
                         
-                        // Informações da imagem
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Informações da Imagem" }
                             div { class: "space-y-3",
                                 div {
                                     span { class: "font-medium text-gray-700", "Caminho: " }
-                                    // Mostra apenas o nome do arquivo da imagem
                                     span { class: "text-sm text-gray-600 break-all", "{current_image.path.split('/').last().unwrap_or(&current_image.path)}" }
                                 }
                                 div {
@@ -467,7 +467,6 @@ pub fn ValidationScreen() -> Element {
                             }
                         }
 
-                        // Fissuras detectadas
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Fissuras Detectadas" }
                             if current_image.fissuras.is_empty() {
@@ -491,7 +490,6 @@ pub fn ValidationScreen() -> Element {
                             }
                         }
 
-                        // Botões de ação
                         div { class: "bg-white rounded-lg shadow-md p-6",
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
                             div { class: "space-y-3",
@@ -517,7 +515,6 @@ pub fn ValidationScreen() -> Element {
                 }
             }
 
-            // Diálogo de confirmação
             if show_confirmation_dialog() {
                 div { class: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50",
                     div { class: "bg-white rounded-lg shadow-xl p-6 max-w-md mx-4",
