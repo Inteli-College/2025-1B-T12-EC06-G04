@@ -307,7 +307,7 @@ pub fn ValidationScreen() -> Element {
                                 
                                 div { class: "flex items-center justify-between",
                                     button {
-                                        class: "flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed",
+                                        class: "flex items-center gap-2 px-4 py-2 bg-red-600 text-red rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
                                         disabled: current_idx == 0,
                                         onclick: previous_image,
                                         i { class: "material-icons", "arrow_back" }
@@ -315,7 +315,7 @@ pub fn ValidationScreen() -> Element {
                                     }
                                     
                                     button {
-                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-white font-medium transition-colors {}",
+                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-black font-medium transition-colors {}",
                                             if current_image.is_incorrect { "bg-red-600 hover:bg-red-700" } else { "bg-gray-400 hover:bg-gray-500" }
                                         ),
                                         onclick: toggle_incorrect,
@@ -398,12 +398,12 @@ pub fn ValidationScreen() -> Element {
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
                             div { class: "space-y-3",
                                 button {
-                                    class: "w-full px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium",
+                                    class: "w-full px-4 py-3 bg-green-600 text-black rounded-md hover:bg-green-700 font-medium",
                                     onclick: attempt_confirm,
                                     "Confirmar Validação"
                                 }
                                 button {
-                                    class: "w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
+                                    class: "w-full px-4 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700",
                                     onclick: move |_| navigator.go_back(),
                                     "Cancelar"
                                 }
@@ -431,12 +431,12 @@ pub fn ValidationScreen() -> Element {
                             }
                             div { class: "flex gap-4 justify-center",
                                 button {
-                                    class: "px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
+                                    class: "px-6 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700",
                                     onclick: close_dialog,
                                     "Cancelar"
                                 }
                                 button {
-                                    class: "px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700",
+                                    class: "px-6 py-2 bg-yellow-600 text-black rounded-md hover:bg-yellow-700",
                                     onclick: move |_| confirm_validation(),
                                     "Confirmar Mesmo Assim"
                                 }
