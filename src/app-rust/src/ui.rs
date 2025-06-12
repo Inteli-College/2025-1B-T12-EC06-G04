@@ -141,7 +141,7 @@ pub fn Home() -> Element {
                                                     "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
                                                     analysis_results.len()
                                                 ));
-                                                navigator.push(AppRoute::HomePage {});
+                                                navigator.push(AppRoute::ValidationScreen {});
                                             }
                                             Err(e) => {
                                                 status.set(format!("Erro durante a análise de IA: {}", e));
@@ -149,7 +149,7 @@ pub fn Home() -> Element {
                                         }
                                     } else {
                                         status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
-                                        navigator.push(AppRoute::HomePage {});
+                                        navigator.push(AppRoute::ValidationScreen {});
                                     }
                                 }
                                 Err(e) => {
