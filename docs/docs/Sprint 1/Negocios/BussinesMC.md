@@ -1,0 +1,1 @@
+![Matriz de Risco](/img/Sprint1/BMC.svg)

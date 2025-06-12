@@ -9,6 +9,9 @@ sidebar_position: 0
 
 &emsp; O cliente é o Instituto de Pesquisas Tecnológicas (IPT), uma instituição pública, o que exige qualidade de entrega compatível com ambiente científico e institucional.
 
+&emsp; Este planejamento financeiro está diretamente alinhado à proposta de valor definida na Sprint 1: reduzir o tempo e custo de inspeções manuais, aumentar a confiabilidade das análises técnicas e dar autonomia à equipe de engenharia civil do IPT. As personas consideradas — o fulano, o cliclano— foram fundamentais para definirmos as prioridades do sistema, o SLA de manutenção e o foco na confiabilidade técnica das detecções.
+
+
 **Tempo de execução do projeto:** 2 meses
 **Modelo de contrato:** Projeto fechado + manutenção mensal (SLA de 48h)
 
@@ -50,6 +53,8 @@ sidebar_position: 0
 
 _Valores com base em mercado para contratos PJ (jun/2025), considerando o perfil da equipe e referência em sites como [Glassdoor](https://www.glassdoor.com.br/index.htm) e [Revelo](https://www.revelo.com.br/)._
 
+
+
 ### 3.2 Ferramentas e Infraestrutura
 &emsp; Considerando que o projeto é 100% remoto, os custos com infraestrutura física são eliminados. No entanto, há despesas com ferramentas e serviços essenciais:
 | Ferramenta          | Qtde Usuários | Valor Mensal/Usuário (USD/R$) | Cotação 04/06/2025 (R\$ 5,64) | Custo Mensal (R\$)    |
@@ -78,6 +83,8 @@ _Câmbio de referência: US$ 1 = R$ 5,64 (cotação de 04/06/2025, Banco Central
 
 &emsp; Além disso, ao adotar soluções como GitHub, Notion e Slack — todas líderes em seus segmentos — é possível garantir a produtividade e integração contínua entre as partes da equipe. Além do mais o custo representa menos de 5% do orçamento total e tem alto retorno sobre investimento em termos de redução de retrabalho, melhoria da comunicação, transparência  e rastreabilidade.
 
+
+**OBS:**O projeto não prevê aquisição de equipamentos, visto que o processo de captura de imagens será realizado com infraestrutura já existente do IPT (drones e câmeras de alta resolução).
 ---
 
 ## 4. Carga Tributária e Cálculo de Impostos (Simples Nacional + Fator R)
