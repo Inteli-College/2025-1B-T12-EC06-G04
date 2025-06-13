@@ -5,11 +5,8 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::path::Path;
 use chrono::{DateTime, Local};
-use crate::manual_processor::ManualProcessor;
-use dioxus_router::prelude::Link;
+use dioxus_router::prelude::{Link, use_navigator};
 use crate::Route as AppRoute;
-use crate::manual_processor::ManualProcessorProps;
-use crate::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 
 #[component]
@@ -22,6 +19,8 @@ pub fn SelectImages() -> Element {
     let mut is_selecting_folder = use_signal(|| false);
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
+
+    let navigator = use_navigator();
 
     // Handle for the folders popup
     let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
@@ -140,29 +139,8 @@ pub fn SelectImages() -> Element {
                             class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
                             disabled: is_processing(),
                             onclick: move |_| {
-                                match PROJECT_NAME.try_read() {
-                                    Ok(guard) => match &*guard {
-                                        Some(name) => {
-                                            if !name.is_empty() {
-                                                dioxus::desktop::window().new_window(
-                                                    VirtualDom::new_with_props(
-                                                        ManualProcessor,
-                                                        ManualProcessorProps { project_name: name.clone() }
-                                                    ),
-                                                    Default::default(),
-                                                );
-                                            } else {
-                                                status.set("Erro: Nome do projeto está vazio (SelectImages).".to_string());
-                                            }
-                                        }
-                                        None => {
-                                            status.set("Erro: Nenhum projeto selecionado (SelectImages).".to_string());
-                                        }
-                                    },
-                                    Err(_) => {
-                                        status.set("Erro ao ler nome do projeto (SelectImages).".to_string());
-                                    }
-                                }
+                                let nav = use_navigator();
+                                nav.push(AppRoute::Process {});
                             },
                             "Abrir Processador Manual (SelectImages)"
                         }
