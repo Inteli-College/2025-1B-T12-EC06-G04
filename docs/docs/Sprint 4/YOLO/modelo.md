@@ -5,8 +5,12 @@ sidebar_position: 1
 
 # Resumo
 
-&emsp;Como já foi visto, o modelo YOLO é um modelo de detecção de objetos que utiliza uma rede neural convolucional para prever as caixas delimitadoras e as classes dos objetos em uma imagem. No entanto, as métricas de recall atingidas pelo modelo na sprint 3 não foram satisfatórias, o que levou a equipe a buscar melhorias no modelo.
+&emsp;Como já foi visto, o modelo YOLO é um modelo de detecção de objetos que utiliza uma rede neural convolucional para prever as caixas delimitadoras e as classes dos objetos em uma imagem. No entanto, as métricas de recall atingidas pelo modelo na sprint 3 não foram satisfatórias, o que levou a equipe a buscar melhorias no modelo. 
+
+
 &emsp;Nesta sprint, a equipe de desenvolvimento do modelo YOLO se concentrou em encontrar a razão para as métricas não estarem dentro do esperado e consertar eventuais erros. 
+
+
 &emsp;Com isso, foram analisadas as imagens de treino e validação, bem como os arquivos de anotação, para identificar possíveis problemas. Além disso, foram realizadas modificações no modelo YOLO para melhorar as métricas de recall.
 
 # Glossário
@@ -20,12 +24,20 @@ sidebar_position: 1
 
 # A Análise
 &emsp;A equipe de desenvolvimento decidiu, em um primeiro momento, reclassificar as imagens de treino e validação, alterando as "boxes" e suas labels para que fossem mais precisas, além de garantir um padrão na marcação das imagens. Para isso, foi utilizado o LabelImg, uma ferramenta de anotação de imagens que permite a criação de caixas delimitadoras e a atribuição de rótulos às mesmas. A equipe revisou todas as imagens, garantindo que as caixas delimitadoras estivessem corretamente posicionadas e que os rótulos fossem consistentes com os objetos presentes nas imagens.
+
+
 &emsp;Além disso, depois de uma análise dos resultados do modelo, a equipe percebeu uma questão: Devido ao fato da primeira marcação ter sido feita por duas pessoas diferentes, algumas imagens (de tipos diferentes) estavam com suas labels iguais, o que pode ter causado a confusão do modelo. No sistema, as fissuras são classificadas como de retração(label = 0) e térmicas (label = 1), mas haviam algumas imagens de fissuras térmicas que estavam com a label de retração, e vice-versa. Para resolver isso, a equipe revisou as imagens e corrigiu as labels, garantindo que cada imagem estivesse corretamente rotulada de acordo com o tipo de fissura presente.
+
+
 &emsp;Por fim, uma análise mais profunda foi feita nas caixas delimitadoras, e fora possível observar que algumas imagens que o modelo predizia não estavam incorretas, mas sim com uma caixa única envolvendo a fissura daquele tipo, enquanto nossa label continha duas ou mais caixas delimitadoras. A principal consequência disso foi uma análise equivocada da validação do modelo, que considerava a falta de detecção dessas caixas adicionais como uma não detecção por parte do sistema.
 
 # O que foi feito e os resultados
 &emsp;Após a primeira análise, referente à reclassificação das imagens, fora refeita a classificação das imagens de treino e validação, dessa vez marcando o máximo possível de caixas delimitadoras para cada imagem, visando reduzir o espaço "vazio", isto é, o espaço que não contém fissuras. Como foi adiantado em nossas análises futuras, essa mudança foi inefetiva, pois o modelo não marcava o excesso de caixas delimitadoras, resultando no mesmo efeito que o original.
+
+
 &emsp;Em seguida, a equipe modificou as labels das imagens que estavam equivocadas, e nossos resultados melhoraram significamente, tendo seu recall aumentado para 60% sem perder precisão. Com algumas iterações de quantidades de épocas, o modelo chegou até 62% de recall, mas ainda não era satisfatório.
+
+
 &emsp;Por fim, ao notar a criação excessiva de caixas delimitadoras, a equipe decidiu novamente reclassificar as imagens, dessa vez munidos de suas descobertas. O objetivo foi garantir que cada imagem tivesse o mínimo de caixas delimitadoras possíveis, evitando a redundância de caixas que afetaria negativamente o modelo. Essa abordagem inicialmente foi só aplicada às imagens de fissuras térmicas, pois eram as que mais apresentavam esse problema, e os resultados foram positivos, com o recall subindo para 72% e a precisão se mantendo por volta de 90%. Aplicar novamente essa abordagem às fissuras de retração teve um resultado ainda melhor, subindo o recall para 88% e a precisão para 92%. Por fim, fora alterada apenas a quantidade de épocas de treinamento, de 30 para 200, atingindo uma melhora final de 94% de recall e uma leve perda para 90% de precisão.
 
 # Conclusão
