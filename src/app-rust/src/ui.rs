@@ -223,12 +223,7 @@ pub fn Home() -> Element {
 
                         if !is_processing() && stats_data.images_with_gps > 0 {
                             div { class: "text-center space-y-4",
-                                button { 
-                                    class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 mx-auto",
-                                    onclick: open_folders_window,
-                                    i { class: "material-icons", "folder" }
-                                    "Visualizar Pastas Organizadas"
-                                }
+                            
                                 
                                 // Botão para validação só aparece se o arquivo detection_results.json existir
                                 {
@@ -241,7 +236,7 @@ pub fn Home() -> Element {
                                                 Link {
                                                     to: AppRoute::ValidationScreen {},
                                                     button { 
-                                                        class: "px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2 mx-auto",
+                                                        class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 mx-auto",
                                                         i { class: "material-icons", "verified" }
                                                         "Validar Resultados da IA"
                                                     }

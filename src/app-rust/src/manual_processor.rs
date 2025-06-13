@@ -193,10 +193,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             }
 
             div { class: "container mx-auto px-4 py-8 max-w-4xl",
-                h1 { class: "text-3xl font-bold text-center mb-8 text-gray-800", 
-                    "Processamento Manual de Imagens" 
-                }
-                
+                                
                 div { class: "bg-white rounded-lg shadow-md p-6 mb-6",
                     div { class: "mb-6",
                         label { class: "block text-gray-700 mb-2", 
