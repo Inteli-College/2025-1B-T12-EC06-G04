@@ -7,9 +7,9 @@ use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};
 use serde::Deserialize;
 use dioxus_router::prelude::Link;
-use dioxus_router::prelude::Navigator;
 use dioxus_router::prelude::use_navigator;
 use crate::Route;
+use tokio::time;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -169,7 +169,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                         ));
                         
                         // Aguardar um pouco para o usuário ver a mensagem de sucesso
-                        gloo_timers::future::TimeoutFuture::new(2000).await;
+                        time::sleep(time::Duration::from_millis(2000)).await;
                         
                         // Navegar para a tela de validação
                         navigator.push(Route::ValidationScreen {});

@@ -6,12 +6,12 @@ use std::rc::Rc;
 use std::path::Path;
 use chrono::{DateTime, Local};
 use crate::manual_processor::ManualProcessor;
-use dioxus_router::prelude::Link;
 use dioxus_router::prelude::use_navigator;
 use crate::Route as AppRoute;
 use crate::manual_processor::ManualProcessorProps;
 use crate::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
+use tokio;
 
 #[component]
 pub fn SelectImages() -> Element {
@@ -25,21 +25,13 @@ pub fn SelectImages() -> Element {
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
-    // Handle for the folders popup
-    let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
-        use futures_util::StreamExt;
-        while let Some(path) = rx.next().await {
-            processed_folder_signal.set(path);
-        }
-    });
-
-    let open_folders_window = move |_evt: MouseEvent| {
-        let tx = handle.tx();
-        dioxus::desktop::window().new_window(
-            VirtualDom::new_with_props(folders_popup, Rc::new(move |path| tx.unbounded_send(path).unwrap())),
-            Default::default(),
-        );
-    };
+    // Handle for the folders popup - removido pois não é mais usado
+    // let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
+    //     use futures_util::StreamExt;
+    //     while let Some(path) = rx.next().await {
+    //         processed_folder_signal.set(path);
+    //     }
+    // });
 
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
@@ -122,7 +114,7 @@ pub fn SelectImages() -> Element {
                                                     processed_folder_signal.set(Some(PathBuf::from(path_clone_for_state)));
                                                     
                                                     // Aguardar um pouco para o usuário ver a mensagem
-                                                    gloo_timers::future::TimeoutFuture::new(2000).await;
+                                                    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
                                                     
                                                     // Navegar para a tela de validação
                                                     navigator.push(AppRoute::ValidationScreen {});
