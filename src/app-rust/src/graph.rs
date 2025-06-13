@@ -71,7 +71,7 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     // Construct path relative to the CWD printed above.
     // If CWD is ".../src/app-rust/src", then "../Projects/..." should be correct
     // if the target is ".../src/app-rust/Projects/..."
-    let json_path_str = format!("../Projects/{}/detection_results.json", project_name);
+    let json_path_str = format!("Projects/{}/detection_results.json", project_name);
     
     // Resolve this potentially relative path against the CWD to get an absolute path for File::open
     // std::fs::canonicalize can also be used for more robust absolute path resolution.
@@ -98,6 +98,7 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     // Canonicalize is good for verifying, but File::open takes the direct path.
     let file = File::open(&absolute_json_path).map_err(|e| { 
         eprintln!("[RUST graph.rs] Error opening JSON file at '{:?}': {}", absolute_json_path, e);
+        eprintln!("[RUST graph.rs] Verifique se o arquivo 'detection_results.json' existe no diretório do projeto");
         JsonReadError::Io(e)
     })?;
     let reader = BufReader::new(file);
