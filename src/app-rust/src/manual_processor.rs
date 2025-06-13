@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use rfd::AsyncFileDialog;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use std::fs;
 use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};

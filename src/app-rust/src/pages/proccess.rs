@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::use_navigator;
 use rfd::AsyncFileDialog;
-use futures_util::StreamExt;
 use std::{
     path::PathBuf,
     rc::Rc,
@@ -266,14 +265,14 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     let mut new_folder_description = use_signal(|| String::new());
     let mut show_new_folder_input = use_signal(|| false);
 
-    let file_cards = files.read().path_names().iter().enumerate()
+    let file_cards = files.read().get_path_names().iter().enumerate()
     .filter_map(|(dir_id, entry)| {
-        let path = &entry.path;
+        let path = entry.get_path();
         let path_end = path.file_name()?.to_string_lossy();
         let path_display = display_from_projects(path)
             .map(|p| p.display().to_string())
             .unwrap_or_else(|| path.display().to_string());
-        let created = entry.created.clone().unwrap_or_default();
+        let created = entry.get_created().cloned().unwrap_or_default();
 
         Some(rsx!(
             div {
@@ -302,7 +301,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             header { class: "flex items-center justify-between bg-blue-600 text-black p-4 shadow",
                 div { class: "flex items-center gap-4",
                     i { class: "material-icons", "menu" }
-                    h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
+                    h1 { class: "text-xl font-bold", "Files: {files.read().get_current_path().display()}" }
                 }
                 i {
                     class: "material-icons cursor-pointer hover:text-red-200",
@@ -316,7 +315,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
                 { file_cards.into_iter() }
             }
 
-            if let Some(err) = files.read().err.as_ref() {
+            if let Some(err) = files.read().get_err() {
                 div { class: "bg-red-100 text-red-700 p-4 rounded shadow flex justify-between items-center col-span-full",
                     code { class: "text-sm", "{err}" }
                     button {
@@ -388,7 +387,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             button {
                 class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
                 onclick: move |_| {
-                    send(Some(files.read().current_path.clone()));
+                    send(Some(files.read().get_current_path().clone()));
                     dioxus::desktop::window().close();
                 },
                 "Selecionar Pasta"

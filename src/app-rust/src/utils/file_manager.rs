@@ -15,6 +15,16 @@ pub struct FileEntry {
     created: Option<String>,
 }
 
+impl FileEntry {
+    pub fn get_path(&self) -> &Path {
+        self.path.as_path()
+    }
+
+    pub fn get_created(&self) -> Option<&String> {
+        self.created.as_ref()
+    }
+}
+
 pub struct Files {
     base_path: PathBuf,
     current_path: PathBuf,
@@ -22,7 +32,7 @@ pub struct Files {
     err: Option<String>,
 }
 
-pub impl Files {
+impl Files {
     pub fn new(initial_path_option: Option<PathBuf>) -> Self {
         let base_path = match initial_path_option {
             Some(path) => path,
@@ -130,11 +140,19 @@ pub impl Files {
         }
     }
 
-    pub fn current(&self) -> String {
-        self.current_path.display().to_string()
+    pub fn get_current_path(&self) -> &PathBuf {
+        &self.current_path
+    }
+
+    pub fn get_path_names(&self) -> &Vec<FileEntry> {
+        &self.path_names
     }
 
     pub fn clear_err(&mut self) {
         self.err = None;
+    }
+
+    pub fn get_err(&self) -> Option<&String> {
+        self.err.as_ref()
     }
 }

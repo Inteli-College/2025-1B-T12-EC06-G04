@@ -1,13 +1,11 @@
 use dioxus::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use dioxus_router::prelude::Link;
 use crate::Route;
 
-// Add context provider for project name
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
-    // Construct path relative to CARGO_MANIFEST_DIR (i.e., src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let projects_dir = base_dir.join("Projects"); 
     
@@ -22,10 +20,8 @@ fn get_or_create_projects_dir() -> Option<PathBuf> {
     Some(projects_dir)
 }
 
-// Helper function to sanitize project names
 fn sanitize_name(name: &str) -> String {
     name.replace(' ', "_")
-        // Add other sanitization rules if needed, e.g., remove special characters
         .chars()
         .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
         .collect::<String>()

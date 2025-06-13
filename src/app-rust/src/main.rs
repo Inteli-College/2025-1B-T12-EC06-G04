@@ -4,18 +4,20 @@ use dioxus_router::prelude::*;
 use dioxus::desktop::{Config, WindowBuilder};
 use std::path::PathBuf;
 
+// Import de arquivos locais
+mod homepage;
+mod select_images;
 mod pages {
     pub mod report;
     pub mod proccess;
 }
+
 mod utils {
-    pub mod file_manager;
     pub mod report_generator;
+    pub mod file_manager;
+    pub mod exporter;
 }
 
-// Import de arquivos locais
-mod homepage;
-mod select_images;
 mod create_project;
 mod image_processor;
 mod manual_processor;
@@ -28,13 +30,6 @@ use pages::report::ReportView;
 use create_project::NewProject;
 use pages::proccess::Process;
 use graph::GraphView;
-
-#[component]
-fn Process() -> Element {
-    rsx! {
-        Home {}
-    }
-}
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
