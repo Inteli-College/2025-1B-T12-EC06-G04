@@ -70,7 +70,7 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
 /// Componente principal da tela de validação.
 #[component]
 pub fn ValidationScreen() -> Element {
-    // Removido uso de navigator pois não há Router neste pop-up
+    let navigator = use_navigator();
     let mut current_image_index = use_signal(|| 0usize);
     let mut validation_data = use_signal(|| Vec::<ImageValidationState>::new());
     let mut loading = use_signal(|| true);
@@ -241,7 +241,7 @@ pub fn ValidationScreen() -> Element {
                 Ok(_) => {
                     status_message.set("Validação salva com sucesso!".to_string());
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    dioxus::desktop::window().close();
+                    navigator.go_back();
                 }
                 Err(e) => {
                     status_message.set(format!("Erro ao salvar validação: {}", e));
@@ -291,9 +291,7 @@ pub fn ValidationScreen() -> Element {
                         p { class: "text-gray-600 mb-6", "{error_message()}" }
                         button {
                             class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
-                            onclick: move |_| {
-                                dioxus::desktop::window().close();
-                            },
+                            onclick: move |_| navigator.go_back(),
                             "Voltar"
                         }
                     }
@@ -312,9 +310,7 @@ pub fn ValidationScreen() -> Element {
                     p { class: "text-gray-600 mb-6", "Não foram encontradas imagens com detecções para validação." }
                     button {
                         class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
-                        onclick: move |_| {
-                            dioxus::desktop::window().close();
-                        },
+                        onclick: move |_| navigator.go_back(),
                         "Voltar"
                     }
                 }
@@ -342,7 +338,7 @@ pub fn ValidationScreen() -> Element {
     };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-50",
+        div { class: "min-h-screen bg-gray-100",
             document::Stylesheet { href: asset!("/assets/tailwind.css") }
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
@@ -381,9 +377,10 @@ pub fn ValidationScreen() -> Element {
 
             div { class: "bg-white border-b",
                 div { class: "container mx-auto px-6 py-2",
-                    div { class: "w-full bg-gray-200 rounded-full h-2 overflow-hidden",
+                    div { class: "w-full bg-gray-200 rounded-full h-2",
                         div { 
-                            class: "bg-blue-500 h-2 rounded-full transition-all duration-300",
+                            class: "bg-blue-600 h-2 rounded-full transition-all duration-300",
+                            style: "width: {(viewed_count as f64 / total_images as f64 * 100.0)}%"
                         }
                     }
                 }
@@ -418,17 +415,14 @@ pub fn ValidationScreen() -> Element {
                                     }
                                     
                                     button {
-                                        class: "flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-colors",
-                                        style: if current_image.is_incorrect {
-                                            "background-color:#16a34a;color:#ffffff;" // verde 600
-                                        } else {
-                                            "background-color:#dc2626;color:#ffffff;" // vermelho 600
-                                        },
+                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-white font-medium transition-colors {}",
+                                            if current_image.is_incorrect { "bg-red-600 hover:bg-red-700" } else { "bg-gray-400 hover:bg-gray-500" }
+                                        ),
                                         onclick: toggle_incorrect,
                                         i { class: "material-icons", 
-                                            if current_image.is_incorrect { "check" } else { "close" }
+                                            if current_image.is_incorrect { "close" } else { "check" }
                                         }
-                                        if current_image.is_incorrect { "Desmarcar incorreta" } else { "Marcar como incorreta" }
+                                        if current_image.is_incorrect { "Marcada como Incorreta" } else { "Marcar como Incorreta" }
                                     }
                                     
                                     button {
@@ -500,17 +494,13 @@ pub fn ValidationScreen() -> Element {
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
                             div { class: "space-y-3",
                                 button {
-                                    class: "w-full px-4 py-3 rounded-md font-medium",
-                                    style: "background-color:#16a34a;color:#ffffff;", // verde 600
+                                    class: "w-full px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium",
                                     onclick: attempt_confirm,
                                     "Confirmar Validação"
                                 }
                                 button {
-                                    class: "w-full px-4 py-2 rounded-md",
-                                    style: "background-color:#9ca3af;color:#000000;", // gray 400
-                                    onclick: move |_| {
-                                        dioxus::desktop::window().close();
-                                    },
+                                    class: "w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
+                                    onclick: move |_| navigator.go_back(),
                                     "Cancelar"
                                 }
                             }
@@ -536,14 +526,12 @@ pub fn ValidationScreen() -> Element {
                             }
                             div { class: "flex gap-4 justify-center",
                                 button {
-                                    class: "px-6 py-2 rounded-md",
-                                    style: "background-color:#9ca3af;color:#000000;",
+                                    class: "px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700",
                                     onclick: close_dialog,
                                     "Cancelar"
                                 }
                                 button {
-                                    class: "px-6 py-2 rounded-md",
-                                    style: "background-color:#facc15;color:#000000;",
+                                    class: "px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700",
                                     onclick: move |_| confirm_validation(),
                                     "Confirmar Mesmo Assim"
                                 }

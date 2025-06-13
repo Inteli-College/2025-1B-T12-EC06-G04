@@ -9,10 +9,7 @@ use serde::Deserialize;
 use crate::Key::Link as KeyLink;
 use chrono::{DateTime, Local};
 use dioxus_router::prelude::Link;
-use crate::validation_screen::ValidationScreen;
-use std::sync::atomic::{AtomicBool, Ordering};
-
-pub static MODEL_DONE: AtomicBool = AtomicBool::new(false);
+use crate::Route;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -53,7 +50,6 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     let mut facade_names = use_signal(|| vec![HashMap::new()]);
     let is_processing = use_signal(|| false);
     let status = use_signal(String::new);
-    let analysis_done = use_signal(|| false);
 
     use_effect(move || {
         let count = num_buildings();
@@ -104,11 +100,10 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
         facade_names.set(new_facade_names_vec);
     });
 
-    let run_pipeline = move || {
+    let organize_folders = move |_: Event<FormEvent>| {
         let current_buildings = buildings.read().clone();
         let mut is_processing_writer = is_processing;
         let mut status_writer = status;
-        let mut analysis_done_writer = analysis_done;
         let project_name_clone = props.project_name.clone();
 
         spawn(async move {
@@ -164,16 +159,9 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                 match run_yolo_script_and_parse_results(&project_name_clone, status_writer, &base_dir).await {
                     Ok(analysis_results) => {
                         status_writer.set(format!(
-                            "Análise concluída com sucesso! {} imagens analisadas.",
+                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos.",
                             analysis_results.len()
                         ));
-                        analysis_done_writer.set(true);
-                        MODEL_DONE.store(true, Ordering::SeqCst);
-                        // Abre a tela de validação em uma nova janela
-                        dioxus::desktop::window().new_window(
-                            VirtualDom::new(ValidationScreen),
-                            Default::default(),
-                        );
                     }
                     Err(e) => {
                         status_writer.set(format!("Erro durante a análise de imagens: {}", e));
@@ -182,8 +170,6 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             }
             
             is_processing_writer.set(false);
-            // Fechamos esta janela após iniciar a de validação
-            dioxus::desktop::window().close();
         });
     };
 
@@ -408,12 +394,10 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                         }
                         
                         div { class: "flex justify-end gap-4",
-                            button {
-                                class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
-                                disabled: is_processing(),
-                                onclick: move |_| run_pipeline(),
-                                i { class: "material-icons", "play_arrow" }
-                                if is_processing() { "Processando..." } else { "Rodar Modelo" }
+                            Link {
+                                to: Route::ValidationScreen {},
+                                class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
+                                "Validar Fissuras"
                             }
                         }
                     }

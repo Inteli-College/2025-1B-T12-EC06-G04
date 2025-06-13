@@ -63,10 +63,8 @@ pub fn NewProject() -> Element {
             return;
         }
 
-        // Cria o caminho absoluto do projeto e armazena no sinal global
-        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let absolute_project_path = base_dir.join("Projects").join(&sanitized_project_name);
-        *PROJECT_NAME.write() = Some(absolute_project_path.display().to_string());
+        // Store sanitized project name in global signal
+        *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
         
         let project_name_for_folder = sanitized_project_name; // Use sanitized name for folder
 

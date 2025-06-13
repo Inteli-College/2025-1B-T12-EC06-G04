@@ -100,7 +100,7 @@ fn guess_mime_type(path: &PathBuf) -> &'static str {
 #[component]
 fn App() -> Element {
     let initial_folder_path: Signal<Option<PathBuf>> = Signal::new(None);
-    provide_root_context(initial_folder_path);
+    use_context_provider(|| initial_folder_path);
 
     rsx! {
         Router::<Route> {}
