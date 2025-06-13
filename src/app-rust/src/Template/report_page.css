@@ -7,40 +7,24 @@ header {
     padding: 0 5vw;
     display: flex;
     align-items: center;
-    background-color: blanchedalmond;
+    background-color: blanchedalmond; 
 }
 
 header i {
-    margin-right: 3vw;
+    margin-right: 3vw; 
 }
 
 main {
     display: flex;
     flex-direction: column;
     padding: 20px 5vw;
-    gap: 3vh
-}
-
-.button-area {
-    display: flex;
-    justify-content: space-evenly;
-    gap: 5vw;
-}
-
-.button-area button {
-    flex: 1;
-    height: 5vh;
-    font-weight: bold;
-    border: 2px solid black;
-    border-radius: 10px;
-    background-color: transparent;
+    gap: 3vh; 
 }
 
 .text-viewer {
-    margin: 0 10vw;
     padding: 0;
     display: flex;
-    justify-content: center;
+    justify-content: center; 
 }
 
 .text-content {
@@ -57,10 +41,13 @@ main {
     max-width: 900px;
     min-height: 400px;
     transition: box-shadow 0.2s;
-    overflow-x: auto;
+    overflow-x: auto; 
 }
 
-/* Títulos */
+/* 
+---
+*/
+
 .text-content h1 {
     font-size: 2em;
     margin-bottom: 0.5em;
@@ -83,7 +70,10 @@ main {
     color: #4682b4;
 }
 
-/* Listas */
+/* 
+---
+*/
+
 .text-content ul, .text-content ol {
     margin: 1em 0 1em 2em;
     padding-left: 1em;
@@ -92,7 +82,10 @@ main {
     margin-bottom: 0.3em;
 }
 
-/* Tabela */
+/* 
+---
+*/
+
 .text-content table {
     border-collapse: collapse;
     width: 100%;
@@ -113,7 +106,10 @@ main {
     background: #f3f6f9;
 }
 
-/* Citações */
+/* 
+---
+*/
+
 .text-content blockquote {
     border-left: 4px solid #8ecae6;
     background: #e0f7fa;
@@ -123,7 +119,10 @@ main {
     font-style: italic;
 }
 
-/* Código */
+/* 
+---
+*/
+
 .text-content code {
     background: #ececec;
     color: #c7254e;
@@ -143,7 +142,10 @@ main {
     font-size: 0.8em;
 }
 
-/* Links */
+/* 
+---
+*/
+
 .text-content a {
     color: #386fa4;
     text-decoration: underline;
@@ -153,14 +155,20 @@ main {
     color: #264653;
 }
 
-/* Separador */
+/* 
+---
+*/
+
 .text-content hr {
     border: none;
     border-top: 2px solid #bdbdbd;
     margin: 2em 0;
 }
 
-/* Scrollbar customizado para o pre */
+/* 
+---
+*/
+
 .text-viewer pre::-webkit-scrollbar {
     height: 8px;
     background: #ececec;
@@ -170,4 +178,3 @@ main {
     background: #bdbdbd;
     border-radius: 8px;
 }
-
