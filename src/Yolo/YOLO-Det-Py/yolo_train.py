@@ -1,11 +1,11 @@
 from ultralytics import YOLO
 
-model = YOLO("yolov8m.pt")
+model = YOLO("yolov8n.pt")
 
 model.train(
     data='Dataset/dataset.yaml',
-    epochs=30,
+    epochs=200,
     imgsz=224,
-    batch=32,
-    name="yolo_rachaduras"
+    batch=16,
+    name="reclasse_v8n",
 )
