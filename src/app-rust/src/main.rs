@@ -7,34 +7,30 @@ use std::path::PathBuf;
 mod pages {
     pub mod report;
     pub mod proccess;
+    pub mod homepage;
+    pub mod create_project;
+    pub mod graph;
+    pub mod select_images;
+    pub mod manual_processor;
 }
 mod utils {
     pub mod file_manager;
     pub mod report_generator;
+    pub mod image_processor;
 }
 
 // Import de arquivos locais
-mod homepage;
-mod select_images;
-mod create_project;
-mod image_processor;
-mod manual_processor;
 mod report_structures;
-mod graph;
 
-use homepage::HomePage;
-use select_images::SelectImages;
+
+use pages::homepage::HomePage;
+use pages::select_images::SelectImages;
 use pages::report::ReportView;
-use create_project::NewProject;
+use pages::create_project::NewProject;
 use pages::proccess::Process;
-use graph::GraphView;
+use pages::graph::GraphView;
+use pages::manual_processor::ManualProcessor;
 
-#[component]
-fn Process() -> Element {
-    rsx! {
-        Home {}
-    }
-}
 
 fn main() {
     dioxus::LaunchBuilder::desktop()
@@ -71,4 +67,7 @@ pub enum Route {
 
     #[route("/process")]
     Process {},
+
+    #[route("/processamento-manual")]
+    ManualProcessor {},
 }

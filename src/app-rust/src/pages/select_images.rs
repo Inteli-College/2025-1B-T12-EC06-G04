@@ -1,15 +1,15 @@
 use dioxus::prelude::*;
 use rfd::AsyncFileDialog;
-use crate::image_processor::{process_folder, ProcessingStats};
+use crate::utils::image_processor::{process_folder, ProcessingStats};
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::path::Path;
 use chrono::{DateTime, Local};
-use crate::manual_processor::ManualProcessor;
+use crate::pages::manual_processor::ManualProcessor;
 use dioxus_router::prelude::Link;
 use crate::Route as AppRoute;
-use crate::manual_processor::ManualProcessorProps;
-use crate::create_project::PROJECT_NAME;
+use crate::pages::manual_processor::ManualProcessorProps;
+use crate::pages::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 
 #[component]
@@ -121,7 +121,7 @@ pub fn SelectImages() -> Element {
                                     } else {
                                         status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada.".to_string());
                                                     processed_folder_signal.set(None);
-                                    }
+                                    } 
                                 }
                                 Err(e) => {
                                     status.set(format!("Erro: {}", e));

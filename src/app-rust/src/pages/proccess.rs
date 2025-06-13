@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::use_navigator;
+use crate::Route;
+use dioxus_router::prelude::Link;
 use rfd::AsyncFileDialog;
 use futures_util::StreamExt;
 use std::{
@@ -7,19 +9,20 @@ use std::{
     rc::Rc,
 };
 use crate::{
-    image_processor::{process_folder, ProcessingStats},
+    utils::image_processor::{process_folder, ProcessingStats},
     Route as AppRoute,
-    create_project::PROJECT_NAME,
+    pages::create_project::PROJECT_NAME,
     utils::file_manager::{
         display_from_projects,
-        Files
+        Files,
     },
-    manual_processor::{
+    pages::manual_processor::{
         ManualProcessor,
         ManualProcessorProps,
         run_yolo_script_and_parse_results
     }
 };
+
 
 #[component]
 pub fn Process() -> Element {
@@ -174,32 +177,14 @@ pub fn Process() -> Element {
                             i { class: "material-icons", "sync" }
                             if is_processing() { "Processando..." } else { "Processar Automaticamente" }
                         }
-                        button {
-                            class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                            disabled: is_processing() || !project_name_available(),
-                            onclick: move |_| {
-                                if project_name_available() {
-                                    if let Ok(guard) = PROJECT_NAME.try_read() {
-                                        if let Some(name) = &*guard {
-                                            dioxus::desktop::window().new_window(
-                                                VirtualDom::new_with_props(
-                                                    ManualProcessor,
-                                                    ManualProcessorProps { project_name: name.clone() }
-                                                ),
-                                                Default::default(),
-                                            );
-                                        } else {
-                                            status.set("Erro: Nome do projeto é None, não deveria acontecer aqui.".to_string());
-                                        }
-                                    } else {
-                                        status.set("Erro: Falha ao ler o nome do projeto global.".to_string());
-                                    }
-                                } else {
-                                    status.set("Erro: Crie um projeto antes de processar manualmente.".to_string());
-                                }
-                            },
-                            i { class: "material-icons", "folder_open" }
-                            "Processar Manualmente"
+                        Link {
+                            to: Route::ManualProcessor {},
+                            button {
+                                class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                                disabled: is_processing() || !project_name_available(),
+                                i { class: "material-icons", "folder_open" }
+                                "Processar Manualmente"
+                            }
                         }
                     }
 
@@ -266,7 +251,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     let mut new_folder_description = use_signal(|| String::new());
     let mut show_new_folder_input = use_signal(|| false);
 
-    let file_cards = files.read().path_names().iter().enumerate()
+    let file_cards = files.read().path_names.iter().enumerate()
     .filter_map(|(dir_id, entry)| {
         let path = &entry.path;
         let path_end = path.file_name()?.to_string_lossy();

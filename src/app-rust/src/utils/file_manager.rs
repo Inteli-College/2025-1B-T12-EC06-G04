@@ -3,7 +3,7 @@ use chrono::{DateTime, Local};
 
 pub fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
-        if ancestor.file_name().map_or(false, |name| name == "projects") {
+        if ancestor.file_name().map_or(false, |name| name == "Projects") {
             return path.strip_prefix(ancestor).ok().map(|p| p.to_path_buf());
         }
     }
@@ -11,22 +11,23 @@ pub fn display_from_projects(path: &Path) -> Option<PathBuf> {
 }
 
 pub struct FileEntry {
-    path: PathBuf,
-    created: Option<String>,
+    pub path: PathBuf,
+    pub created: Option<String>,
+    pub description: Option<String>,
 }
 
 pub struct Files {
-    base_path: PathBuf,
-    current_path: PathBuf,
-    path_names: Vec<FileEntry>,
-    err: Option<String>,
+    pub base_path: PathBuf,
+    pub current_path: PathBuf,
+    pub path_names: Vec<FileEntry>,
+    pub err: Option<String>,
 }
 
-pub impl Files {
+impl Files {
     pub fn new(initial_path_option: Option<PathBuf>) -> Self {
         let base_path = match initial_path_option {
             Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects"),
         };
 
         if let Err(e) = std::fs::create_dir_all(&base_path) {
@@ -49,7 +50,7 @@ pub impl Files {
     pub fn update_base_path_if_different(&mut self, new_initial_path_option: Option<PathBuf>) {
         let new_base_path = match new_initial_path_option {
             Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
+            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects"),
         };
 
         if self.base_path != new_base_path {
@@ -103,8 +104,9 @@ pub impl Files {
                         let datetime: DateTime<Local> = time.into();
                         Some(datetime.format("%d/%m/%Y %H:%M").to_string())
                     });
-
-                self.path_names.push(FileEntry { path, created });
+            
+                let description = Some("Descrição qualquer".to_string());
+                self.path_names.push(FileEntry { path, created, description });
             }
         }
     }
