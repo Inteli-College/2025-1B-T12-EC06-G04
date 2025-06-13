@@ -48,58 +48,94 @@ pub fn Home() -> Element {
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
 
+        // Background
         div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            document::Link {
+              style: "background: radial-gradient(circle at center, #ffffff, #f0f8ff, #e0f2e1)",  
+              document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
             }
-
+            
+            // Conteúdo principal
             div { class: "container mx-auto px-4 py-8 max-w-4xl",
-                h1 { class: "text-3xl font-bold text-center mb-8 text-gray-800", 
-                    "Organizador de Fotos por Localização" 
-                }
-                div { class: "bg-white rounded-lg shadow-md p-6 mb-6",
-                    div { class: "flex gap-4 mb-6",
-                input {
-                            class: "flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
-                    r#type: "text",
-                    value: folder_path().unwrap_or_default(),
-                    readonly: true,
-                    placeholder: "Selecione uma pasta de imagens para processar..."
-                }
-                button {
-                            class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
-                    disabled: is_selecting_folder(),
-                    onclick: move |_| {
-                        is_selecting_folder.set(true);
-                        spawn(async move {
-                            if let Some(file_handle) = AsyncFileDialog::new().pick_folder().await {
-                                folder_path.set(Some(file_handle.path().display().to_string()));
-                            }
-                            is_selecting_folder.set(false);
-                        });
+
+                //Header
+                div {
+                    style:"display: flex; justify-content: space-between; align-items: center; gap: 12px;",
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
                     },
-                            i { class: "material-icons", "folder" }
-                    if is_selecting_folder() { "Selecionando..." } else { "Selecionar Pasta de Imagens" }
+                    h1 {
+                        style: "display: flex; justify-content: center; color: black; font-weight: bold; padding: 12px 0; font-size: 1.5rem",
+                        "Organizador de Fotos por Localização"
+                    },
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
+                    },
                 }
-            }
-                    div { class: "mb-6",
-                        label { class: "block text-gray-700 mb-2", 
-                            "Distância máxima entre imagens do mesmo prédio (metros):" 
+
+                // "card"
+                div { class: "p-6 mb-6", 
+                      style: "max-width: 800px; margin: auto; width: 100%; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.03), 0 4px 10px rgba(0, 0, 0, 0.01); background: linear-gradient(135deg, #fefefe 0%, #f5f5f5 100%); color: #333; display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: 12px;",
+                    
+                    // Seleção de pasta
+                    div { 
+                        class: "flex gap-4 mb-6", style:"padding: 16px 0; ",
+                        //input 
+                        input {
+                            class: "flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", style:"width: auto; flex-grow: 1; border-radius:4px",
+                            r#type: "text",
+                            value: folder_path().unwrap_or_default(),
+                            readonly: true,
+                            placeholder: "Selecione uma pasta de imagens para processar..."
                         }
-                input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
-                    r#type: "number",
-                    value: "{threshold()}",
-                    min: "10",
-                    step: "10",
-                    onchange: move |e| {
-                        if let Ok(val) = e.value().parse::<f64>() {
-                            threshold.set(val);
+
+                        // Botão para selecionar pasta
+                        button {
+                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
+                            class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
+                            disabled: is_selecting_folder(),
+                            onclick: move |_| {
+                                is_selecting_folder.set(true);
+                                spawn(async move {
+                                    if let Some(file_handle) = AsyncFileDialog::new().pick_folder().await {
+                                        folder_path.set(Some(file_handle.path().display().to_string()));
+                                    }
+                                    is_selecting_folder.set(false);
+                                });
+                            },
+                            i { class: "material-icons", "folder" }
+                            if is_selecting_folder() { "Selecionando..." } else { "Selecionar Pasta de Imagens" }
                         }
                     }
-                }
-            }
+
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
+                    },
+
+                    // Input da distância máxima
+                    div { 
+                        class: "mb-6",
+                        style: "padding: 16px 0;",
+                        label { 
+                            class: "block text-gray-700 mb-2",
+                            "Distância máxima entre imagens do mesmo prédio (metros):" 
+                        }
+                        input {
+                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            r#type: "number",
+                            value: "{threshold()}",
+                            min: "10",
+                            step: "10",
+                            onchange: move |e| {
+                                if let Ok(val) = e.value().parse::<f64>() {threshold.set(val);}
+                            }
+                        }
+                    }
+
+                    hr {
+                        style: "flex-grow: 1; border: 0; border-top: 2px solid rgba(152, 152, 152, 0.35); border-radius: 2px;"
+                    },
 
                     if !project_name_available() {
                         p { class: "text-center text-red-500 mb-4 py-2 px-4 border border-red-300 bg-red-50 rounded-md",
@@ -107,47 +143,51 @@ pub fn Home() -> Element {
                         }
                     }
 
-                    div { class: "flex gap-4",
-            button {
-                            class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                disabled: is_processing() || folder_path().is_none() || !project_name_available(),
-                onclick: move |_| {
-                                if let Some(path_str) = folder_path() {
-                        if !project_name_available() {
-                            status.set("Erro: Crie um projeto antes de processar.".to_string());
-                            return;
-                        }
-                        is_processing.set(true);
-                        status.set("Processando imagens...".to_string());
+                    div { 
+                        class: "flex gap-4",
+                        style: "padding: 16px 0; display: flex; gap: 12px; display: flex; flex-direction: row; justify-content: space-between;",
+                        button {
+                        style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
+                        class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                        disabled: is_processing() || folder_path().is_none() || !project_name_available(),
+                        onclick: move |_| {
+                            if let Some(path_str) = folder_path() {
+                                if !project_name_available() {
+                                status.set("Erro: Crie um projeto antes de processar.".to_string());
+                                return;
+                                }
+                                is_processing.set(true);
+                                status.set("Processando imagens...".to_string());
                         
-                                    let path_clone_for_processing = path_str.clone();
-                        let threshold_value = threshold();
-                        let project_name_clone = PROJECT_NAME.try_read().unwrap().clone().unwrap();
+                                let path_clone_for_processing = path_str.clone();
+                                let threshold_value = threshold();
+                                let project_name_clone = PROJECT_NAME.try_read().unwrap().clone().unwrap();
                         
-                        spawn(async move {
-                                        let result = process_folder(&path_clone_for_processing, threshold_value);
-                            
-                            match result {
-                                            Ok(result_data) => {
-                                                stats.set(Some(result_data.clone()));
-                                                if result_data.images_with_gps > 0 {
-                                        status.set(format!("Processamento de pastas concluído! {} imagens com GPS organizadas em {} prédios. Iniciando análise de IA...", 
-                                                        result_data.images_with_gps, result_data.predio_groups));
+                                spawn(async move {
+                                    let result = process_folder(&path_clone_for_processing, threshold_value);
+                                    match result {
+                                        Ok(result_data) => {
+                                            stats.set(Some(result_data.clone()));
+                                            if result_data.images_with_gps > 0 {
+                                                status.set(format!("Processamento de pastas concluído! {} imagens com GPS organizadas em {} prédios. Iniciando análise de IA...", 
+                                                result_data.images_with_gps, result_data.predio_groups));
                                         
-                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                                        match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
-                                            Ok(analysis_results) => {
-                                                status.set(format!(
-                                                    "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
-                                                    analysis_results.len()
-                                                ));
-                                                navigator.push(AppRoute::ValidationScreen {});
+
+                                                let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                                match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
+                                                Ok(analysis_results) => {
+                                                    status.set(format!(
+                                                        "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
+                                                        analysis_results.len()
+                                                    ));
+                                                navigator.push(AppRoute::HomePage {});
                                             }
                                             Err(e) => {
                                                 status.set(format!("Erro durante a análise de IA: {}", e));
                                             }
                                         }
-                                    } else {
+                                    }
+                                    else {
                                         status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
                                         navigator.push(AppRoute::ValidationScreen {});
                                     }
@@ -156,17 +196,32 @@ pub fn Home() -> Element {
                                     status.set(format!("Erro no processamento de pastas: {}", e));
                                 }
                             }
-                            
-                            is_processing.set(false);
-                        });
-                    } else {
-                         status.set("Erro: Selecione uma pasta de imagens primeiro.".to_string());
-                    }
-                },
+                                    is_processing.set(false);
+                                });
+                            } 
+                            else {
+                                status.set("Erro: Selecione uma pasta de imagens primeiro.".to_string());
+                            }
+                        },
                             i { class: "material-icons", "sync" }
                             if is_processing() { "Processando..." } else { "Processar Automaticamente" }
                         }
+
+                        div {
+                            div {
+
+                            }
+                            p {
+
+                            }
+
+                            div {
+
+                            }
+                        }
+
                         button {
+                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                             class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
                             disabled: is_processing() || !project_name_available(),
                             onclick: move |_| {
@@ -226,6 +281,7 @@ pub fn Home() -> Element {
                         if !is_processing() && stats_data.images_with_gps > 0 {
                             div { class: "text-center",
                                 button { 
+                                    style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                                     class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2",
                                     onclick: open_folders_window,
                                     i { class: "material-icons", "folder" }
@@ -343,6 +399,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     
                     div { class: "flex justify-end gap-2 mt-2",
                         button {
+                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                             class: "text-gray-500 text-sm hover:underline",
                             onclick: move |_| {
                                 show_new_folder_input.set(false);
@@ -352,6 +409,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
                             "Cancelar"
                         }
                         button {
+                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                             class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded",
                             onclick: move |_| {
                                 let name = new_folder_name.read().trim().to_string();
@@ -371,6 +429,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             }
     
             button {
+                style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                 class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
                 title: "Nova Pasta",
                 onclick: move |_| show_new_folder_input.set(true),
@@ -378,6 +437,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             }
 
             button {
+                style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                 class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
                 onclick: move |_| {
                     send(Some(files.read().current_path.clone()));

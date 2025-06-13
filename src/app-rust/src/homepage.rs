@@ -219,7 +219,7 @@ pub fn HomePage() -> Element {
                 rel: "stylesheet"
             }
 
-            header { class: "flex items-center justify-between bg-blue-600 text-white p-4 shadow",
+            header { class: "flex items-center justify-between bg-blue-600 text-white p-4 shadow", style: "position: sticky; top: 0; z-index: 1000;",
                 div { class: "flex items-center gap-4",
                     i { class: "material-icons", "menu" }
                     h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
@@ -316,7 +316,6 @@ pub fn HomePage() -> Element {
                         span { "Relatório" }
                     }
                 }
-
             }
 
             if let Some(err) = files.read().err.as_ref() {
