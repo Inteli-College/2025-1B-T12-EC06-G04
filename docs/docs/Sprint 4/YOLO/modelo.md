@@ -1,44 +1,69 @@
 ---
-title: Melhoras no modelo YOLO
+title: Melhorias no Modelo YOLO (Sprint 4)
 sidebar_position: 1
 ---
 
-# Resumo
+# 1. Resumo Executivo
 
-&emsp;Como já foi visto, o modelo YOLO é um modelo de detecção de objetos que utiliza uma rede neural convolucional para prever as caixas delimitadoras e as classes dos objetos em uma imagem. No entanto, as métricas de recall atingidas pelo modelo na sprint 3 não foram satisfatórias, o que levou a equipe a buscar melhorias no modelo. 
+&emsp;Nesta **Sprint 4**, o foco principal do projeto foi aprofundar a análise e otimizar o **modelo YOLO de detecção de objetos**. Apesar dos avanços na Sprint 3, as **métricas de recall** não atingiram o desempenho esperado, indicando que o modelo falhava em identificar uma parcela significativa das fissuras reais. A equipe concentrou-se em **diagnosticar e corrigir** as causas raiz desse problema, revisando exaustivamente **imagens de treino, validação e seus arquivos de anotação (labels e caixas delimitadoras)**.
 
+&emsp;As modificações implementadas no processo de anotação e nos hiperparâmetros do modelo resultaram em melhorias expressivas. Conseguimos elevar o **recall em quase 50 pontos percentuais**, alcançando impressionantes **94%**, enquanto mantivemos uma **precisão robusta de 90%**. Este avanço é crucial para a confiabilidade da nossa solução no ambiente do IPT, garantindo que a ferramenta identifique a maioria das fissuras com alta assertividade.
 
-&emsp;Nesta sprint, a equipe de desenvolvimento do modelo YOLO se concentrou em encontrar a razão para as métricas não estarem dentro do esperado e consertar eventuais erros. 
+---
 
+# 2. Glossário Essencial
 
-&emsp;Com isso, foram analisadas as imagens de treino e validação, bem como os arquivos de anotação, para identificar possíveis problemas. Além disso, foram realizadas modificações no modelo YOLO para melhorar as métricas de recall.
+Para facilitar a compreensão das métricas discutidas:
 
-# Glossário
+* **Precisão (Precision):** Mede a **confiabilidade das previsões positivas**. Indica quantas das detecções realizadas pelo modelo estavam, de fato, corretas. Um valor alto significa que, quando o modelo detecta uma fissura, há grande chance de que ela realmente exista.
+    * *Em termos simples:* Das que o modelo disse que são fissuras, quantas realmente eram.
+* **Recall (Sensibilidade):** Mede a **capacidade do modelo de encontrar todas as instâncias relevantes**. Indica a proporção de fissuras reais que foram corretamente identificadas pelo modelo. Um valor alto garante que poucas fissuras sejam "perdidas" pela análise.
+    * *Em termos simples:* Das fissuras que existem de verdade, quantas o modelo conseguiu achar.
+* **Caixa Delimitadora (Bounding Box):** Um **retângulo traçado ao redor de um objeto** (neste caso, uma fissura) em uma imagem, indicando sua localização e tamanho. São anotadas manualmente em ferramentas como o **LabelImg** e servem para treinar o modelo a reconhecer esses objetos em novas imagens.
 
-- **Precisão**: Medida de quantas das previsões feitas pelo modelo estavam corretas. É a proporção de verdadeiros positivos em relação ao total de previsões feitas; Um valor maior indica que o modelo realiza mais previsões corretas
-- **Recall**: Medida de quantas das instâncias reais foram corretamente identificadas pelo modelo. É a proporção de verdadeiros positivos em relação ao total de instâncias reais; Um valor maior indica que o modelo consegue detectar mais instâncias do objeto de interesse.
-- **Caixa delimitadora**: Uma caixa retangular que envolve um objeto de interesse em uma imagem, usada para indicar a localização e o tamanho do objeto na imagem. São determinadas em primeira instância manualmente, através de ferramentas de anotação, como o LabelImg, e depois são utilizadas pelo modelo para treinar e prever a localização dos objetos em novas imagens.
+---
 
-# Onde estávamos
-&emsp;A sprint 3 foi marcada como o início do desenvolvimento do nosso modelo YOLO. Apesar dos primeiros testes de classificação terem sido promissores, com resultados de até 99%(+-1%) de acurácia no conjunto de validação, o mesmo não se manteve quando treinamos o modelo para a detecção de objetos. Apesar de uma boa precisão (89%), nosso modelo não conseguiu atingir um recall satisfatório, beirando a média de 45%.
+# 3. O Cenário na Sprint 3
 
-# A Análise
-&emsp;A equipe de desenvolvimento decidiu, em um primeiro momento, reclassificar as imagens de treino e validação, alterando as "boxes" e suas labels para que fossem mais precisas, além de garantir um padrão na marcação das imagens. Para isso, foi utilizado o LabelImg, uma ferramenta de anotação de imagens que permite a criação de caixas delimitadoras e a atribuição de rótulos às mesmas. A equipe revisou todas as imagens, garantindo que as caixas delimitadoras estivessem corretamente posicionadas e que os rótulos fossem consistentes com os objetos presentes nas imagens.
+&emsp;A **Sprint 3** marcou o início do desenvolvimento do nosso modelo YOLO para detecção de objetos. Embora os testes iniciais de **classificação de imagens** inteiras fossem promissores (atingindo até 99% de acurácia), essa performance não se traduziu diretamente para a **detecção de objetos (bounding boxes)**. Com uma **precisão aceitável de 89%**, nosso principal desafio era o **recall**, que girava em torno de apenas **45%**. Isso significava que, apesar de detectarmos fissuras com alta certeza (boa precisão), estávamos **deixando de identificar** quase metade das fissuras existentes nas imagens.
 
+---
 
-&emsp;Além disso, depois de uma análise dos resultados do modelo, a equipe percebeu uma questão: Devido ao fato da primeira marcação ter sido feita por duas pessoas diferentes, algumas imagens (de tipos diferentes) estavam com suas labels iguais, o que pode ter causado a confusão do modelo. No sistema, as fissuras são classificadas como de retração(label = 0) e térmicas (label = 1), mas haviam algumas imagens de fissuras térmicas que estavam com a label de retração, e vice-versa. Para resolver isso, a equipe revisou as imagens e corrigiu as labels, garantindo que cada imagem estivesse corretamente rotulada de acordo com o tipo de fissura presente.
+# 4. A Análise Diagnóstica (Investigação das Causas)
 
+&emsp;Diante do baixo recall, a equipe de desenvolvimento iniciou uma investigação aprofundada das causas. Nossas principais frentes de análise incluíram:
 
-&emsp;Por fim, uma análise mais profunda foi feita nas caixas delimitadoras, e fora possível observar que algumas imagens que o modelo predizia não estavam incorretas, mas sim com uma caixa única envolvendo a fissura daquele tipo, enquanto nossa label continha duas ou mais caixas delimitadoras. A principal consequência disso foi uma análise equivocada da validação do modelo, que considerava a falta de detecção dessas caixas adicionais como uma não detecção por parte do sistema.
+* **Reclassificação e Padronização das Anotações:**
+    * Revisamos exaustivamente todas as imagens de treino e validação utilizando o **LabelImg**. O objetivo foi ajustar as **caixas delimitadoras** e suas **labels**, garantindo que fossem mais precisas e, crucialmente, que seguissem um **padrão consistente** em todo o dataset.
+* **Correção de Labels Inconsistentes:**
+    * Identificamos um problema significativo: devido à anotação inicial ter sido realizada por duas pessoas, ocorreram **inconsistências nas labels**. Por exemplo, imagens de fissuras térmicas (label = 1) foram erroneamente marcadas como de retração (label = 0), e vice-versa. Essa inconsistência gerava confusão para o modelo. A equipe revisou e corrigiu minuciosamente essas labels para garantir a correspondência correta.
+* **Otimização das Caixas Delimitadoras (Bounding Boxes):**
+    * Uma análise aprofundada revelou que algumas predições do modelo, embora aparentemente incorretas, eram na verdade reflexo de **caixas delimitadoras redundantes ou excessivas** em nossas anotações. Por exemplo, uma única fissura complexa poderia ter sido anotada com múltiplas caixas, enquanto o modelo tendia a prever uma única caixa abrangente. Isso levava o sistema de validação a considerar a "falta" das caixas adicionais como uma não detecção, impactando negativamente o recall. Otimizar a anotação para o **número mínimo e mais representativo de boxes por fissura** tornou-se um objetivo chave.
 
-# O que foi feito e os resultados
-&emsp;Após a primeira análise, referente à reclassificação das imagens, fora refeita a classificação das imagens de treino e validação, dessa vez marcando o máximo possível de caixas delimitadoras para cada imagem, visando reduzir o espaço "vazio", isto é, o espaço que não contém fissuras. Como foi adiantado em nossas análises futuras, essa mudança foi inefetiva, pois o modelo não marcava o excesso de caixas delimitadoras, resultando no mesmo efeito que o original.
+---
 
+# 5. Ações Implementadas e Resultados Alcançados
 
-&emsp;Em seguida, a equipe modificou as labels das imagens que estavam equivocadas, e nossos resultados melhoraram significamente, tendo seu recall aumentado para 60% sem perder precisão. Com algumas iterações de quantidades de épocas, o modelo chegou até 62% de recall, mas ainda não era satisfatório.
+&emsp;Baseados em nossas descobertas, implementamos uma série de ações iterativas:
 
+1.  **Primeira Tentativa: Excessiva Marcação de Boxes:**
+    * Inicialmente, tentamos marcar o **máximo possível de caixas delimitadoras** para cada fissura, visando cobrir todo o "espaço vazio". No entanto, essa abordagem foi **inefetiva**. O modelo não aprendeu a marcar o excesso de caixas, e o resultado foi o mesmo que o original, confirmando nossa hipótese sobre a redundância de boxes.
+2.  **Correção das Labels e Primeiro Salto:**
+    * Em seguida, priorizamos a **correção das labels equivocadas**. Essa ação teve um impacto significativo: o **recall aumentou para 60%** sem perda de precisão.
+    * Com **algumas iterações de épocas de treinamento**, o modelo alcançou até **62% de recall**, mas ainda não era o esperado.
+3.  **Otimização de Caixas Delimitadoras (Mínimo Essencial):**
+    * Ao perceber que a **criação excessiva de caixas** continuava sendo um gargalo, decidimos **reclassificar as imagens novamente**, desta vez focando em ter o **mínimo de caixas delimitadoras possíveis**, evitando redundâncias.
+    * Aplicamos essa nova abordagem inicialmente às **fissuras térmicas**, onde o problema era mais evidente. Os resultados foram muito positivos, com o **recall subindo para 72%** e a precisão mantendo-se em **90%**.
+    * Estendemos essa otimização para as **fissuras de retração**, obtendo um resultado ainda melhor: **recall de 88%** e **precisão de 92%**.
+4.  **Ajuste Final do Treinamento:**
+    * Por fim, ajustamos a **quantidade de épocas de treinamento de 30 para 200**. Essa alteração resultou na **melhora final**: um impressionante **recall de 94%** e uma leve adaptação na precisão para **90%**.
 
-&emsp;Por fim, ao notar a criação excessiva de caixas delimitadoras, a equipe decidiu novamente reclassificar as imagens, dessa vez munidos de suas descobertas. O objetivo foi garantir que cada imagem tivesse o mínimo de caixas delimitadoras possíveis, evitando a redundância de caixas que afetaria negativamente o modelo. Essa abordagem inicialmente foi só aplicada às imagens de fissuras térmicas, pois eram as que mais apresentavam esse problema, e os resultados foram positivos, com o recall subindo para 72% e a precisão se mantendo por volta de 90%. Aplicar novamente essa abordagem às fissuras de retração teve um resultado ainda melhor, subindo o recall para 88% e a precisão para 92%. Por fim, fora alterada apenas a quantidade de épocas de treinamento, de 30 para 200, atingindo uma melhora final de 94% de recall e uma leve perda para 90% de precisão.
+---
 
-# Conclusão
-&emsp;A equipe de desenvolvimento do modelo YOLO conseguiu identificar e corrigir os problemas que estavam afetando as métricas de recall do modelo. A reclassificação das imagens, a correção das labels e a redução do número de caixas delimitadoras foram fundamentais para melhorar o desempenho do modelo. Com essas melhorias, o modelo YOLO teve uma melhora de quase 50 pontos percentuais no recall, atingindo 94% de recall e 90% de precisão. Apesar disso, a equipe acredita que seja interessante continuar a busca por melhorias, talvez através de uma alteração mais específica nos hiperparâmetros do modelo.
+# 6. Conclusão e Próximos Passos
+
+&emsp;A equipe de desenvolvimento do modelo YOLO obteve um sucesso notável na identificação e correção dos problemas que afetavam as métricas de recall. A metodologia de **reclassificação estratégica das imagens**, **correção de labels** e, principalmente, a **otimização rigorosa do número de caixas delimitadoras** foram ações fundamentais. Com essas melhorias, o modelo YOLO alcançou uma **melhora de quase 50 pontos percentuais no recall**, atingindo um desempenho de **94% de recall e 90% de precisão**.
+
+&emsp;Apesar dos excelentes resultados, a equipe considera relevante continuar a busca por melhorias, explorando talvez uma **alteração mais específica nos hiperparâmetros** do modelo ou expandindo o dataset com dados ainda mais variados, visando otimizar a performance para casos de uso específicos do IPT.
+
+---
