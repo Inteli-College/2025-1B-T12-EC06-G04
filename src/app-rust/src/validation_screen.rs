@@ -43,7 +43,7 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
     
     if !json_path.exists() {
-        return Err(format!("Arquivo de resultados não encontrado: {:?}", json_path));
+        return Err(format!("Arquivo de resultados não encontrado: {:?}\n\nPara usar a validação, primeiro você precisa:\n1. Adicionar imagens ao projeto usando o Processador Manual\n2. Executar o processamento de IA\n3. Aguardar a criação do arquivo detection_results.json", json_path));
     }
     
     let json_content = fs::read_to_string(&json_path)

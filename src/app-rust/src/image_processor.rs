@@ -463,7 +463,9 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
         .filter(|e| {
             e.path().extension()
                 .and_then(|ext| ext.to_str())
-                .map_or(false, |ext| matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg"))
+                .map_or(false, |ext| matches!(ext.to_lowercase().as_str(), 
+                    "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "tiff" | "tif"
+                ))
         })
     {
         stats.total_images += 1;

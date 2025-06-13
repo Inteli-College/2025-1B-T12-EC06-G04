@@ -7,6 +7,7 @@ use std::path::Path;
 use chrono::{DateTime, Local};
 use crate::manual_processor::ManualProcessor;
 use dioxus_router::prelude::Link;
+use dioxus_router::prelude::use_navigator;
 use crate::Route as AppRoute;
 use crate::manual_processor::ManualProcessorProps;
 use crate::create_project::PROJECT_NAME;
@@ -20,6 +21,7 @@ pub fn SelectImages() -> Element {
     let mut stats = use_signal(|| None::<ProcessingStats>);
     let mut is_processing = use_signal(|| false);
     let mut is_selecting_folder = use_signal(|| false);
+    let navigator = use_navigator();
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
@@ -115,9 +117,15 @@ pub fn SelectImages() -> Element {
                                             Ok(result_data) => {
                                                 stats.set(Some(result_data.clone()));
                                                 if result_data.images_with_gps > 0 {
-                                        status.set(format!("Processamento concluído! {} imagens com GPS organizadas em {} prédios.", 
+                                        status.set(format!("Processamento concluído! {} imagens com GPS organizadas em {} prédios. Redirecionando para validação...", 
                                                         result_data.images_with_gps, result_data.predio_groups));
                                                     processed_folder_signal.set(Some(PathBuf::from(path_clone_for_state)));
+                                                    
+                                                    // Aguardar um pouco para o usuário ver a mensagem
+                                                    gloo_timers::future::TimeoutFuture::new(2000).await;
+                                                    
+                                                    // Navegar para a tela de validação
+                                                    navigator.push(AppRoute::ValidationScreen {});
                                     } else {
                                         status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada.".to_string());
                                                     processed_folder_signal.set(None);
@@ -199,10 +207,31 @@ pub fn SelectImages() -> Element {
                         if !is_processing() && stats_data.images_with_gps > 0 {
                             div { class: "text-center",
                                 button { 
-                                    class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2",
-                                    onclick: open_folders_window,
-                                    i { class: "material-icons", "folder" }
-                                    "Visualizar Pastas Organizadas"
+                                    class: "px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2",
+                                    onclick: move |_| {
+                                        // Verificar se o arquivo de detecção existe
+                                        match PROJECT_NAME.try_read() {
+                                            Ok(guard) => match &*guard {
+                                                Some(project_name) => {
+                                                    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                                    let detection_file = base_dir.join("Projects").join(project_name).join("detection_results.json");
+                                                    if detection_file.exists() {
+                                                        navigator.push(AppRoute::ValidationScreen {});
+                                                    } else {
+                                                        status.set("Erro: Arquivo de resultados de detecção não encontrado. Execute o processamento de IA primeiro.".to_string());
+                                                    }
+                                                }
+                                                None => {
+                                                    status.set("Erro: Nenhum projeto selecionado.".to_string());
+                                                }
+                                            },
+                                            Err(_) => {
+                                                status.set("Erro ao ler nome do projeto.".to_string());
+                                            }
+                                        }
+                                    },
+                                    i { class: "material-icons", "verified" }
+                                    "Validar Fissuras Detectadas"
                                 }
                             }
                         }
