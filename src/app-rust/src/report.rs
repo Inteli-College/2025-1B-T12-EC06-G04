@@ -196,8 +196,6 @@ pub fn ReportView(props: ReportViewProps) -> Element {
     }
     println!("[RUST ReportView Render] Tentando usar MD de: {:?}", report_md_filepath);
 
-    let common_button_min_width = "min-w-[180px]"; 
-
     rsx! {
         document::Link {
             rel: "stylesheet",
@@ -205,21 +203,21 @@ pub fn ReportView(props: ReportViewProps) -> Element {
         }
         body {
             header {
-                class: " bg-blue-600 text-white p-4 shadow font-bold text-center",
                 i { class: "material-icons icon", "description" }
-                h1 { class: "inline-block align-middle", "Relatório de Inspeção - 14 BIS" }
+                h1 { "Relatório de Inspeção - 14 BIS" }
             }
             main {
                 div {
-                    class: "flex flex-wrap p-6 gap-6 max-w-7xl mx-auto",
+                    class: "button-area",
                     Link {
                         to: Route::HomePage {},
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center gap-2 text-sm md:text-base", common_button_min_width),
-                        i { class: "material-icons", "home" }
-                        "Voltar para Home"
+                        class: "px-4 py-2 text-black rounded transition-colors duration-200 shadow-md flex items-center gap-2",
+                        button {
+                            i { class: "material-icons", "home" }
+                            "Voltar para Home"
+                        }
                     }
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -229,14 +227,13 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                                         Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
                                     }
                                 } else {
-                                    eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
                         "Exportar em MD"
                     }
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -246,14 +243,13 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                                         Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
                                     }
                                 } else {
-                                    eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
                         "Exportar em PDF"
-                    }
+                    },
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -271,7 +267,7 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                 }
                 div {
-                    class: "text-viewer w-full",
+                    class: "text-viewer",
                     div {
                         class: "text-content",
                         dangerous_inner_html: get_report(&props.project_name, &props.building_name)

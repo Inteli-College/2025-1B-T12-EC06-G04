@@ -1,0 +1,7 @@
+path: Dataset  # Root directory of your dataset
+train: train  # Path to training images
+val: val      # Path to validation images
+
+names:
+  0: retracao
+  1: termica
