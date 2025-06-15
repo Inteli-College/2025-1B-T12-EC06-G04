@@ -471,15 +471,29 @@ pub async fn run_yolo_script_and_parse_results(
         return Err(format!("O caminho não é um diretório válido: {}", images_dir.display()));
     }
 
-    let script_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("rodar_modelo_prod.py");
-    let model_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("best.pt");
+    // Procurar script e modelo YOLO em múltiplos locais possíveis
+    let candidate_dirs = [
+        app_rust_dir.join("..").join("model").join("Yolo").join("YOLO-Det-Py"),
+        app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py"),
+    ];
 
-    if !script_path.exists() {
-        return Err(format!("Script Python não encontrado em: {}", script_path.display()));
-    }
-    if !model_path.exists() {
-        return Err(format!("Modelo YOLO não encontrado em: {}", model_path.display()));
-    }
+    let (script_path, model_path) = candidate_dirs
+        .iter()
+        .find_map(|dir| {
+            let script = dir.join("rodar_modelo_prod.py");
+            let model = dir.join("best.pt");
+            if script.exists() && model.exists() {
+                Some((script, model))
+            } else {
+                None
+            }
+        })
+        .ok_or_else(|| {
+            format!(
+                "Script ou modelo YOLO não encontrados. Procurado em: {:?}",
+                candidate_dirs
+            )
+        })?;
 
     status.set("Executando script de análise de imagens... (Isso pode levar um tempo)".to_string());
 
