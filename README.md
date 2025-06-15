@@ -189,3 +189,24 @@ Para executar a aplicação desktop desenvolvida com Dioxus, siga os passos abai
     ```
 
 3. A interface gráfica será aberta automaticamente. Caso não abra, execute o binário gerado na pasta `target/desktop/debug`.
+
+## 📋 Licença
+
+<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"> <img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1">
+<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
+  <a property="dct:title" rel="cc:attributionURL" href="https://github.com/Inteli-College/2025-1A-T12-EC05-G02">14-Bis</a> 
+  by 
+  <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.inteli.edu.br/">Inteli</a>, 
+  <a href="https://www.linkedin.com/in/Gustavo-daCosta/">Gustavo Gonçalves da Costa</a>, 
+  <a href="https://www.linkedin.com/in/laura-rodrigues31/">Laura Rodrigues</a>, 
+  <a href="https://www.linkedin.com/in/kethlenmartins/">Kethlen Martins</a>, 
+  <a href="https://www.linkedin.com/in/ian-pereira-simao/">Ian Simão</a>, 
+  <a href="https://www.linkedin.com/in/lucas-periquito-costa/">Lucas Periquito</a>, 
+  <a href="https://www.linkedin.com/in/joão-v-wandermurem/">João Wandermurem</a>, 
+  <a href="https://www.linkedin.com/in/rafaela-s-o-lima/">Rafaela Silva</a>, 
+  <a href="https://www.linkedin.com/in/davioliveiraferreira/">Davi Ferreira</a>,  
+  is licensed under 
+  <a href="http://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">
+    Attribution 4.0 International
+  </a>
+</p>
