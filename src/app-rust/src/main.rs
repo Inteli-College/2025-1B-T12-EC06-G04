@@ -11,7 +11,6 @@ mod pages {
     pub mod create_project;
     pub mod graph;
     pub mod select_images;
-    pub mod manual_processor;
 }
 mod utils {
     pub mod file_manager;
@@ -21,6 +20,7 @@ mod utils {
 
 // Import de arquivos locais
 mod report_structures;
+mod manual_processor;
 
 
 use pages::homepage::HomePage;
@@ -29,7 +29,7 @@ use pages::report::ReportView;
 use pages::create_project::NewProject;
 use pages::proccess::Process;
 use pages::graph::GraphView;
-use pages::manual_processor::ManualProcessor;
+use manual_processor::ManualProcessor;
 
 
 fn main() {
@@ -69,5 +69,5 @@ pub enum Route {
     Process {},
 
     #[route("/processamento-manual")]
-    ManualProcessor {},
+    ManualProcessor {project_name: String},
 }

@@ -16,7 +16,7 @@ use crate::{
         display_from_projects,
         Files,
     },
-    pages::manual_processor::{
+    manual_processor::{
         ManualProcessor,
         ManualProcessorProps,
         run_yolo_script_and_parse_results
@@ -178,7 +178,9 @@ pub fn Process() -> Element {
                             if is_processing() { "Processando..." } else { "Processar Automaticamente" }
                         }
                         Link {
-                            to: Route::ManualProcessor {},
+                            to: Route::ManualProcessor {
+                                project_name: project_name_available.to_string().clone()
+                            },
                             button {
                                 class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
                                 disabled: is_processing() || !project_name_available(),

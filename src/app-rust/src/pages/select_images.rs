@@ -5,10 +5,10 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::path::Path;
 use chrono::{DateTime, Local};
-use crate::pages::manual_processor::ManualProcessor;
+use crate::manual_processor::ManualProcessor;
 use dioxus_router::prelude::Link;
 use crate::Route as AppRoute;
-use crate::pages::manual_processor::ManualProcessorProps;
+use crate::manual_processor::ManualProcessorProps;
 use crate::pages::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 

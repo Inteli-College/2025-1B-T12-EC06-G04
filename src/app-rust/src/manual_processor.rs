@@ -7,7 +7,7 @@ use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};
 use serde::Deserialize;
 
-#[derive(Clone, PartialEq)]
+#[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
     pub project_name: String,
 }
