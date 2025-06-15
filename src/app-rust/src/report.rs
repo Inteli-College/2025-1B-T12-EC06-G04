@@ -190,36 +190,40 @@ pub struct ReportViewProps {
 pub fn ReportView(props: ReportViewProps) -> Element {
     let report_md_filename: String = format!("Relatorio-{}-{}.md", &props.project_name.replace(' ', "_"), &props.building_name.replace(' ', "_"));
     let report_md_filepath: PathBuf = ["Report", &props.project_name, &report_md_filename].iter().collect();
-    
+
     if let Ok(cwd) = env::current_dir() {
         println!("[RUST ReportView Render] CWD: {:?}", cwd);
     }
     println!("[RUST ReportView Render] Tentando usar MD de: {:?}", report_md_filepath);
 
-    let common_button_min_width = "min-w-[180px]"; 
-
     rsx! {
+        document::Stylesheet { href: asset!("/assets/styles.css") }
         document::Link {
-            rel: "stylesheet",
-            href: asset!("/src/Template/report_page.css")
+            href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+            rel: "stylesheet"
         }
+
         body {
             header {
-                class: " bg-blue-600 text-white p-4 shadow font-bold text-center",
-                i { class: "material-icons icon", "description" }
-                h1 { class: "inline-block align-middle", "Relatório de Inspeção - 14 BIS" }
+                class: "page-header",
+                style: "justify-content: center;",
+                i { class: "material-icons", "description" }
+                h1 { "Relatório de Inspeção - 14 BIS" }
             }
             main {
+                class: "container",
                 div {
-                    class: "flex flex-wrap p-6 gap-6 max-w-7xl mx-auto",
+                    class: "report-button-bar",
+                    
                     Link {
                         to: Route::HomePage {},
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center gap-2 text-sm md:text-base", common_button_min_width),
+                        class: "btn btn-primary",
                         i { class: "material-icons", "home" }
                         "Voltar para Home"
                     }
+
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -235,8 +239,9 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                         },
                         "Exportar em MD"
                     }
+
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -253,7 +258,7 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                         "Exportar em PDF"
                     }
                     button {
-                        class: format!("flex-1 {} px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow rounded-lg flex items-center justify-center text-sm md:text-base", common_button_min_width),
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -271,11 +276,11 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                 }
                 div {
-                    class: "text-viewer w-full",
+                    class: "report-viewer",
                     div {
-                        class: "text-content",
+                        class: "report-content",
                         dangerous_inner_html: get_report(&props.project_name, &props.building_name)
-                            .unwrap_or_else(|e| format!("<h1>Erro ao gerar relatório</h1><p>Detalhes: {}</p><p>Verifique o console para mais informações sobre caminhos de arquivos.</p>", e))
+                            .unwrap_or_else(|e| format!("<div class='status-message error'><h1>Erro ao gerar relatório</h1><p><b>Detalhes:</b> {}</p><p>Verifique o console para mais informações sobre caminhos de arquivos.</p></div>", e))
                     }
                 }
             }

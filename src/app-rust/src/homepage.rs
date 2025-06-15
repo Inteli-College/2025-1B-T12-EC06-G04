@@ -99,12 +99,12 @@ pub fn HomePage() -> Element {
             Some(rsx!(
                 Link {
                     to: Route::GraphView { project_name: folder_name.to_string() },
-                    class: "folders flex flex-col items-center text-center cursor-pointer",
+                    class: "folder-card",
                     key: "{path_display}",
-                    i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
-                    h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
-                    p { class: "text-xs text-gray-400 mt-1", "{created}" }
-                    p { class: "text-xs text-gray-600 mt-1", "{description}" }
+                    i { class: "material-icons", "folder" }
+                    h2 { title: "{folder_name}", "{folder_name}" }
+                    p { class: "date", "{created}" }
+                    p { class: "description", "{description}" }
                 }
             ))
         })
@@ -112,155 +112,42 @@ pub fn HomePage() -> Element {
         .collect::<Vec<_>>();
 
 
-    // --- Início do frontend ---
     rsx! {
-        style { // Estilização para o 
-            ".selected-filter {{ 
-                background: linear-gradient(135deg, oklch(54.6% 0.245 262.881) 0%, oklch(0.4753 0.2363 262.881) 100%) !important; 
-                color:oklch(98.5% 0 0) !important; 
-                border: none !important; 
-                border: 2px solid oklch(54.6% 0.245 262.881) !important;
-                box-sizing: border-box;
-            }}
-
-             .unselected-filter {{ 
-                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                color: oklch(42.4% 0.199 265.638);  
-                border: 2px solid oklch(54.6% 0.245 262.881); 
-                box-sizing: border-box; 
-                hover:bg-blue-200
-            }}
-
-            .selected-filter:hover, .unselected-filter:hover {{
-                transform: translateY(-1px) scale(1.01);
-                box-shadow: 
-                    0 8px 25px rgba(0, 0, 0, 0.08),
-                    0 4px 10px rgba(0, 0, 0, 0.03);
-                transition: all 0.2s cubic-bezier(0.2, 0, 0.1, 0.5);
-            }}
-
-            .unselected-filter:hover {{ 
-                background: oklch(93.2% 0.032 255.585)
-            }}
-
-            .filter-icon {{
-                transition: transform 0.3s ease-in-out;
-            }}
-            
-            .filter-icon-active {{
-                transform: rotate(180deg);
-            }}
-
-            .folders {{
-                background: linear-gradient(145deg, 
-                    rgba(255, 255, 255, 0.9) 0%,
-                    rgba(255, 255, 255, 0.7) 25%,
-                    rgba(248, 250, 252, 0.8) 50%,
-                    rgba(241, 245, 249, 0.7) 75%,
-                    rgba(236, 240, 244, 0.8) 100%);
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                border-radius: 12px;
-                padding: 1.5rem;
-                backdrop-filter: blur(10px);
-                box-shadow: 
-                    0 2px 8px rgba(0, 0, 0, 0.05),
-                    0 1px 3px rgba(0, 0, 0, 0.1);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                cursor: pointer;
-            }}
-
-            .folders:hover {{
-                transform: translateY(-4px) scale(1.02);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.08);
-                border-color: rgba(59, 130, 246, 0.3);
-            }}
-            
-            .box {{
-                backdrop-filter: blur(10px);
-                box-shadow: 
-                    0 2px 8px rgba(0, 0, 0, 0.05),
-                    0 1px 3px rgba(0, 0, 0, 0.1);
-                transition: all 0.2s cubic-bezier(0.3, 0, 0.1, 1);
-                cursor: pointer;
-            }}
-
-            .box:hover {{
-                transform: translateY(-1.5px) scale(1.009);
-                box-shadow: 
-                    0 8px 25px rgba(0, 0, 0, 0.12),
-                    0 4px 10px rgba(0, 0, 0, 0.08);
-                border-color: rgba(59, 130, 246, 0.3);
-            }}
-
-            .filter-buttons-container {{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px; 
-                animation: fadeIn 0.4s ease-out forwards;
-            }}
-            @keyframes fadeIn {{
-                from {{
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }}
-                to {{
-                    opacity: 1;
-                    transform: translateY(0);
-                }}
-            }}"
+        document::Stylesheet { href: asset!("/assets/styles.css") }
+        document::Link {
+            href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+            rel: "stylesheet"
         }
 
-        document::Stylesheet { href: asset!("/assets/tailwind.css") }
-
-        body { class: "min-h-screen  text-gray-900 font-sans",
-            style:"background: radial-gradient(circle at center, #ffffff, #f0f8ff, #e0f2e1)",
-            document::Link {
-                href: "https://fonts.googleapis.com/icon?family=Material+Icons",
-                rel: "stylesheet"
-            }
-
-            header { class: "flex items-center justify-between bg-blue-600 text-white p-4 shadow", style: "position: sticky; top: 0; z-index: 1000;",
-                div { class: "flex items-center gap-4",
+        body {
+            header { class: "page-header",
+                div { class: "header-group",
                     i { class: "material-icons", "menu" }
-                    h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
+                    h1 { "Files: {files.read().current()}" }
                 }
-                i {
-                    class: "material-icons cursor-pointer hover:text-red-200",
+                button {
+                    class: "icon-button",
                     onclick: move |_| files.write().go_up(),
-                    "logout"
+                    i { class: "material-icons", "logout" }
                 }
             }
 
-            div {
-                style: "display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; width: 100%; padding: 16px 24px;",
-                // Barra de pesquisa
+            div { class: "controls-bar",
                 div {
-                    class: "w-4",
                     input {
                         r#type: "text",
-                        class: "px-4 py-2 border rounded-lg shadow",
-                        style: "width: 304px;",
+                        class: "search-input",
                         placeholder: "Buscar pasta...",
                         oninput: move |e| search_input.set(e.value().clone()),
                         value: "{search_input}",
                     }
                 }
 
-                div {
-                    style: "display: flex; align-items: center; gap: 10px;",
+                div { class: "filter-controls",
                     button {
-                        class: "bg-gray-200 hover:bg-gray-300 rounded-full shadow box",
-                        style: "display: flex; align-items: center; justify-content: center; padding: 8px;",
+                        class: if *show_filters.read() { "filter-toggle active" } else { "filter-toggle" },
                         onclick: move |_| show_filters.toggle(),
-                        
-                        i {
-                            class: if *show_filters.read() {
-                                "material-icons filter-icon filter-icon-active"
-                            } else {
-                                "material-icons filter-icon"
-                            },
-                            "filter_list"
-                        }
+                        i { class: "material-icons", "filter_list" }
                     }
 
                     if *show_filters.read() {
@@ -268,29 +155,29 @@ pub fn HomePage() -> Element {
                             class: "filter-buttons-container",
                             
                             button {
-                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
-                                    if *date_order == SortDateOrder::MaisRecente { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                class: format!("filter-button {}",
+                                    if *date_order == SortDateOrder::MaisRecente { "selected" } else { "unselected" }
                                 ),
                                 onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
                                 "Mais recente"
                             }
                             button {
-                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
-                                    if *date_order == SortDateOrder::MaisAntigo { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                class: format!("filter-button {}",
+                                    if *date_order == SortDateOrder::MaisAntigo { "selected" } else { "unselected" }
                                 ),
                                 onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
                                 "Mais antigo"
                             }
                             button {
-                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
-                                    if *alphabetical_order == SortAlphabeticOrder::AZ { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                class: format!("filter-button {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::AZ { "selected" } else { "unselected" }
                                 ),
                                 onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
                                 "A-Z"
                             }
                             button {
-                                class: format!("unselected-filter px-4 py-2 text-white transition-colors duration-200 shadow rounded-lg {}",
-                                    if *alphabetical_order == SortAlphabeticOrder::ZA { "selected-filter" } else { "bg-blue-500 hover:bg-blue-200" }
+                                class: format!("filter-button {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::ZA { "selected" } else { "unselected" }
                                 ),
                                 onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
                                 "Z-A"
@@ -300,26 +187,13 @@ pub fn HomePage() -> Element {
                 }
             }
 
-
             main {
-                class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6",
-                style:"background-color:blue, max width: 90%;",
+                class: "folder-grid",
                 { folder_cards.into_iter() }
-
-                Link {
-                    class: "fixed bottom-6 left-6 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg box",
-                    style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);",
-                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },
-                    button {
-                        class: "flex items-center gap-2",
-                        i { class: "material-icons", "assessment" }
-                        span { "Relatório" }
-                    }
-                }
             }
 
             if let Some(err) = files.read().err.as_ref() {
-                div { class: "bg-red-100 text-red-700 p-4 rounded shadow flex justify-between items-center col-span-full",
+                div { class: "status-message error",
                     code { class: "text-sm", "{err}" }
                     button {
                         class: "text-red-500 hover:text-red-700",
@@ -329,14 +203,21 @@ pub fn HomePage() -> Element {
                 }
             }
 
+            // Botão para Relatório
+            Link {
+                class: "btn btn-primary",
+                style: "position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 10;",
+                to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },
+                i { class: "material-icons", "assessment" }
+                span { "Relatório" }
+            }
+
+            // Botão para Novo Projeto
             Link {
                 to: Route::NewProject {},
-                button {
-                    class: "fixed bottom-6 right-6 shadow-lg rounded-full box",
-                    style: "padding: 10px 10px 5px 10px; background: linear-gradient(135deg, #fefefe 0%, #f5f5f5 100%); color: oklch(28.2% 0.091 267.935); border: 1px solid #ddd",
-                    title: "Nova Pasta",
-                    i { class: "material-icons", "add" }
-                }
+                class: "fab btn-secondary",
+                title: "Nova Pasta",
+                i { class: "material-icons", "add" }
             }
         }
     }
