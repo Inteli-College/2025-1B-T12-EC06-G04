@@ -248,11 +248,34 @@ pub fn Home() -> Element {
 
                         if !is_processing() && stats_data.images_with_gps > 0 {
                             div { class: "text-center",
-                                button { 
-                                    class: "btn btn-primary",
-                                    onclick: open_folders_window,
-                                    i { class: "material-icons", "folder" }
-                                    "Visualizar Pastas Organizadas"
+                            
+                                // Botão para validação só aparece se o arquivo detection_results.json existir
+                                {
+                                    let project_name = PROJECT_NAME.try_read().ok().and_then(|guard| guard.clone());
+                                    if let Some(name) = project_name {
+                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                        let detection_file = base_dir.join("Projects").join(&name).join("detection_results.json");
+                                        if detection_file.exists() {
+                                            rsx! {
+                                                Link {
+                                                    to: AppRoute::ValidationScreen {},
+                                                    button { 
+                                                        class: "btn btn-primary",
+                                                        i { class: "material-icons", "verified" }
+                                                        "Validar Resultados da IA"
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            rsx! { 
+                                                p { class: "text-gray-600 text-sm italic", 
+                                                    "Processamento de IA ainda não concluído" 
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        rsx! { }
+                                    }
                                 }
                             }
                         }

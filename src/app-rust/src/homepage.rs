@@ -1,15 +1,12 @@
-use crate::Route;
-use chrono::{DateTime, Local};
 use dioxus::prelude::*;
-use dioxus_router::prelude::Link;
 use std::path::{Path, PathBuf};
+use chrono::{DateTime, Local};
+use dioxus_router::prelude::Link;
+use crate::Route;
 
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
-        if ancestor
-            .file_name()
-            .map_or(false, |name| name == "Projects")
-        {
+        if ancestor.file_name().map_or(false, |name| name == "Projects") {
             return path.strip_prefix(ancestor).ok().map(|p| p.to_path_buf());
         }
     }
@@ -35,32 +32,24 @@ pub fn HomePage() -> Element {
     let mut entries: Vec<_> = binding.path_names.iter().collect();
 
     entries.sort_by(|a, b| {
-        let date_a = a
-            .created
-            .as_ref()
-            .and_then(|s| DateTime::parse_from_rfc3339(s).ok());
-        let date_b = b
-            .created
-            .as_ref()
-            .and_then(|s| DateTime::parse_from_rfc3339(s).ok());
-
+        let date_a = a.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+        let date_b = b.created.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok());
+    
+        // Aplica o filtro de data
         let date_cmp = match *date_order {
             SortDateOrder::MaisRecente => date_b.cmp(&date_a),
             SortDateOrder::MaisAntigo => date_a.cmp(&date_b),
         };
-
+    
+        // Se as datas forem iguais ou inexistentes, aplica o filtro alfabético
         if date_cmp == std::cmp::Ordering::Equal {
-            let name_a = a
-                .path
-                .file_name()
+            let name_a = a.path.file_name()
                 .map(|n| n.to_string_lossy().to_lowercase())
                 .unwrap_or_default();
-            let name_b = b
-                .path
-                .file_name()
+            let name_b = b.path.file_name()
                 .map(|n| n.to_string_lossy().to_lowercase())
                 .unwrap_or_default();
-
+    
             match *alphabetical_order {
                 SortAlphabeticOrder::AZ => name_a.cmp(&name_b),
                 SortAlphabeticOrder::ZA => name_b.cmp(&name_a),
@@ -69,27 +58,30 @@ pub fn HomePage() -> Element {
             date_cmp
         }
     });
-
+    
+    
     if *alphabetical_order == SortAlphabeticOrder::ZA {
         entries.reverse();
     }
-
+    
     use_effect(move || {
         let new_path = processed_folder_signal.read().clone();
         files.write().update_base_path_if_different(new_path);
     });
 
+    // pesquisa do usuário
     let mut search_input = use_signal(|| String::new());
 
+
     let folder_cards = entries.iter().enumerate()
-        .filter_map(|(_dir_id, entry)| {
-            let path = &entry.path;
-            let folder_name = path.file_name()?.to_string_lossy();
-            let path_display = display_from_projects(path)
-                .map(|p| p.display().to_string())
-                .unwrap_or_else(|| path.display().to_string());
-            let created = entry.created.clone().unwrap_or_default();
-            let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
+    .filter_map(|(_dir_id, entry)| {
+        let path = &entry.path;
+        let folder_name = path.file_name()?.to_string_lossy();
+        let path_display = display_from_projects(path)
+            .map(|p| p.display().to_string())
+            .unwrap_or_else(|| path.display().to_string());
+        let created = entry.created.clone().unwrap_or_default();
+        let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
 
             let search = search_input.read().to_lowercase();
             if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
@@ -202,16 +194,6 @@ pub fn HomePage() -> Element {
                     }
                 }
             }
-
-            // Botão para Relatório
-            Link {
-                class: "btn btn-primary",
-                style: "position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 10;",
-                to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },
-                i { class: "material-icons", "assessment" }
-                span { "Relatório" }
-            }
-
             // Botão para Novo Projeto
             Link {
                 to: Route::NewProject {},
@@ -219,6 +201,7 @@ pub fn HomePage() -> Element {
                 title: "Nova Pasta",
                 i { class: "material-icons", "add" }
             }
+
         }
     }
 }
@@ -256,11 +239,7 @@ impl Files {
         };
 
         if let Err(e) = std::fs::create_dir_all(&base_path) {
-            eprintln!(
-                "Falha ao criar diretório base em Files::new: {} ({:?})",
-                base_path.display(),
-                e
-            );
+            eprintln!("Falha ao criar diretório base em Files::new: {} ({:?})", base_path.display(), e);
         }
 
         let current_path = base_path.clone();
@@ -286,11 +265,7 @@ impl Files {
             self.base_path = new_base_path.clone();
             self.current_path = new_base_path;
             if let Err(e) = std::fs::create_dir_all(&self.base_path) {
-                self.err = Some(format!(
-                    "Falha ao criar novo diretório base {}: {:?}",
-                    self.base_path.display(),
-                    e
-                ));
+                self.err = Some(format!("Falha ao criar novo diretório base {}: {:?}", self.base_path.display(), e));
             } else {
                 self.err = None;
             }
@@ -314,8 +289,7 @@ impl Files {
         for entry in collected {
             if let Ok(entry) = entry {
                 let path = entry.path();
-                let created = entry
-                    .metadata()
+                let created = entry.metadata()
                     .and_then(|m| m.created())
                     .ok()
                     .and_then(|time| {
@@ -329,11 +303,7 @@ impl Files {
                     None
                 };
 
-                self.path_names.push(FileEntry {
-                    path,
-                    created,
-                    description,
-                });
+                self.path_names.push(FileEntry { path, created, description });
             }
         }
     }

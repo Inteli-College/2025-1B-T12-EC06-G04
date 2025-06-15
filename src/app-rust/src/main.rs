@@ -92,6 +92,9 @@ fn guess_mime_type(path: &PathBuf) -> &'static str {
         Some("jpg") | Some("jpeg") => "image/jpeg",
         Some("gif") => "image/gif",
         Some("svg") => "image/svg+xml",
+        Some("bmp") => "image/bmp",
+        Some("webp") => "image/webp",
+        Some("tiff") | Some("tif") => "image/tiff",
         _ => "application/octet-stream", // Tipo genérico para o que não for reconhecido
     }
 }

@@ -233,7 +233,7 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                                         Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
                                     }
                                 } else {
-                                    eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
@@ -251,12 +251,12 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                                         Err(e) => eprintln!("Erro ao ler arquivo MD para exportação: {}", e),
                                     }
                                 } else {
-                                    eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
+                                     eprintln!("Arquivo de relatório MD não encontrado para exportação: {:?}", path_clone);
                                 }
                             }
                         },
                         "Exportar em PDF"
-                    }
+                    },
                     button {
                         class: "btn btn-primary",
                         onclick: {
