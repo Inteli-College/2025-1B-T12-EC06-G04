@@ -138,18 +138,16 @@ pub fn Home() -> Element {
                                         match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
                                             Ok(analysis_results) => {
                                                 status.set(format!(
-                                                    "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
+                                                    "Análise de IA concluída! {} conjunto(s) de resultados recebidos. Agora você pode acessar a validação de fissuras.",
                                                     analysis_results.len()
                                                 ));
-                                                navigator.push(AppRoute::HomePage {});
                                             }
                                             Err(e) => {
                                                 status.set(format!("Erro durante a análise de IA: {}", e));
                                             }
                                         }
                                     } else {
-                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
-                                        navigator.push(AppRoute::HomePage {});
+                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada.".to_string());
                                     }
                                 }
                                 Err(e) => {
@@ -224,12 +222,36 @@ pub fn Home() -> Element {
                         }
 
                         if !is_processing() && stats_data.images_with_gps > 0 {
-                            div { class: "text-center",
-                                button { 
-                                    class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2",
-                                    onclick: open_folders_window,
-                                    i { class: "material-icons", "folder" }
-                                    "Visualizar Pastas Organizadas"
+                            div { class: "text-center space-y-4",
+                            
+                                
+                                // Botão para validação só aparece se o arquivo detection_results.json existir
+                                {
+                                    let project_name = PROJECT_NAME.try_read().ok().and_then(|guard| guard.clone());
+                                    if let Some(name) = project_name {
+                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                        let detection_file = base_dir.join("Projects").join(&name).join("detection_results.json");
+                                        if detection_file.exists() {
+                                            rsx! {
+                                                Link {
+                                                    to: AppRoute::ValidationScreen {},
+                                                    button { 
+                                                        class: "px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 mx-auto",
+                                                        i { class: "material-icons", "verified" }
+                                                        "Validar Resultados da IA"
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            rsx! { 
+                                                p { class: "text-gray-600 text-sm italic", 
+                                                    "Processamento de IA ainda não concluído" 
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        rsx! { }
+                                    }
                                 }
                             }
                         }

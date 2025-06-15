@@ -1,11 +1,15 @@
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use rfd::AsyncFileDialog;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use std::fs;
 use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};
 use serde::Deserialize;
+use dioxus_router::prelude::Link;
+use dioxus_router::prelude::use_navigator;
+use crate::Route;
+use tokio::time;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -45,7 +49,12 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     let mut facade_counts = use_signal(|| vec![1]);
     let mut facade_names = use_signal(|| vec![HashMap::new()]);
     let is_processing = use_signal(|| false);
-    let status = use_signal(String::new);
+    let mut status = use_signal(String::new);
+    let navigator = use_navigator();
+
+    // Clone project_name early to use in multiple places
+    let project_name_for_closure = props.project_name.clone();
+    let project_name_for_detection_check = props.project_name.clone();
 
     use_effect(move || {
         let count = num_buildings();
@@ -96,11 +105,11 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
         facade_names.set(new_facade_names_vec);
     });
 
-    let organize_folders = move |_| {
+    let organize_folders = move |_: Event<MouseData>| {
         let current_buildings = buildings.read().clone();
         let mut is_processing_writer = is_processing;
         let mut status_writer = status;
-        let project_name_clone = props.project_name.clone();
+        let project_name_clone = project_name_for_closure.clone();
 
         spawn(async move {
             is_processing_writer.set(true);
@@ -155,9 +164,15 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                 match run_yolo_script_and_parse_results(&project_name_clone, status_writer, &base_dir).await {
                     Ok(analysis_results) => {
                         status_writer.set(format!(
-                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos.",
+                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos. Redirecionando para validação...",
                             analysis_results.len()
                         ));
+                        
+                        // Aguardar um pouco para o usuário ver a mensagem de sucesso
+                        time::sleep(time::Duration::from_millis(2000)).await;
+                        
+                        // Navegar para a tela de validação
+                        navigator.push(Route::ValidationScreen {});
                     }
                     Err(e) => {
                         status_writer.set(format!("Erro durante a análise de imagens: {}", e));
@@ -178,10 +193,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
             }
 
             div { class: "container mx-auto px-4 py-8 max-w-4xl",
-                h1 { class: "text-3xl font-bold text-center mb-8 text-gray-800", 
-                    "Processamento Manual de Imagens" 
-                }
-                
+                                
                 div { class: "bg-white rounded-lg shadow-md p-6 mb-6",
                     div { class: "mb-6",
                         label { class: "block text-gray-700 mb-2", 
@@ -294,11 +306,21 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                     let building_idx = i;
                                                                     let facade_ui_idx_for_add = j;
                                                                     spawn(async move {
+                                                                        status.set("Selecionando imagens...".to_string());
                                                                         if let Some(files) = AsyncFileDialog::new()
-                                                                            .add_filter("Imagens", &["jpg", "jpeg", "png"])
+                                                                            .add_filter("Todas as Imagens", &["jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff", "tif"])
+                                                                            .add_filter("JPEG", &["jpg", "jpeg"])
+                                                                            .add_filter("PNG", &["png"])
+                                                                            .add_filter("GIF", &["gif"])
+                                                                            .add_filter("BMP", &["bmp"])
+                                                                            .add_filter("WebP", &["webp"])
+                                                                            .add_filter("TIFF", &["tiff", "tif"])
+                                                                            .set_title("Selecionar Imagens")
+                                                                            .set_directory("/")
                                                                             .pick_files()
                                                                             .await
                                                                         {
+                                                                            status.set("Processando imagens selecionadas...".to_string());
                                                                             let facade_name_key = facade_names.read()[building_idx]
                                                                                 .get(&facade_ui_idx_for_add)
                                                                                 .cloned()
@@ -317,6 +339,10 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                                 .entry(facade_name_key)
                                                                                 .or_default()
                                                                                 .extend(image_data_vec);
+                                                                            
+                                                                            status.set(format!("{} imagens adicionadas com sucesso!", files.len()));
+                                                                        } else {
+                                                                            status.set("Seleção de imagens cancelada.".to_string());
                                                                         }
                                                                     });
                                                                 },
@@ -394,8 +420,25 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                 class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
                                 disabled: is_processing(),
                                 onclick: organize_folders,
-                                i { class: "material-icons", "check" }
-                                if is_processing() { "Organizando..." } else { "Confirmar Organização" }
+                                if is_processing() { "Processando..." } else { "Organizar e Processar Imagens" }
+                            }
+                            
+                            // Botão para validação só aparece se o arquivo detection_results.json existir
+                            {
+                                let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                                let detection_file = base_dir.join("Projects").join(&project_name_for_detection_check).join("detection_results.json");
+                                if detection_file.exists() {
+                                    rsx! {
+                                        Link {
+                                            to: Route::ValidationScreen {},
+                                            class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2",
+                                            i { class: "material-icons", "verified" }
+                                            "Validar Resultados"
+                                        }
+                                    }
+                                } else {
+                                    rsx! { }
+                                }
                             }
                         }
                     }
@@ -412,6 +455,22 @@ pub async fn run_yolo_script_and_parse_results(
 ) -> Result<Vec<ImageAnalysisResult>, String> {
     status.set("Preparando para executar script de análise de imagens...".to_string());
 
+    // Verificar se o diretório do projeto existe
+    let project_dir = app_rust_dir.join("Projects").join(project_name);
+    let images_dir = project_dir.join("images");
+
+    if !project_dir.exists() {
+        return Err(format!("Diretório do projeto não encontrado: {}", project_dir.display()));
+    }
+
+    if !images_dir.exists() {
+        return Err(format!("Diretório de imagens não encontrado: {}", images_dir.display()));
+    }
+
+    if !images_dir.is_dir() {
+        return Err(format!("O caminho não é um diretório válido: {}", images_dir.display()));
+    }
+
     let script_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("rodar_modelo_prod.py");
     let model_path = app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py").join("best.pt");
 
@@ -424,12 +483,17 @@ pub async fn run_yolo_script_and_parse_results(
 
     status.set("Executando script de análise de imagens... (Isso pode levar um tempo)".to_string());
 
-    let script_project_argument = format!("../app-rust/Projects/{}", project_name);
+    // Passando apenas o nome do projeto, sem o prefixo "Projects/"
+    let script_project_argument = project_name;
 
-    let output = Command::new("python3")
+    let output = Command::new("python")
         .current_dir(app_rust_dir)
+        .env("PATH", format!("{}:{}", 
+            app_rust_dir.parent().unwrap().join("venv").join("bin").display(),
+            std::env::var("PATH").unwrap_or_default()
+        ))
         .arg(&script_path)
-        .arg(script_project_argument)
+        .arg(&script_project_argument)
         .arg(&model_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

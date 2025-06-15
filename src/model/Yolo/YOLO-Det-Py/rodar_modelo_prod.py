@@ -59,11 +59,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Assuming the script CWD when run by Rust is 'src/app-rust/'
-    # Path to the WORKSPACE_ROOT/Projects/{project_name}
-    project_base_dir = os.path.join("..", "Projects", args.project_name)
-    # Path to WORKSPACE_ROOT/Projects/{project_name}/images
+    # Path to src/app-rust/Projects/{project_name}
+    project_base_dir = os.path.join("Projects", args.project_name)
+    # Path to src/app-rust/Projects/{project_name}/images
     image_dir_from_arg = os.path.join(project_base_dir, "images")
-    # Path to WORKSPACE_ROOT/Projects/{project_name}/detection_results.json
+    # Path to src/app-rust/Projects/{project_name}/detection_results.json
     output_json_path = os.path.join(project_base_dir, "detection_results.json")
     
     print(f"Script CWD (for context): {os.getcwd()}", file=sys.stderr)
