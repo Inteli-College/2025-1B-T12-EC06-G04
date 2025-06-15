@@ -5,3 +5,5 @@ output_images/
 src/Yolo/YOLO-Det-Py/train
 src/Yolo/YOLO-Det-Py/val
 src/app-rust/Projects/
+/venv
+/.venv
