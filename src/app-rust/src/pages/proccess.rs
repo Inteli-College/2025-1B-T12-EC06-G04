@@ -1,20 +1,31 @@
 use dioxus::prelude::*;
+use dioxus_router::prelude::use_navigator;
+use crate::Route;
 use dioxus_router::prelude::Link;
 use rfd::AsyncFileDialog;
-use crate::image_processor::{process_folder, ProcessingStats};
-use crate::Route as AppRoute;
-use std::path::PathBuf;
-use std::rc::Rc;
 use futures_util::StreamExt;
-use std::path::Path;
-use chrono::{DateTime, Local};
-use crate::manual_processor::{ManualProcessor, ManualProcessorProps, run_yolo_script_and_parse_results, ImageAnalysisResult};
-use crate::create_project::PROJECT_NAME;
-use dioxus::prelude::Readable;
-use dioxus_router::prelude::use_navigator;
+use std::{
+    path::PathBuf,
+    rc::Rc,
+};
+use crate::{
+    utils::image_processor::{process_folder, ProcessingStats},
+    Route as AppRoute,
+    pages::create_project::PROJECT_NAME,
+    utils::file_manager::{
+        display_from_projects,
+        Files,
+    },
+    manual_processor::{
+        ManualProcessor,
+        ManualProcessorProps,
+        run_yolo_script_and_parse_results
+    }
+};
+
 
 #[component]
-pub fn Home() -> Element {
+pub fn Process() -> Element {
     let mut folder_path = use_signal(|| None::<String>);
     let mut status = use_signal(String::new);
     let mut threshold = use_signal(|| 200.0_f64);
@@ -188,34 +199,16 @@ pub fn Home() -> Element {
                             p { style:"color: #888; margin: 4px 0;" }
                             div { style:"border-left: 1px solid #ccc; height: 24px;" }
                         }
-
-                        button {
-                            class: "btn btn-primary",
-                            style: "flex: 1; font-size: 1rem;",
-                            disabled: is_processing() || !project_name_available(),
-                            onclick: move |_| {
-                                if project_name_available() {
-                                    if let Ok(guard) = PROJECT_NAME.try_read() {
-                                        if let Some(name) = &*guard {
-                                            dioxus::desktop::window().new_window(
-                                                VirtualDom::new_with_props(
-                                                    ManualProcessor,
-                                                    ManualProcessorProps { project_name: name.clone() }
-                                                ),
-                                                Default::default(),
-                                            );
-                                        } else {
-                                            status.set("Erro: Nome do projeto é None, não deveria acontecer aqui.".to_string());
-                                        }
-                                    } else {
-                                        status.set("Erro: Falha ao ler o nome do projeto global.".to_string());
-                                    }
-                                } else {
-                                    status.set("Erro: Crie um projeto antes de processar manualmente.".to_string());
-                                }
+                        Link {
+                            to: Route::ManualProcessor {
+                                project_name: project_name_available.to_string().clone()
                             },
-                            i { class: "material-icons", "folder_open" }
-                            "Manual"
+                            button {
+                                class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                                disabled: is_processing() || !project_name_available(),
+                                i { class: "material-icons", "folder_open" }
+                                "Processar Manualmente"
+                            }
                         }
                     }
 
@@ -434,6 +427,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
         }
     }
 }
+<<<<<<< HEAD:src/app-rust/src/ui.rs
 
 fn display_from_projects(path: &Path) -> Option<PathBuf> {
     for ancestor in path.ancestors() {
@@ -572,3 +566,5 @@ impl Files {
         self.err = None;
     }
 }
+=======
+>>>>>>> feat/refatora-homepage:src/app-rust/src/pages/proccess.rs

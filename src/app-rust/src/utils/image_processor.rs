@@ -8,7 +8,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::process::Command;
 use exif::{Tag, In, Reader, Value};
-use crate::create_project::PROJECT_NAME;
+use crate::pages::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 
 // Representa uma localização geográfica

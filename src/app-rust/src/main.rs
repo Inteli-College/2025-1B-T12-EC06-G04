@@ -1,20 +1,28 @@
+// Import de bibliotecas externas
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder};
+use dioxus::desktop::{Config, WindowBuilder};
 use std::path::PathBuf;
 use std::fs;
 use dioxus_desktop::wry::http::{Request, Response, StatusCode}; 
 use std::borrow::Cow; 
 
-mod homepage;
-mod select_images;
-mod report;
-mod create_project;
-mod image_processor;
-mod manual_processor;
-mod ui;
+mod pages {
+    pub mod report;
+    pub mod proccess;
+    pub mod homepage;
+    pub mod create_project;
+    pub mod graph;
+    pub mod select_images;
+}
+mod utils {
+    pub mod file_manager;
+    pub mod report_generator;
+    pub mod image_processor;
+}
+
+// Import de arquivos locais
 mod report_structures;
-mod validation_screen;
 
 use homepage::HomePage;
 use select_images::SelectImages;
@@ -23,7 +31,6 @@ use create_project::NewProject;
 use ui::Home;
 mod graph;
 use graph::GraphView;
-use validation_screen::ValidationScreen;
 
 #[component]
 fn Process() -> Element {
@@ -130,6 +137,9 @@ pub enum Route {
 
     #[route("/process")]
     Process {},
+
+    #[route("/processamento-manual")]
+    ManualProcessor {project_name: String},
 
     #[route("/validate")]
     ValidationScreen {},

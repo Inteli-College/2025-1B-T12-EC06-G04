@@ -18,10 +18,7 @@ use std::{
 use chrono::Local;
 use rand::Rng;
 use crate::Route;
-
-#[path = "./report_generator.rs"]
-pub mod report_generator;
-use report_generator::generate_report;
+use crate::utils::report_generator::generate_report;
 
 #[derive(Deserialize, Debug, Clone)]
 struct DetectionFissura {
@@ -86,7 +83,7 @@ fn export(md_content: &str, file_type: &str) {
 }
 
 fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<String, handlebars::RenderError> {
-    let template: &str = include_str!("Template/report_template.md");
+    let template: &str = include_str!("../Template/report_template.md");
 
     let cwd_string = match env::current_dir() {
         Ok(cwd) => {

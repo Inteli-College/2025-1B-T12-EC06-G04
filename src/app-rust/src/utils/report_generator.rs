@@ -1,16 +1,15 @@
 use handlebars::Handlebars;
 use serde_json::Value;
 use crate::report_structures::{ReportData, Faceta, Fissura};
-use std::path::{Path, PathBuf};
-use std::fs::{self, File};
-use std::io::Write;
+use std::{
+    path::Path,
+    fs::{self, File},
+    io::Write
+};
 use chrono::Local;
 
-// This function simulates calling the C++ model and processing images
-// In a real scenario, this would involve FFI or inter-process communication
 fn simulate_cpp_model_and_image_processing(
     images_dir: &Path,
-    project_name: &str,
     building_name: &str,
 ) -> Result<(Vec<Faceta>, Vec<Fissura>), Box<dyn std::error::Error>> {
     let mut fissuras = Vec::new();
@@ -75,16 +74,16 @@ fn simulate_cpp_model_and_image_processing(
 }
 
 pub fn generate_json_report(
-    base_projects_dir_str: &str, // e.g., "src/app-rust/Projects"
-    project_name: &str,          // e.g., "Galpão_Logístico_XPTO"
-    building_name: &str,         // e.g., "Galpão_3"
+    base_projects_dir_str: &str,
+    project_name: &str,
+    building_name: &str,
 ) -> Result<ReportData, Box<dyn std::error::Error>> {
     let project_root = Path::new(base_projects_dir_str).join(project_name);
     let images_dir = project_root.join("images");
 
     println!("Checking for images in: {:?}", images_dir);
 
-    let (facetas, fissuras) = simulate_cpp_model_and_image_processing(&images_dir, project_name, building_name)?;
+    let (facetas, fissuras) = simulate_cpp_model_and_image_processing(&images_dir, project_name)?;
 
     let current_date = Local::now().format("%Y-%m-%d").to_string();
 
@@ -94,8 +93,8 @@ pub fn generate_json_report(
         nome_responsavel: "Eng. Responsável Simulado".to_string(),
         nome_predio: building_name.to_string(),
         endereco_predio: "Endereço Simulado, 123".to_string(),
-        numero_andares: 1, // Mock data
-        ano_construcao: 2000, // Mock data
+        numero_andares: 1,
+        ano_construcao: 2000,
         tipo_estrutura: "Tipo de Estrutura Simulada".to_string(),
         observacoes_gerais: format!("Observações gerais simuladas para o {} - {}.", project_name, building_name),
         facetas,
@@ -118,7 +117,6 @@ pub fn generate_json_report(
     Ok(report_data)
 }
 
-// The original generate_report function using Handlebars. Keep or remove based on usage.
 pub fn generate_report(
     template_text: &str,
     origin_data: &Value
