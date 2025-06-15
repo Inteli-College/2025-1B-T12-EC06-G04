@@ -213,15 +213,6 @@ pub fn NewProject() -> Element {
                         p { class: "status-message info", "{status()}" }
                         
                         div { class: "flex justify-between mt-4",
-                            Link {
-                                to: Route::HomePage {},
-                                button {
-                                    class: "px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-md shadow",
-                                    onclick: handle_back,
-                                    title: "Voltar para a página inicial",
-                                    i { class: "material-icons", "arrow_back" }
-                                }
-                            }
                             
                             if let Some(_) = images_path() {
                                 Link {
