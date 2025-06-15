@@ -190,34 +190,40 @@ pub struct ReportViewProps {
 pub fn ReportView(props: ReportViewProps) -> Element {
     let report_md_filename: String = format!("Relatorio-{}-{}.md", &props.project_name.replace(' ', "_"), &props.building_name.replace(' ', "_"));
     let report_md_filepath: PathBuf = ["Report", &props.project_name, &report_md_filename].iter().collect();
-    
+
     if let Ok(cwd) = env::current_dir() {
         println!("[RUST ReportView Render] CWD: {:?}", cwd);
     }
     println!("[RUST ReportView Render] Tentando usar MD de: {:?}", report_md_filepath);
 
     rsx! {
+        document::Stylesheet { href: asset!("/assets/styles.css") }
         document::Link {
-            rel: "stylesheet",
-            href: asset!("/src/Template/report_page.css")
+            href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+            rel: "stylesheet"
         }
+
         body {
             header {
-                i { class: "material-icons icon", "description" }
+                class: "page-header",
+                style: "justify-content: center;",
+                i { class: "material-icons", "description" }
                 h1 { "Relatório de Inspeção - 14 BIS" }
             }
             main {
+                class: "container",
                 div {
-                    class: "button-area",
+                    class: "report-button-bar",
+                    
                     Link {
                         to: Route::HomePage {},
-                        class: "px-4 py-2 text-black rounded transition-colors duration-200 shadow-md flex items-center gap-2",
-                        button {
-                            i { class: "material-icons", "home" }
-                            "Voltar para Home"
-                        }
+                        class: "btn btn-primary",
+                        i { class: "material-icons", "home" }
+                        "Voltar para Home"
                     }
+
                     button {
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -233,7 +239,9 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                         },
                         "Exportar em MD"
                     }
+
                     button {
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -250,6 +258,7 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                         "Exportar em PDF"
                     },
                     button {
+                        class: "btn btn-primary",
                         onclick: {
                             let path_clone = report_md_filepath.clone();
                             move |_| {
@@ -267,11 +276,11 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                 }
                 div {
-                    class: "text-viewer",
+                    class: "report-viewer",
                     div {
-                        class: "text-content",
+                        class: "report-content",
                         dangerous_inner_html: get_report(&props.project_name, &props.building_name)
-                            .unwrap_or_else(|e| format!("<h1>Erro ao gerar relatório</h1><p>Detalhes: {}</p><p>Verifique o console para mais informações sobre caminhos de arquivos.</p>", e))
+                            .unwrap_or_else(|e| format!("<div class='status-message error'><h1>Erro ao gerar relatório</h1><p><b>Detalhes:</b> {}</p><p>Verifique o console para mais informações sobre caminhos de arquivos.</p></div>", e))
                     }
                 }
             }

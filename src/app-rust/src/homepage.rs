@@ -20,9 +20,10 @@ pub fn HomePage() -> Element {
 
     let mut files = use_signal(|| Files::new(initial_path_from_state));
 
-    // variáveis para o filtros de ordenação alfabética e por data
     let mut sort_alphabetical_order = use_signal(|| SortAlphabeticOrder::AZ);
     let mut sort_date_order = use_signal(|| SortDateOrder::MaisRecente);
+
+    let mut show_filters = use_signal(|| false);
 
     let alphabetical_order = sort_alphabetical_order.read();
     let date_order = sort_date_order.read();
@@ -82,108 +83,109 @@ pub fn HomePage() -> Element {
         let created = entry.created.clone().unwrap_or_default();
         let description = entry.description.clone().unwrap_or_else(|| "Sem descrição".to_string());
 
-        // Aplicando a pesquisa do usuário
-        let search = search_input.read().to_lowercase();
-        if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
-            return None;
+            let search = search_input.read().to_lowercase();
+            if !search.is_empty() && !folder_name.to_lowercase().contains(&search) {
+                return None;
+            }
+
+            Some(rsx!(
+                Link {
+                    to: Route::GraphView { project_name: folder_name.to_string() },
+                    class: "folder-card",
+                    key: "{path_display}",
+                    i { class: "material-icons", "folder" }
+                    h2 { title: "{folder_name}", "{folder_name}" }
+                    p { class: "date", "{created}" }
+                    p { class: "description", "{description}" }
+                }
+            ))
+        })
+        .filter_map(Result::ok)
+        .collect::<Vec<_>>();
+
+
+    rsx! {
+        document::Stylesheet { href: asset!("/assets/styles.css") }
+        document::Link {
+            href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+            rel: "stylesheet"
         }
 
-        Some(rsx!(
-            Link {
-                to: Route::GraphView { project_name: folder_name.to_string() },
-                class: "flex flex-col items-center text-center bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg hover:bg-blue-50 transition duration-300 ease-in-out",
-                key: "{path_display}",
-                i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
-                h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{folder_name}" }
-                p { class: "text-xs text-gray-400 mt-1", "{created}" }
-                p { class: "text-xs text-gray-600 mt-1", "{description}" }
-            }
-        ))
-    })
-    .filter_map(Result::ok)
-    .collect::<Vec<_>>();
-
-    // aqui começa o front
-    rsx! {
-        document::Stylesheet { href: asset!("/assets/tailwind.css") } // puxa as classes do tailwind
-
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            document::Link {
-                href: "https://fonts.googleapis.com/icon?family=Material+Icons",
-                rel: "stylesheet"
-            }
-
-            header { class: "flex items-center justify-between bg-blue-600 text-black p-4 shadow",
-                div { class: "flex items-center gap-4",
+        body {
+            header { class: "page-header",
+                div { class: "header-group",
                     i { class: "material-icons", "menu" }
-                    h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
+                    h1 { "Files: {files.read().current()}" }
                 }
-                i {
-                    class: "material-icons cursor-pointer hover:text-red-200",
+                button {
+                    class: "icon-button",
                     onclick: move |_| files.write().go_up(),
-                    "logout"
+                    i { class: "material-icons", "logout" }
                 }
             }
 
-            // barra de pesquisa
-            div {
-                class: "w-4 p-4",
-                input {
-                    r#type: "text",
-                    class: "w-full p-2 border rounded",
-                    placeholder: "Buscar pasta...",
-                    oninput: move |e| {
-                        search_input.set(e.value().clone());
-                    },
-                    value: "{search_input}",
-                }
-            }
-            div {
-                // container com todos os botões em uma única linha
-                class: "flex-wrap p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
-                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
-                    "Mais recente"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
-                    onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
-                    "Mais antigo"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
-                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
-                    "A-Z"
-                }
-                button {
-                    class: "px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 shadow-md rounded-full",
-                    onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
-                    "Z-A"
-                }
-            }
-
-        
-
-            main {
-                class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                { folder_cards.into_iter() }
-
-                Link {
-                    class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
-                    to: Route::ReportView { project_name: "Galpão_Logístico_XPTO".to_string(), building_name: "Galpão_3".to_string() },  // ajuste para o nome da rota correta
-                    button {
-                        class: "flex items-center gap-2",
-                        i { class: "material-icons", "assessment" }
-                        span { "Relatório" }
+            div { class: "controls-bar",
+                div {
+                    input {
+                        r#type: "text",
+                        class: "search-input",
+                        placeholder: "Buscar pasta...",
+                        oninput: move |e| search_input.set(e.value().clone()),
+                        value: "{search_input}",
                     }
                 }
-                
+
+                div { class: "filter-controls",
+                    button {
+                        class: if *show_filters.read() { "filter-toggle active" } else { "filter-toggle" },
+                        onclick: move |_| show_filters.toggle(),
+                        i { class: "material-icons", "filter_list" }
+                    }
+
+                    if *show_filters.read() {
+                        div {
+                            class: "filter-buttons-container",
+                            
+                            button {
+                                class: format!("filter-button {}",
+                                    if *date_order == SortDateOrder::MaisRecente { "selected" } else { "unselected" }
+                                ),
+                                onclick: move |_| sort_date_order.set(SortDateOrder::MaisRecente),
+                                "Mais recente"
+                            }
+                            button {
+                                class: format!("filter-button {}",
+                                    if *date_order == SortDateOrder::MaisAntigo { "selected" } else { "unselected" }
+                                ),
+                                onclick: move |_| sort_date_order.set(SortDateOrder::MaisAntigo),
+                                "Mais antigo"
+                            }
+                            button {
+                                class: format!("filter-button {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::AZ { "selected" } else { "unselected" }
+                                ),
+                                onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::AZ),
+                                "A-Z"
+                            }
+                            button {
+                                class: format!("filter-button {}",
+                                    if *alphabetical_order == SortAlphabeticOrder::ZA { "selected" } else { "unselected" }
+                                ),
+                                onclick: move |_| sort_alphabetical_order.set(SortAlphabeticOrder::ZA),
+                                "Z-A"
+                            }
+                        }
+                    }
+                }
+            }
+
+            main {
+                class: "folder-grid",
+                { folder_cards.into_iter() }
             }
 
             if let Some(err) = files.read().err.as_ref() {
-                div { class: "bg-red-100 text-red-700 p-4 rounded shadow flex justify-between items-center col-span-full",
+                div { class: "status-message error",
                     code { class: "text-sm", "{err}" }
                     button {
                         class: "text-red-500 hover:text-red-700",
@@ -192,15 +194,12 @@ pub fn HomePage() -> Element {
                     }
                 }
             }
-    
-            // Botão para criar o projeto
+            // Botão para Novo Projeto
             Link {
                 to: Route::NewProject {},
-                button {
-                    class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
-                    title: "Nova Pasta",
-                    i { class: "material-icons", "add" }
-                }
+                class: "fab btn-secondary",
+                title: "Nova Pasta",
+                i { class: "material-icons", "add" }
             }
 
         }

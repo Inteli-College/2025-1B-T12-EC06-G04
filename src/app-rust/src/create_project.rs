@@ -3,11 +3,9 @@ use std::path::{Path, PathBuf};
 use dioxus_router::prelude::Link;
 use crate::Route;
 
-// Add context provider for project name
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
-    // Construct path relative to CARGO_MANIFEST_DIR (i.e., src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let projects_dir = base_dir.join("Projects"); 
     
@@ -22,10 +20,8 @@ fn get_or_create_projects_dir() -> Option<PathBuf> {
     Some(projects_dir)
 }
 
-// Helper function to sanitize project names
 fn sanitize_name(name: &str) -> String {
     name.replace(' ', "_")
-        // Add other sanitization rules if needed, e.g., remove special characters
         .chars()
         .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
         .collect::<String>()
@@ -53,8 +49,6 @@ pub fn NewProject() -> Element {
         is_creating.set(true);
         let project_name_raw = name().trim().to_string();
         let project_year = year().trim().to_string();
-
-        // Sanitize the project name
         let sanitized_project_name = sanitize_name(&project_name_raw);
 
         if sanitized_project_name.is_empty() {
@@ -63,10 +57,9 @@ pub fn NewProject() -> Element {
             return;
         }
 
-        // Store sanitized project name in global signal
         *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
         
-        let project_name_for_folder = sanitized_project_name; // Use sanitized name for folder
+        let project_name_for_folder = sanitized_project_name;
 
         spawn(async move {
             if let Some(projects_dir) = get_or_create_projects_dir() {
@@ -109,16 +102,43 @@ pub fn NewProject() -> Element {
     };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            div { class: "container mx-auto px-4 py-12 max-w-2xl",
-                h1 { class: "text-3xl font-bold text-center mb-8", "Criar Novo Projeto" }
+        document::Stylesheet { href: asset!("/assets/styles.css") }
+        document::Link {
+            href: "https://fonts.googleapis.com/icon?family=Material+Icons",
+            rel: "stylesheet"
+        }
+        
+        div {
+            div { 
+                class: "container",
+                style: "max-width: 700px;",
 
-                div { class: "bg-white rounded-lg shadow-md p-6 space-y-6",
+                div {
+                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;",
+                    hr { class: "form-divider", style: "flex-grow: 1;" },
+                    h1 {
+                        style: "font-weight: bold; font-size: 1.5rem; text-align: center; white-space: nowrap;",
+                        "Criar Novo Projeto"
+                    },
+                    hr { class: "form-divider", style: "flex-grow: 1;" },
+                }
+                
+                Link {
+                    to: Route::HomePage {},
+                    class: "btn btn-danger",
+                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem;",
+                    onclick: handle_back,
+                    title: "Voltar para a página inicial",
+                    i { class: "material-icons", "arrow_back" }
+                }
 
+                div { 
+                    class: "card",
                     div {
-                        label { class: "block text-gray-700 mb-1", "Nome do Projeto" }
+                        class: "form-group",
+                        label { "Nome do Projeto" }
                         input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-input",
                             r#type: "text",
                             value: "{name()}",
                             oninput: move |e| name.set(e.value())
@@ -126,9 +146,10 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        label { class: "block text-gray-700 mb-1", "Descrição" }
+                        class: "form-group",
+                        label { "Descrição" }
                         textarea {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-textarea",
                             value: "{description()}",
                             rows: "4",
                             oninput: move |e| description.set(e.value())
@@ -136,18 +157,20 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        label { class: "block text-gray-700 mb-1", "Líder responsável pelo projeto" }
+                        class: "form-group",
+                        label { "Líder responsável pelo projeto" }
                         input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-input",
                             r#type: "text",
                             value: "{leader()}",
                             oninput: move |e| leader.set(e.value())
                         }
                     }
                     div {
-                        label { class: "block text-gray-700 mb-1", "Tipo de estrutura do edifício" }
+                        class: "form-group",
+                        label { "Tipo de estrutura do edifício" }
                         input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-input",
                             r#type: "text",
                             value: "{structure_type()}",
                             oninput: move |e| structure_type.set(e.value())
@@ -155,9 +178,10 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        label { class: "block text-gray-700 mb-1", "Ano" }
+                        class: "form-group",
+                        label { "Ano" }
                         input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-input",
                             r#type: "number",
                             value: "{year()}",
                             min: "1800",
@@ -167,9 +191,11 @@ pub fn NewProject() -> Element {
                     }
 
                     div {
-                        label { class: "block text-gray-700 mb-1", "Observações gerais" }
+
+                        class: "form-group",
+                        label { "Observações gerais" }
                         input {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                            class: "form-input",
                             r#type: "text",
                             value: "{observations()}",
                             oninput: move |e| observations.set(e.value())
@@ -177,14 +203,14 @@ pub fn NewProject() -> Element {
                     }
 
                     button {
-                        class: "w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+                        class: "btn btn-primary",
                         disabled: is_creating(),
                         onclick: create_project,
                         if is_creating() { "Criando projeto..." } else { "Criar Projeto" }
                     }
 
                     if !status().is_empty() {
-                        p { class: "text-center text-gray-700", "{status()}" }
+                        p { class: "status-message info", "{status()}" }
                         
                         div { class: "flex justify-between mt-4",
                             Link {
@@ -200,15 +226,13 @@ pub fn NewProject() -> Element {
                             if let Some(_) = images_path() {
                                 Link {
                                     to: Route::Process {},
-                                    button {
-                                        class: "px-4 py-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-md shadow",
-                                        title: "Ir para a página de processamento",
-                                        i { class: "material-icons", "arrow_forward" }
-                                    }
+                                    class: "btn btn-secondary",
+                                    title: "Ir para a página de processamento",
+                                    i { class: "material-icons", "arrow_forward" }
                                 }
                             } else {
                                 button {
-                                    class: "px-4 py-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-md shadow",
+                                    class: "btn btn-secondary",
                                     onclick: handle_image_upload,
                                     title: "Adicionar imagens ao projeto",
                                     i { class: "material-icons", "add_photo_alternate" }
