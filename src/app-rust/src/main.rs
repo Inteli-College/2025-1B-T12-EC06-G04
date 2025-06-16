@@ -1,37 +1,108 @@
+// Import de bibliotecas externas
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use dioxus::{desktop::Config, desktop::WindowBuilder};
+use dioxus::desktop::{Config, WindowBuilder};
 use std::path::PathBuf;
+use std::fs;
+use dioxus_desktop::wry::http::{Request, Response, StatusCode}; 
+use std::borrow::Cow; 
 
-mod homepage;
-mod select_images;
-mod report;
-mod create_project;
-mod image_processor;
-mod manual_processor;
-mod ui;
+mod pages {
+    pub mod report;
+    pub mod proccess;
+    pub mod homepage;
+    pub mod create_project;
+    pub mod graph;
+    pub mod select_images;
+    pub mod validation_screen;
+}
+mod utils {
+    pub mod file_manager;
+    pub mod report_generator;
+    pub mod image_processor;
+}
+
+// Import de arquivos locais
 mod report_structures;
+mod manual_processor;
 
-use homepage::HomePage;
-use select_images::SelectImages;
-use report::ReportView;
-use create_project::NewProject;
-use ui::Home;
-mod graph;
-use graph::GraphView;
+use pages::report::ReportView;
+use pages::graph::GraphView;
+use pages::select_images::SelectImages;
+use pages::homepage::HomePage;
+use pages::validation_screen::ValidationScreen;
+use manual_processor::ManualProcessor;
+use pages::create_project::NewProject;
+use pages::proccess::Process;
 
-#[component]
-fn Process() -> Element {
-    rsx! {
-        Home {}
+
+fn main() {
+    // Obter o diretório base do CARGO_MANIFEST_DIR
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let projects_root_dir = base_dir.join("Projects"); // Este será o diretório raiz para o protocolo
+
+    // Configurar o Dioxus Desktop
+    dioxus::LaunchBuilder::desktop()
+        .with_cfg(
+            Config::new()
+                .with_window(WindowBuilder::new().with_resizable(true))
+                // Configura um protocolo personalizado 'project-image'
+                // para servir arquivos do diretório `projects_root_dir`.
+                .with_custom_protocol("project-image", move |request: Request<Vec<u8>>| {
+                    let path_str = request.uri().path();
+                    // Remove a barra inicial para obter o caminho relativo correto.
+                    let relative_to_projects = PathBuf::from(path_str.trim_start_matches('/'));
+                    // Constrói o caminho completo do arquivo no sistema de arquivos.
+                    let full_path = projects_root_dir.join(&relative_to_projects);
+
+                    // Tenta ler o arquivo do sistema de arquivos.
+                    match fs::read(&full_path) {
+                        Ok(bytes) => {
+                            // Se a leitura for bem-sucedida, retorna a imagem com o tipo MIME correto.
+                            Response::builder()
+                                .status(StatusCode::OK)
+                                .header("Content-Type", guess_mime_type(&full_path))
+                                .body(Cow::from(bytes))
+                                .unwrap_or_else(|_| {
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Cow::from(Vec::new()))
+                                        .unwrap()
+                                })
+                        }
+                        Err(e) => {
+                            // Se houver um erro na leitura, imprime o erro e retorna um status NOT_FOUND.
+                            eprintln!("Erro ao ler arquivo {}: {:?}", full_path.display(), e);
+                            Response::builder()
+                                .status(StatusCode::NOT_FOUND)
+                                .body(Cow::from(Vec::new())) 
+                                .unwrap_or_else(|_| {
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Cow::from(Vec::new()))
+                                        .unwrap()
+                                })
+                        }
+                    }
+                })
+        )
+        .launch(App);
+}
+
+// Função auxiliar para adivinhar o tipo MIME do arquivo com base na extensão.
+fn guess_mime_type(path: &PathBuf) -> &'static str {
+    match path.extension().and_then(|s| s.to_str()) {
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("svg") => "image/svg+xml",
+        Some("bmp") => "image/bmp",
+        Some("webp") => "image/webp",
+        Some("tiff") | Some("tif") => "image/tiff",
+        _ => "application/octet-stream", // Tipo genérico para o que não for reconhecido
     }
 }
 
-fn main() {
-    dioxus::LaunchBuilder::desktop()
-        .with_cfg(Config::new().with_window(WindowBuilder::new().with_resizable(true)))
-        .launch(App);
-}
 
 #[component]
 fn App() -> Element {
@@ -43,6 +114,7 @@ fn App() -> Element {
     }
 }
 
+// Define as rotas da aplicação.
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[route("/")]
@@ -62,4 +134,10 @@ pub enum Route {
 
     #[route("/process")]
     Process {},
+
+    #[route("/processamento-manual")]
+    ManualProcessor {project_name: String},
+
+    #[route("/validate")]
+    ValidationScreen {},
 }
