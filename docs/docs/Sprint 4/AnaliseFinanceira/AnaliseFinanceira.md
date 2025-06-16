@@ -99,20 +99,20 @@ _Câmbio de referência: US$ 1 = R$ 5,64 (cotação de 04/06/2025, Banco Central
 ### 4.1 Apuração do Fator R
 &emsp; Para este projeto, temos:
 
-- Receita estimada: R$ 250.000,00 (em dois meses)
+- Receita estimada: R\$ 250.000,00 (em dois meses)  _Essa receita foi utilizada como base para os cálculos de alíquota efetiva. O preço final de venda do projeto pode ser ligeiramente diferente para acomodar todos os custos e margens._
 
-- Custo com equipe: R$ 162.000,00
+- Custo com equipe: R\$ 162.000,00
 
 - Percentual de custo com equipe sobre receita: 64,8%
 
 Como 64,8% é superior a 28%, a empresa se enquadra no Fator R com folga e pode tributar pela Tabela III, que possui alíquotas mais vantajosas.
 
 ### 4.2 Cálculo da Alíquota Efetiva
-Segundo o Anexo III do Simples Nacional (vigente em 2025), a 4ª faixa (receita entre R$ 180.000,01 e R$ 360.000,00) possui:
+Segundo o Anexo III do Simples Nacional (vigente em 2025), a 4ª faixa (receita entre R\$ 180.000,01 e R\$ 360.000,00) possui:
 
 - Alíquota nominal: 16,93%
 
-- Parcela a deduzir: R$ 9.585,50
+- Parcela a deduzir: R\$ 9.585,50
 
 Para calcular a alíquota efetiva, utiliza-se a fórmula:
 
@@ -120,20 +120,18 @@ Para calcular a alíquota efetiva, utiliza-se a fórmula:
 
 Aplicando os valores:
 
-- Receita Bruta × Alíquota Nominal = R$ 250.000,00 × 16,93% = R$ 42.325,00
+- Receita Bruta × Alíquota Nominal = R\$ 250.000,00 × 16,93% = R\$ 42.325,00
 
-- Subtraindo a parcela dedutível: 42.325,00 - 9.585,50 = R$ 32.739,50
+- Subtraindo a parcela dedutível: 42.325,00 - 9.585,50 = R\$ 32.739,50
 
 - Alíquota efetiva = 32.739,50 ÷ 250.000,00 = 13,1%
 
-Para manter uma margem de segurança (variações cambiais, erros operacionais, arredondamentos), adotamos 15% como alíquota conservadora.
+Para manter uma margem de segurança (variações cambiais, erros operacionais, arredondamentos), adotamos **15% como alíquota conservadora** para a precificação final.
 
 ### 4.3 Valor Estimado de Imposto
-Com base na alíquota de 15% aplicada sobre a receita estimada líquida de impostos, temos:
+&emsp; Com base na alíquota de 15% aplicada sobre a **Receita Bruta Final** (o preço total que será cobrado do cliente), temos:
 
-- Base de cálculo estimada (sem imposto): R$ 198.834,94
-
-- Imposto estimado: R$ 198.834,94 × 15% = R$ 29.825,24
+- Imposto estimado: R\$ 269.011,98 × 15% = **R\$ 40.351,80**
 
 Este valor é considerado como custo obrigatório e incluso na precificação final, compondo a **Estrutura de Custos** do BMC.
 
@@ -161,22 +159,17 @@ A margem de 20% está alinhada com estudos do [Sebrae](https://sebrae.com.br/sit
 
 ## 6. Precificação Final
 
-| Item                                 | Valor              |
-| ------------------------------------ | ------------------ |
-| Custo de equipe (2 meses)            | R\$ 162.000,00     |
-| Ferramentas (2 meses)                | R\$ 3.095,78       |
+| Item                                       | Valor              |
+| :----------------------------------------- | :----------------- |
+| Custo de equipe (2 meses)                  | R\$ 162.000,00     |
+| Ferramentas (2 meses)                      | R\$ 3.095,78       |
 | **Subtotal operacional** | R\$ 165.695,78     |
-| **Margem operacional (20%)** | R\$ 33.139,16      |
-| **Subtotal com margem** | R\$ 198.834,94     |
-
----
-| Item                                 | Valor              |
-| ------------------------------------ | ------------------ |
-| Subtotal com margem              | R\$ 198.834,94     |
-| **Lucro estimado (15%)** | R\$ 29.825,24      |
-| **Preço de venda antes de impostos** | R\$ 228.660,18     |
-| Impostos Simples Nacional (15%)      | R\$ 34.299,03      |
-| **PREÇO FINAL COM IMPOSTOS** | **R\$ 262.959,21** |
+| **Margem operacional (20% sobre subtotal operacional)** | R\$ 33.139,16      |
+| **Base para Lucro (Subtotal operacional + Margem operacional)** | R\$ 198.834,94     |
+| **Lucro estimado (15% sobre a base para lucro)** | R\$ 29.825,24      |
+| **Custo Total do Projeto (sem impostos)** | **R\$ 228.660,18** |
+| Impostos Simples Nacional (15% sobre o Preço Final) | **R\$ 40.351,80** |
+| **PREÇO FINAL COM IMPOSTOS (Receita Bruta)** | **R\$ 269.011,98** |
 
 Este preço final representa a **Fonte de Receita** principal do projeto, conforme previsto no BMC.
 
@@ -185,11 +178,11 @@ Este preço final representa a **Fonte de Receita** principal do projeto, confor
 
 A manutenção é oferecida como serviço adicional, com tempo de resposta garantido de 48 horas úteis. Considera-se que o suporte será feito por um desenvolvedor pleno por 1 hora por dia útil, totalizando 22 horas por mês.
 
-- **Valor hora desenvolvedor:** R$ 11.500,00 / 160 h = R$ 71,88
+- **Valor hora desenvolvedor:** R\$ 11.500,00 / 160 h = R\$ 71,88
 
-- **Custo base mensal:** R$ 1.581,36
+- **Custo base mensal:** R\$ 1.581,36
 
-- **Acrescido 30% (gestão + margem):** R$ 2.055,77
+- **Acrescido 30% (gestão + margem):** R\$ 2.055,77
 
 Este valor garante previsibilidade ao cliente, sem comprometer a sustentabilidade da operação, e representa uma **Fonte de Receita** recorrente para o modelo de negócio, fortalecendo o **Relacionamento com Clientes** através de suporte contínuo.
 
@@ -206,4 +199,4 @@ BANCO CENTRAL DO BRASIL. Fechamento de dólar. Disponível em: https://www.bcb.g
 
 SEBRAE. Entenda e calcule corretamente a margem de lucro. Disponível em: https://sebrae.com.br/sites/PortalSebrae/artigos/entenda-e-calcule-corretamente-a-margem-de-lucro,f2bbca017749e410VgnVCM1000003b74010aRCRD. Acesso em: 4 jun. 2025.
 
-CONTABILIZEI. Contabilidade para empresas de profissionais de TI. Disponível em: https://www.contabilizei.com.br/contabilidade-online/contabilidade-para-empresas-profissionais-ti/. Acesso em: 4 jun. 2025.
+CONTABILIZEI. Contabilidade para empresas de profissionais de TI. Disponível em: https://www.contabilizei.com.br/contabilidade-online/contabilidade-para-empresas-profissionais-ti/. Acesso em: 4 jun. 2025."
