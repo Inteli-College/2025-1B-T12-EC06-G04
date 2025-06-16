@@ -15,10 +15,16 @@ sidebar_position: 0
 
 3. A evolução do sistema em relação à sprint anterior foi significativa: além de melhorias nas métricas de desempenho do modelo de detecção (como aumento de recall e redução de falsos positivos), o grupo também trabalhou na refatoração do código-fonte, na padronização visual das páginas do sistema, na integração inicial de técnicas de Reinforcement Learning e na execução de testes sistemáticos com base nos requisitos previamente definidos.
 
-## 2. Conclusão
+## 2. Como rodar a aplicação
+
+1. Crie e inicialize um venv com os comandos (para linux) ```python3 -m venv venv``` e ```source venv/bin/activate```
+2. Acesse a pasta do projeto com o comando ```cd src/app-rust/src```
+3. Inicialize a aplicação com ```dx serve --platform desktop```
+
+## 3. Conclusão
 &emsp;Essas entregas não só demonstram o progresso técnico, como também reforçam o alinhamento contínuo do projeto com os objetivos iniciais e as dores identificadas das personas mapeadas — como engenheiros civis responsáveis por inspeções estruturais e pesquisadores do IPT que lidam com grandes volumes de imagens e análises manuais.
 
 
-## 3. Próximos Passos
+## 4. Próximos Passos
 &emsp;A Sprint 5 representa a etapa final do projeto, focada na entrega da prova de conceito completa ao IPT. O objetivo principal será consolidar e aprimorar o sistema desenvolvido, com foco na interface de usuário desktop em RUST alinhada às especificações do cliente e no sistema de visão computacional com YOLO operando com máxima eficácia para detecção e classificação de fissuras. Serão implementados sistemas de segurança para lidar com comandos indesejados e demais riscos mapeados, além do refinamento do backend para atender aos requisitos de performance. O desenvolvimento se concentrará na criação de testes abrangentes para comprovar a eficácia do sistema como um todo, validando tanto a precisão do algoritmo quanto a usabilidade da aplicação desktop. Paralelamente, será finalizada a documentação técnica completa do projeto, abrangendo desde o entendimento de negócio e metadesign até a descrição detalhada da arquitetura do sistema desenvolvido em RUST e da implementação do algoritmo YOLO para detecção de fissuras.
 
