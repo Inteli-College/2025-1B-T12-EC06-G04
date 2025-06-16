@@ -167,6 +167,21 @@ Certifique-se de ter as seguintes ferramentas instaladas antes de iniciar a apli
     python3 --version
     ```
 
+- **Instalação das dependências em python**
+    verifique o Requirements.txt e instale todas as dependências utilizando o comando:
+    ```bash
+    # Windows
+    python -m pip install -r requirements.txt
+
+    # linux
+    python3 -m  venv venv
+    source venv/bin/activate
+    python3 -m pip install -r requirements.txt
+    ```
+
+> **Nota**: Para usuários Linux, é necessário ativar o ambiente virtual (venv) antes de executar o comando `dx serve`. Isso garante que todas as dependências necessárias estejam disponíveis durante a execução da aplicação.
+
+
 ## Guia de inicialização
 
 Após a instalação de todos as tecnologias necessárias para executar o projeto, é possível seguir o passo-a-passo para executar.

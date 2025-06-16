@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
 use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
+use crate::Route;
 
 // Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
@@ -168,36 +169,41 @@ pub fn ValidationScreen() -> Element {
     });
 
     let total_images = validation_data.read().len();
-    let current_idx = current_image_index();
     let has_images = total_images > 0;
 
-    // Efeito para marcar a imagem atual como visualizada
+    // Efeito para marcar a imagem atual como visualizada sempre que o índice muda
     use_effect(move || {
-        if has_images && current_idx < total_images {
+        if has_images {
+            let idx = *current_image_index.read();
             let mut data = validation_data.write();
-            data[current_idx].has_been_viewed = true;
+            if idx < data.len() {
+                data[idx].has_been_viewed = true;
+            }
         }
     });
 
     // Função para avançar para a próxima imagem
     let next_image = move |_| {
-        if current_idx < total_images - 1 {
-            current_image_index.set(current_idx + 1);
+        if current_image_index() < total_images - 1 {
+            current_image_index.set(current_image_index() + 1);
         }
     };
 
     // Função para voltar para a imagem anterior
     let previous_image = move |_| {
-        if current_idx > 0 {
-            current_image_index.set(current_idx - 1);
+        if current_image_index() > 0 {
+            current_image_index.set(current_image_index() - 1);
         }
     };
 
     // Função para alternar o status de incorreto da imagem atual
     let toggle_incorrect = move |_| {
-        if has_images && current_idx < total_images {
+        if has_images {
+            let idx = *current_image_index.read();
             let mut data = validation_data.write();
-            data[current_idx].is_incorrect = !data[current_idx].is_incorrect;
+            if idx < data.len() {
+                data[idx].is_incorrect = !data[idx].is_incorrect;
+            }
         }
     };
 
@@ -241,7 +247,7 @@ pub fn ValidationScreen() -> Element {
                 Ok(_) => {
                     status_message.set("Validação salva com sucesso!".to_string());
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    navigator.go_back();
+                    navigator.push(Route::HomePage {});
                 }
                 Err(e) => {
                     status_message.set(format!("Erro ao salvar validação: {}", e));
@@ -319,7 +325,7 @@ pub fn ValidationScreen() -> Element {
     }
 
     // Obtém a imagem atual a ser exibida
-    let current_image = &validation_data.read()[current_idx];
+    let current_image = &validation_data.read()[current_image_index()];
     let viewed_count = validation_data.read().iter().filter(|img| img.has_been_viewed).count();
     let incorrect_count = validation_data.read().iter().filter(|img| img.is_incorrect).count();
 
@@ -338,8 +344,8 @@ pub fn ValidationScreen() -> Element {
     };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-100",
-            document::Stylesheet { href: asset!("/assets/tailwind.css") }
+        div { class: "min-h-screen bg-gray-100 flex flex-col items-center justify-start",
+            document::Stylesheet { href: asset!("/assets/styles.css") }
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
@@ -362,7 +368,7 @@ pub fn ValidationScreen() -> Element {
                         }
                         div { class: "text-right",
                             p { class: "text-sm text-gray-600", 
-                                "Imagem {current_idx + 1} de {total_images}" 
+                                "Imagem {current_image_index() + 1} de {total_images}" 
                             }
                             p { class: "text-sm text-gray-600", 
                                 "Visualizadas: {viewed_count}/{total_images}" 
@@ -407,16 +413,16 @@ pub fn ValidationScreen() -> Element {
                                 
                                 div { class: "flex items-center justify-between",
                                     button {
-                                        class: "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
-                                        disabled: current_idx == 0,
+                                        class: "btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
+                                        disabled: current_image_index() == 0,
                                         onclick: previous_image,
                                         i { class: "material-icons", "arrow_back" }
                                         "Anterior"
                                     }
                                     
                                     button {
-                                        class: format!("flex items-center gap-2 px-6 py-3 rounded-md text-black font-medium transition-colors {}",
-                                            if current_image.is_incorrect { "bg-red-600 hover:bg-red-700" } else { "bg-gray-400 hover:bg-gray-500" }
+                                        class: format!("btn {} flex items-center gap-2",
+                                            if current_image.is_incorrect { "btn-danger" } else { "btn-secondary" }
                                         ),
                                         onclick: toggle_incorrect,
                                         i { class: "material-icons", 
@@ -426,8 +432,8 @@ pub fn ValidationScreen() -> Element {
                                     }
                                     
                                     button {
-                                        class: "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed",
-                                        disabled: current_idx >= total_images - 1,
+                                        class: "btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
+                                        disabled: current_image_index() >= total_images - 1,
                                         onclick: next_image,
                                         "Próxima"
                                         i { class: "material-icons", "arrow_forward" }
@@ -494,12 +500,12 @@ pub fn ValidationScreen() -> Element {
                             h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
                             div { class: "space-y-3",
                                 button {
-                                    class: "w-full px-4 py-3 bg-white-600 text-black rounded-md hover:bg-green-700 font-medium",
+                                    class: "btn btn-primary w-full",
                                     onclick: attempt_confirm,
                                     "Confirmar Validação"
                                 }
                                 button {
-                                    class: "w-full px-4 py-2 bg-white-600 text-black rounded-md hover:bg-gray-700",
+                                    class: "btn w-full",
                                     onclick: move |_| navigator.go_back(),
                                     "Cancelar"
                                 }
@@ -526,12 +532,12 @@ pub fn ValidationScreen() -> Element {
                             }
                             div { class: "flex gap-4 justify-center",
                                 button {
-                                    class: "px-6 py-2 bg-white-600 text-black rounded-md hover:bg-gray-700",
+                                    class: "btn w-full",
                                     onclick: close_dialog,
                                     "Cancelar"
                                 }
                                 button {
-                                    class: "px-6 py-2 bg-yellow-600 text-black rounded-md hover:bg-yellow-700",
+                                    class: "btn btn-primary",
                                     onclick: move |_| confirm_validation(),
                                     "Confirmar Mesmo Assim"
                                 }

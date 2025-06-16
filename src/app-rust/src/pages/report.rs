@@ -13,7 +13,7 @@ use std::{
     process::Command,
     fs::File,
     path::{Path, PathBuf},
-    env
+    env,
 };
 use chrono::Local;
 use rand::Rng;
@@ -85,26 +85,20 @@ fn export(md_content: &str, file_type: &str) {
 fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<String, handlebars::RenderError> {
     let template: &str = include_str!("../Template/report_template.md");
 
-    let cwd_string = match env::current_dir() {
-        Ok(cwd) => {
-            let s = cwd.display().to_string();
-            println!("[RUST report.rs] Current Working Directory: {}", s);
-            s
-        }
-        Err(e) => {
-            let err_msg = format!("Failed to get CWD for report: {}", e);
-            eprintln!("[RUST report.rs] {}", err_msg);
-            return Err(handlebars::RenderError::from(handlebars::RenderErrorReason::Other(err_msg)));
-        }
-    };
-    
-    let detection_json_path_str = format!("Projects/{}/detection_results.json", project_name_prop);
-    let absolute_detection_json_path = Path::new(&cwd_string).join(&detection_json_path_str);
+    // Diretório base (onde está o Cargo.toml)
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
-    println!("[RUST report.rs] Attempting to read detection_results.json from (absolute constructed): {:?}", absolute_detection_json_path);
+    // Caminho para o detection_results.json dentro de Projects/<projeto>
+    let absolute_detection_json_path = base_dir
+        .join("Projects")
+        .join(project_name_prop)
+        .join("detection_results.json");
+
+    println!("[RUST report.rs] Base dir (CARGO_MANIFEST_DIR): {}", base_dir.display());
+    println!("[RUST report.rs] detection_results.json path: {:?}", absolute_detection_json_path);
 
     if !absolute_detection_json_path.exists() {
-        let err_msg = format!("Arquivo detection_results.json não existe em: {:?}. Verifique o CWD e o caminho relativo.", absolute_detection_json_path);
+        let err_msg = format!("Arquivo detection_results.json não existe em: {:?}.", absolute_detection_json_path);
         eprintln!("[RUST report.rs] {}", err_msg);
         return Err(handlebars::RenderError::from(handlebars::RenderErrorReason::Other(err_msg)));
     }
@@ -150,7 +144,8 @@ fn get_report(project_name_prop: &str, building_name_prop: &str) -> Result<Strin
 
     let final_json_for_template = serde_json::Value::Object(template_data);
 
-    let report_output_dir: PathBuf = ["Report", project_name_prop].iter().collect();
+    // Diretório de saída dos relatórios dentro de <CARGO_MANIFEST_DIR>/Report/<projeto>
+    let report_output_dir: PathBuf = base_dir.join("Report").join(project_name_prop);
     let report_md_filename: String = format!("Relatorio-{}-{}.md", project_name_prop.replace(' ', "_"), building_name_prop.replace(' ', "_"));
     let report_md_filepath: PathBuf = report_output_dir.join(&report_md_filename);
 
@@ -186,7 +181,8 @@ pub struct ReportViewProps {
 #[allow(non_snake_case)]
 pub fn ReportView(props: ReportViewProps) -> Element {
     let report_md_filename: String = format!("Relatorio-{}-{}.md", &props.project_name.replace(' ', "_"), &props.building_name.replace(' ', "_"));
-    let report_md_filepath: PathBuf = ["Report", &props.project_name, &report_md_filename].iter().collect();
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let report_md_filepath: PathBuf = base_dir.join("Report").join(&props.project_name).join(&report_md_filename);
 
     if let Ok(cwd) = env::current_dir() {
         println!("[RUST ReportView Render] CWD: {:?}", cwd);

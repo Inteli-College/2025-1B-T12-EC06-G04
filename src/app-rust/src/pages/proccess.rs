@@ -168,7 +168,7 @@ pub fn Process() -> Element {
                                                                     "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
                                                                     analysis_results.len()
                                                                 ));
-                                                                navigator.push(AppRoute::HomePage {});
+                                                                navigator.push(AppRoute::ValidationScreen {});
                                                             }
                                                             Err(e) => {
                                                                 status.set(format!("Erro durante a análise de IA: {}", e));

@@ -7,7 +7,7 @@ use crate::Route;
 use dioxus_router::prelude::*;
 use std::collections::HashMap;
 use std::path::Path;
-use std::env; // For checking Current Working Directory
+use std::path::PathBuf;
 
 // --- Structs for parsing detection_results.json ---
 #[derive(Deserialize, Debug, Clone)]
@@ -54,56 +54,30 @@ impl From<serde_json::Error> for JsonReadError {
 
 // --- Function to read and parse detection_results.json ---
 fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionData>, JsonReadError> {
-    // --- BEGIN CWD DEBUG ---
-    let cwd_string = match env::current_dir() {
-        Ok(cwd) => {
-            let s = cwd.display().to_string();
-            println!("[RUST graph.rs] Current Working Directory: {}", s);
-            s
-        }
-        Err(e) => {
-            eprintln!("[RUST graph.rs] Failed to get Current Working Directory: {}", e);
-            return Err(JsonReadError::PathError("Failed to get CWD".to_string()));
-        }
-    };
-    // --- END CWD DEBUG ---
+    // Em vez de depender do diretório de trabalho atual (que pode variar conforme o modo
+    // de execução do binário), utilizamos o diretório base em que o Cargo localiza o
+    // `Cargo.toml` (CARGO_MANIFEST_DIR). A partir dele construímos o caminho até o
+    // arquivo `detection_results.json`.
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let json_path = base_dir
+        .join("Projects")
+        .join(project_name)
+        .join("detection_results.json");
 
-    // Construct path relative to the CWD printed above.
-    // If CWD is ".../src/app-rust/src", then "../Projects/..." should be correct
-    // if the target is ".../src/app-rust/Projects/..."
-    let json_path_str = format!("Projects/{}/detection_results.json", project_name);
-    
-    // Resolve this potentially relative path against the CWD to get an absolute path for File::open
-    // std::fs::canonicalize can also be used for more robust absolute path resolution.
-    let absolute_json_path = Path::new(&cwd_string).join(&json_path_str);
-    // It's often better to canonicalize to resolve symlinks, .., etc., fully.
-    let canonical_path = match absolute_json_path.canonicalize() {
-        Ok(p) => p,
-        Err(e) => {
-            // If canonicalize fails, it often means the path doesn't exist or isn't accessible at some point.
-            // Fallback to the joined path for the error message, but the open will likely fail.
-            eprintln!("[RUST graph.rs] Error canonicalizing path '{:?}': {}. Using non-canonical path for open attempt.", absolute_json_path, e);
-            // return Err(JsonReadError::PathError(format!("Error canonicalizing path {:?}: {}", absolute_json_path, e)));
-            // For the purpose of File::open, the non-canonicalized absolute_json_path might still be what we need if canonicalize fails due to non-existence
-             absolute_json_path.clone() // Use the joined path if canonicalization fails (e.g. because file doesn't exist yet for canonicalize to work on the final component)
-        }
-    };
+    // Para fins de depuração, exibimos os caminhos calculados.
+    println!("[RUST graph.rs] Base dir (CARGO_MANIFEST_DIR): {}", base_dir.display());
+    println!("[RUST graph.rs] JSON path (relativo ao base_dir): {}", json_path.display());
 
-
-    println!("[RUST graph.rs] Constructed relative path (from CWD): {}", json_path_str);
-    println!("[RUST graph.rs] Resolved absolute path for open: {:?}", absolute_json_path); // Path before canonicalization
-    println!("[RUST graph.rs] Canonical path (if successful): {:?}", canonical_path); // Path after canonicalization, might differ
-    
-    // Try opening with the path that seems most likely to be what File::open expects, which is the directly joined one. 
-    // Canonicalize is good for verifying, but File::open takes the direct path.
-    let file = File::open(&absolute_json_path).map_err(|e| { 
-        eprintln!("[RUST graph.rs] Error opening JSON file at '{:?}': {}", absolute_json_path, e);
-        eprintln!("[RUST graph.rs] Verifique se o arquivo 'detection_results.json' existe no diretório do projeto");
+    // Tentamos abrir o arquivo.
+    let file = File::open(&json_path).map_err(|e| {
+        eprintln!("[RUST graph.rs] Erro ao abrir arquivo JSON em '{}': {}", json_path.display(), e);
+        eprintln!("[RUST graph.rs] Verifique se o arquivo existe e se as permissões estão corretas.");
         JsonReadError::Io(e)
     })?;
+
     let reader = BufReader::new(file);
     let results: Vec<ImageDetectionData> = serde_json::from_reader(reader).map_err(|e| {
-        eprintln!("[RUST graph.rs] Error parsing JSON from '{:?}': {}", absolute_json_path, e);
+        eprintln!("[RUST graph.rs] Erro ao fazer parse do JSON em '{}': {}", json_path.display(), e);
         JsonReadError::Json(e)
     })?;
     Ok(results)
