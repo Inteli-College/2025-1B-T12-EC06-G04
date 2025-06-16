@@ -14,6 +14,7 @@ mod pages {
     pub mod create_project;
     pub mod graph;
     pub mod select_images;
+    pub mod validation_screen;
 }
 mod utils {
     pub mod file_manager;
@@ -23,21 +24,17 @@ mod utils {
 
 // Import de arquivos locais
 mod report_structures;
+mod manual_processor;
 
-use homepage::HomePage;
-use select_images::SelectImages;
-use report::ReportView;
-use create_project::NewProject;
-use ui::Home;
-mod graph;
-use graph::GraphView;
+use pages::report::ReportView;
+use pages::graph::GraphView;
+use pages::select_images::SelectImages;
+use pages::homepage::HomePage;
+use pages::validation_screen::ValidationScreen;
+use manual_processor::ManualProcessor;
+use pages::create_project::NewProject;
+use pages::proccess::Process;
 
-#[component]
-fn Process() -> Element {
-    rsx! {
-        Home {}
-    }
-}
 
 fn main() {
     // Obter o diretório base do CARGO_MANIFEST_DIR

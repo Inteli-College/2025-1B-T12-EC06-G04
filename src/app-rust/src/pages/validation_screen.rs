@@ -3,7 +3,7 @@ use dioxus_router::prelude::*;
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use crate::create_project::PROJECT_NAME; // Importa o GlobalSignal
+use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
 
 // Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]

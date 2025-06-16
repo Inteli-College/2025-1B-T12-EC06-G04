@@ -66,6 +66,7 @@ if __name__ == "__main__":
     # Path to src/app-rust/Projects/{project_name}/detection_results.json
     output_json_path = os.path.join(project_base_dir, "detection_results.json")
     
+    
     print(f"Script CWD (for context): {os.getcwd()}", file=sys.stderr)
     print(f"Argumento project_name recebido: {args.project_name}", file=sys.stderr)
     print(f"Caminho relativo do diretório base do projeto (para output): {project_base_dir}", file=sys.stderr)
