@@ -88,8 +88,17 @@ pub fn ValidationScreen() -> Element {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects")
     });
 
-    // Efeito para carregar os dados na inicialização do componente
+    // Flag para garantir que o carregamento rode apenas uma vez
+    let mut initialized = use_signal(|| false);
+
+    // Efeito para carregar os dados na inicialização (executa uma vez)
+    let mut initialized_clone = initialized.clone();
     use_effect(move || {
+        if *initialized_clone.read() {
+            return;
+        }
+        initialized_clone.set(true);
+
         // Clonamos o sinal para poder movê-lo para o bloco assíncrono.
         let projects_root_dir_for_strip = projects_root_dir_signal.clone(); 
 
@@ -148,6 +157,14 @@ pub fn ValidationScreen() -> Element {
                                     })
                                     .collect();
                                 validation_data.set(validation_states);
+
+                                {
+                                    let mut data = validation_data.write();
+                                    if !data.is_empty() {
+                                        data[0].has_been_viewed = true;
+                                    }
+                                }
+
                                 loading.set(false);
                             }
                             Err(e) => {
@@ -169,39 +186,48 @@ pub fn ValidationScreen() -> Element {
     });
 
     let total_images = validation_data.read().len();
-    let has_images = total_images > 0;
 
-    // Efeito para marcar a imagem atual como visualizada sempre que o índice muda
-    use_effect(move || {
-        if has_images {
-            let idx = *current_image_index.read();
-            let mut data = validation_data.write();
-            if idx < data.len() {
-                data[idx].has_been_viewed = true;
-            }
-        }
-    });
-
-    // Função para avançar para a próxima imagem
+    // Avança para a próxima imagem e marca como visualizada caso ainda não tenha sido
     let next_image = move |_| {
-        if current_image_index() < total_images - 1 {
-            current_image_index.set(current_image_index() + 1);
+        let len = validation_data.read().len();
+        if len == 0 { return; }
+
+        let current_idx = current_image_index();
+        if current_idx < len - 1 {
+            let new_idx = current_idx + 1;
+            current_image_index.set(new_idx);
+
+            let mut data = validation_data.write();
+            if !data[new_idx].has_been_viewed {
+                data[new_idx].has_been_viewed = true;
+            }
         }
     };
 
-    // Função para voltar para a imagem anterior
+    // Volta para a imagem anterior e marca como visualizada se necessário
     let previous_image = move |_| {
-        if current_image_index() > 0 {
-            current_image_index.set(current_image_index() - 1);
+        let len = validation_data.read().len();
+        if len == 0 { return; }
+
+        let current_idx = current_image_index();
+        if current_idx > 0 {
+            let new_idx = current_idx - 1;
+            current_image_index.set(new_idx);
+
+            let mut data = validation_data.write();
+            if !data[new_idx].has_been_viewed {
+                data[new_idx].has_been_viewed = true;
+            }
         }
     };
 
     // Função para alternar o status de incorreto da imagem atual
     let toggle_incorrect = move |_| {
-        if has_images {
+        let len = validation_data.read().len();
+        if len > 0 {
             let idx = *current_image_index.read();
             let mut data = validation_data.write();
-            if idx < data.len() {
+            if idx < len {
                 data[idx].is_incorrect = !data[idx].is_incorrect;
             }
         }
@@ -326,6 +352,7 @@ pub fn ValidationScreen() -> Element {
 
     // Obtém a imagem atual a ser exibida
     let current_image = &validation_data.read()[current_image_index()];
+    // Conta imagens visualizadas diretamente a partir do estado para garantir consistência
     let viewed_count = validation_data.read().iter().filter(|img| img.has_been_viewed).count();
     let incorrect_count = validation_data.read().iter().filter(|img| img.is_incorrect).count();
 
@@ -403,10 +430,10 @@ pub fn ValidationScreen() -> Element {
                                     class: if fissura_classification == "retracao" { "text-red-600" } else if fissura_classification == "termica" { "text-orange-600" } else { "text-gray-800" },
                                     "{fissura_classification.to_uppercase()}"
                                 }
-                                div { class: "aspect-w-16 aspect-h-12 bg-gray-100 rounded-lg overflow-hidden mb-4",
+                                div { class: "relative w-[600px] h-[450px] bg-gray-100 rounded-lg overflow-hidden mb-4 mx-auto flex-shrink-0",
                                     img {
                                         src: "project-image://{image_src_path}", 
-                                        class: "w-full h-full object-contain",
+                                        class: "absolute inset-0 w-full h-full object-contain",
                                         alt: "Imagem para validação"
                                     }
                                 }
@@ -543,6 +570,15 @@ pub fn ValidationScreen() -> Element {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // Aviso caso o usuário ainda não tenha visualizado todas as imagens
+            if viewed_count < total_images {
+                div { class: "container mx-auto px-6 mt-4",
+                    div { class: "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded",
+                        p { class: "font-semibold", "Você ainda não visualizou todas as imagens." }
                     }
                 }
             }
