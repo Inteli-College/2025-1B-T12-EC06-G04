@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use std::f64::consts::PI;
 use serde::Deserialize;
-use std::fs::File;
+use std::fs::{self, File}; // Adicionado fs
 use std::io::{self, BufReader};
 use crate::Route;
 use dioxus_router::prelude::*;
@@ -65,20 +65,43 @@ impl From<serde_json::Error> for JsonReadError {
     }
 }
 
+// --- Função para obter o diretório base de projetos ---
+fn get_projects_dir() -> Option<PathBuf> {
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    Some(base_dir.join("Projects"))
+}
+
+
+// --- NOVA FUNÇÃO: Para deletar a pasta do projeto ---
+fn delete_project_folder(project_name: &str) -> Result<(), std::io::Error> {
+    if let Some(projects_dir) = get_projects_dir() {
+        let project_path = projects_dir.join(project_name);
+        if project_path.exists() {
+            println!("[RUST graph.rs] Deletando pasta do projeto: {}", project_path.display());
+            fs::remove_dir_all(project_path)
+        } else {
+            // Se a pasta não existe, a condição desejada (sem pasta) já foi atendida.
+            println!("[RUST graph.rs] Pasta do projeto para deletar não encontrada: {}. Assumindo que já foi deletada.", project_path.display());
+            Ok(())
+        }
+    } else {
+        Err(io::Error::new(io::ErrorKind::NotFound, "Diretório 'Projects' não encontrado."))
+    }
+}
+
+
 // --- Function to read and parse detection_results.json ---
 fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionData>, JsonReadError> {
-    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let json_path = base_dir
-        .join("Projects")
+    // Usando a nova função auxiliar para obter o caminho do projeto
+    let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Não foi possível encontrar o diretório 'Projects'".to_string()))?;
+    let json_path = projects_dir
         .join(project_name)
         .join("detection_results.json");
 
-    println!("[RUST graph.rs] Base dir (CARGO_MANIFEST_DIR): {}", base_dir.display());
-    println!("[RUST graph.rs] JSON path (relativo ao base_dir): {}", json_path.display());
+    println!("[RUST graph.rs] Tentando ler JSON de: {}", json_path.display());
 
     let file = File::open(&json_path).map_err(|e| {
         eprintln!("[RUST graph.rs] Erro ao abrir arquivo JSON em '{}': {}", json_path.display(), e);
-        eprintln!("[RUST graph.rs] Verifique se o arquivo existe e se as permissões estão corretas.");
         JsonReadError::Io(e)
     })?;
 
@@ -428,15 +451,14 @@ pub struct GraphViewProps {
 pub fn GraphView(props: GraphViewProps) -> Element {
     match ler_json_detection_results(&props.project_name) {
         Ok(detection_data) => {
+            // ... (toda a lógica de processamento de dados permanece a mesma)
             let mut total_termica_overall = 0u32;
             let mut total_retracao_overall = 0u32;
             let mut building_fissura_map: HashMap<String, BuildingFissuraSummary> = HashMap::new();
             
-            // Data collection for Box Plot
             let mut confidences_termica: Vec<f64> = Vec::new();
             let mut confidences_retracao: Vec<f64> = Vec::new();
             
-            // --- NEW: Data collection for Heatmap ---
             let mut heatmap_data: HeatmapData = HashMap::new();
 
             for item_data in detection_data.iter() {
@@ -455,9 +477,7 @@ pub fn GraphView(props: GraphViewProps) -> Element {
                     }
                 }
                 
-                // --- MODIFIED: Aggregate data for all charts ---
                 if let Some(building_name) = extract_building_name_from_path(&item_data.path) {
-                    // Bar chart data
                     let summary = building_fissura_map.entry(building_name.clone()).or_insert_with(|| BuildingFissuraSummary {
                         building_name: building_name.clone(),
                         termica_count: 0,
@@ -466,7 +486,6 @@ pub fn GraphView(props: GraphViewProps) -> Element {
                     summary.termica_count += current_image_termica;
                     summary.retracao_count += current_image_retracao;
                     
-                    // Heatmap data
                     if let Some(facade_name) = extract_facade_name_from_path(&item_data.path) {
                         let total_fissures_in_image = item_data.fissura.len() as u32;
                         let building_entry = heatmap_data.entry(building_name.clone()).or_default();
@@ -477,11 +496,8 @@ pub fn GraphView(props: GraphViewProps) -> Element {
             }
             
             let mut building_summaries: Vec<BuildingFissuraSummary> = building_fissura_map.values().cloned().collect();
-            // Ordenar para consistência
             building_summaries.sort_by(|a, b| a.building_name.cmp(&b.building_name));
 
-
-            // --- CÁLCULO DA MÉDIA PARA O GRÁFICO DE BARRAS ---
             let media_fissuras_por_edificio = if !building_summaries.is_empty() {
                 let total_fissuras: u32 = building_summaries.iter().map(|s| s.termica_count + s.retracao_count).sum();
                 total_fissuras as f64 / building_summaries.len() as f64
@@ -490,154 +506,166 @@ pub fn GraphView(props: GraphViewProps) -> Element {
             };
 
             let donut_svg = gerar_svg_donut(total_termica_overall, total_retracao_overall);
-            // Passa a média para a função de geração do SVG
             let barras_svg = gerar_svg_barras(&building_summaries, media_fissuras_por_edificio);
             
-            // Calculate stats and generate Box Plot SVG
             let stats_termica = calculate_boxplot_stats(&mut confidences_termica);
             let stats_retracao = calculate_boxplot_stats(&mut confidences_retracao);
             let boxplot_svg = gerar_svg_boxplot(&stats_termica, &stats_retracao);
 
-            // --- NEW: Generate Heatmap SVG ---
             let heatmap_svg = gerar_svg_heatmap(&heatmap_data);
 
             let navigator = use_navigator();
 
             rsx! {
+                // ... (toda a renderização de sucesso permanece a mesma)
                 div {
-                    style: "
-                        background-color: #242526;
-                        color: #f0f0f0;
-                        font-family: 'Segoe UI', sans-serif;
-                        min-height: 100vh;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        padding: 40px;
-                        gap: 40px; // Add gap between sections
-                        position: relative;
-                    ",
-
+                    class: "graph-view-page",
+                    
                     button {
+                        class: "btn btn-back-home",
                         onclick: move |_| {
                             navigator.push(Route::HomePage {});  
                         },
-                        style: "
-                            position: absolute;
-                            top: 20px;
-                            left: 20px;
-                            background-color: #ff5a5f;
-                            color: white;
-                            border: none;
-                            padding: 10px 16px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 14px;
-                        ",
                         "← Início"
                     }
 
                     div {
-                        style: "width: 100%; max-width: 1400px; text-align: center;",
+                        class: "graph-view-header",
                         h1 {
-                            style: "font-size: 32px; color: #ff5a5f; margin-bottom: 20px;",
+                            class: "graph-view-title",
                             "Gráficos das Fissuras (Projeto: {props.project_name})"
                         }
                     }
 
                     div {
-                        style: "
-                            display: flex;
-                            justify-content: space-around;
-                            align-items: flex-start;
-                            gap: 40px;
-                            flex-wrap: wrap;
-                            width: 100%;
-                            max-width: 1400px;
-                        ",
-
+                        class: "graph-grid",
+                        
                         div {
-                            style: "flex: 1; min-width: 400px; text-align: center; background: #3a3b3c; padding: 20px; border-radius: 8px;",
-                            h2 { style: "font-size: 24px; color: #ffffff; margin-top:0;", "Distribuição Total" }
-                            div { dangerous_inner_html: donut_svg }
-                            p { style: "margin-top: 10px; font-size: 14px;", "Térmicas: {total_termica_overall} | Retração: {total_retracao_overall}" }
+                            class: "graph-card graph-card-medium",
+                            h2 { "Distribuição Total" }
+                            div { class: "graph-container", dangerous_inner_html: donut_svg }
+                            p { style: "margin-top: 10px; font-size: 14px; color: #ccc", "Térmicas: {total_termica_overall} | Retração: {total_retracao_overall}" }
                             div {
-                                style: "margin-top: 10px; font-size: 14px;",
-                                span { style: "color: #ff5a5f; margin-right: 10px;", "⬤ Térmica" }
-                                span { style: "color: #0077ff;", "⬤ Retração" }
+                                class: "graph-legend",
+                                div { class: "legend-item",
+                                    div { class: "legend-color-box", style: "background-color: #ff5a5f;" }
+                                    span { style: "color: #ff5a5f;", "Térmica" }
+                                }
+                                div { class: "legend-item",
+                                    div { class: "legend-color-box", style: "background-color: #0077ff;" }
+                                    span { style: "color: #0077ff;", "Retração" }
+                                }
                             }
                         }
 
                         div {
-                            style: "flex: 2; min-width: 600px; position: relative; background: #3a3b3c; padding: 20px; border-radius: 8px;",
-                            h2 { style: "font-size: 24px; color: #ffffff; margin-top:0;", "Fissuras por Edifício" }
+                            class: "graph-card graph-card-large",
+                            h2 { "Fissuras por Edifício" }
                             div {
-                                style: "margin-top: 10px; overflow-x: auto;",
+                                class: "graph-container-scroll",
                                 div { dangerous_inner_html: barras_svg }
                             }
-                            button {
-                                onclick: move |_| {
-                                    let building_name = "Galpão_3".to_string(); 
-                                    navigator.push(Route::ReportView { project_name: props.project_name.clone(), building_name });
-                                },
-                                style: "
-                                    position: absolute;
-                                    bottom: -50px;
-                                    right: 20px;
-                                    background-color: #0077ff;
-                                    color: white;
-                                    border: none;
-                                    padding: 10px 16px;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 16px;
-                                ",
-                                "Visualizar relatório detalhado →"
-                            }
+                            // Exemplo de como o botão de relatório pode ser posicionado
+                            // button {
+                            //     class: "btn btn-report-link",
+                            //     "Visualizar relatório detalhado →"
+                            // }
                         }
                     }
                     
-                    // --- NEW: Heatmap Section ---
                     div {
-                        style: "
-                            width: 100%;
-                            max-width: 1400px;
-                            background: #3a3b3c; padding: 20px; border-radius: 8px;
-                            text-align: center;
-                        ",
-                        h2 { style: "font-size: 24px; color: #ffffff; margin-bottom: 20px; margin-top:0;", "Heatmap de Criticidade por Fachada" },
+                        class: "graph-card dashboard-card-large", // Usa a classe que ocupa a largura toda
+                        h2 { "Heatmap de Criticidade por Fachada" },
                         div { 
-                            style: "overflow-x: auto;",
+                            class: "graph-container-scroll",
                             dangerous_inner_html: heatmap_svg 
                         }
                     }
 
-                    // Box Plot Section
                     div {
-                        style: "
-                            width: 100%;
-                            max-width: 1400px;
-                            background: #3a3b3c; padding: 20px; border-radius: 8px;
-                            text-align: center;
-                        ",
-                        h2 { style: "font-size: 24px; color: #ffffff; margin-bottom: 20px; margin-top:0;", "Distribuição de Confiança das Detecções" }
-                        div { dangerous_inner_html: boxplot_svg }
+                        class: "graph-card dashboard-card-large", // Usa a classe que ocupa a largura toda
+                        h2 { "Distribuição de Confiança das Detecções" }
+                        div { class: "graph-container", dangerous_inner_html: boxplot_svg }
                     }
                 }
             }
         }
+        // --- BLOCO DE ERRO MODIFICADO ---
         Err(e) => {
             let error_message = match e {
-                JsonReadError::Io(io_err) => format!("Erro de I/O ao ler arquivo JSON: {}. Verifique o caminho e permissões.", io_err),
-                JsonReadError::Json(json_err) => format!("Erro ao parsear JSON: {}. Verifique o formato do arquivo.", json_err),
-                JsonReadError::PathError(path_err) => format!("Erro no caminho do arquivo: {}", path_err),
+                JsonReadError::Io(io_err) => format!("Erro de I/O: {}. Verifique se o arquivo 'detection_results.json' existe e se o programa tem permissão para lê-lo.", io_err),
+                JsonReadError::Json(json_err) => format!("Erro de Formato: {}. O arquivo 'detection_results.json' parece estar corrompido ou mal formatado.", json_err),
+                JsonReadError::PathError(path_err) => format!("Erro de Caminho: {}", path_err),
             };
+
+            let navigator = use_navigator();
+            let project_name_clone = props.project_name.clone();
+
+            let handle_delete = move |_| {
+                let nav = navigator.clone();
+                let name_to_delete = project_name_clone.clone();
+                spawn(async move {
+                    // Em um app real, é bom ter uma confirmação aqui.
+                    match delete_project_folder(&name_to_delete) {
+                        Ok(_) => {
+                            println!("Projeto {} deletado com sucesso.", name_to_delete);
+                            nav.push(Route::HomePage {});
+                        }
+                        Err(err) => {
+                            eprintln!("Falha ao deletar o projeto {}: {}", name_to_delete, err);
+                            // Opcional: mostrar uma mensagem de erro na UI sobre a falha na deleção.
+                        }
+                    }
+                });
+            };
+
             rsx! {
+                // Usando classes de 'styles.css' para a página de erro
                 div {
-                    style: "padding: 20px; color: red; text-align: center; font-family: 'Segoe UI', sans-serif; background-color: #242526; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;",
-                    h1 { "Erro ao carregar dados para o gráfico" },
-                    p { "{error_message}" },
-                    p { "Verifique se o arquivo 'Projects/{props.project_name}/detection_results.json' existe e está no formato correto."}
+                    class: "error-page-container",
+                    div {
+                        class: "status-card",
+                        i { 
+                            class: "material-icons status-card-icon", 
+                            style: "color: var(--status-red);", 
+                            "error_outline" 
+                        }
+                        h1 { 
+                            class: "text-2xl font-bold mb-4",
+                            "Erro ao Carregar Gráficos" 
+                        }
+                        p {
+                            class: "text-gray-600 mb-6",
+                            "Não foi possível carregar os dados para o projeto: ",
+                            strong { "{props.project_name}" }
+                        }
+                        
+                        // Detalhes técnicos do erro
+                        div {
+                            class: "status-box error",
+                            style: "text-align: left; background-color: var(--status-red-light); border-color: var(--status-red);",
+                            p { class: "status-box-text", style: "color: var(--status-red-dark); font-weight: 500;", "Detalhes do Erro:"}
+                            p { class: "status-box-text", style: "color: var(--status-red-dark);", "{error_message}"}
+                        }
+
+                        // Botões de Ação
+                        div {
+                            class: "d-flex justify-center gap-4",
+                            style: "margin-top: 2rem; width: 100%;",
+                            button {
+                                class: "btn btn-secondary",
+                                onclick: move |_| { navigator.push(Route::HomePage {}); },
+                                i { class: "material-icons", "home" }
+                                "Voltar ao Início"
+                            }
+                            button {
+                                class: "btn btn-danger",
+                                onclick: handle_delete,
+                                i { class: "material-icons", "delete_forever" }
+                                "Excluir Projeto"
+                            }
+                        }
+                    }
                 }
             }
         }

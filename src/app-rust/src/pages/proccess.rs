@@ -206,7 +206,8 @@ pub fn Process() -> Element {
                                 project_name: project_name_available.to_string().clone()
                             },
                             button {
-                                class: "flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                                class:"btn btn-primary",
+                                style: "flex: 1; font-size: 1rem;",
                                 disabled: is_processing() || !project_name_available(),
                                 i { class: "material-icons", "folder_open" }
                                 "Processar Manualmente"
