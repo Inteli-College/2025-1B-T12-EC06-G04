@@ -8,7 +8,7 @@
 - Observação do comportamento do sistema durante o **Teste de Usabilidade com Cliente**;
 - Execução de scripts de teste automatizados e/ou manuais, conforme aplicável.
 
-&emsp; Esta validação é essencial para garantir que a **prova de conceito** esteja alinhada com o esperado, e para identificar pontos que ainda requerem aprimoramento.
+&emsp; Esta validação é essencial para garantir que a **prova de conceito** esteja alinhada com o esperado, e para identificar pontos que ficarão para planos futuros do projeto.
 
 ---
 
