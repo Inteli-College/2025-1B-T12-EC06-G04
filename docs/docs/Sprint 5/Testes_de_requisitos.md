@@ -16,16 +16,16 @@
 
 | ID Requisito   | Descrição                                             | Status              | Evidência/Teste Realizado / Observações |
 | -------------- | ---------------------------------------------------- | ------------------- | -------------------------------------- |
-| **RF-SYS-001** | Recepção de Imagens de Inspeção por Armazenamento Externo | Parcialmente Cumprido | Testado na Sprint 5. Importação funciona, mas processamento automático incompleto. |
+| **RF-SYS-001** | Recepção de Imagens de Inspeção por Armazenamento Externo | Não Avaliado | xxxxxxxxxxxxxxxxxxxxxxx      Exemplo de evidência/teste realizado/ observações "Testado na Sprint 5. Importação funciona, mas processamento automático incompleto." |
 | **RF-SYS-002** | Integração e Recepção de Imagens por Drone            | Não Avaliado        | Não testado nesta Sprint. |
 | **RF-SYS-003** | Validação e Pré-processamento de Formato de Imagem    | Não Avaliado        | Não testado nesta Sprint. |
-| **RF-SYS-004** | Análise Geométrica de Fissuras                        | Não Avaliado        | Avaliado no componente IA (documentação YOLO). Não avaliado diretamente via UI. |
-| **RF-SYS-005** | Classificação de Risco Estrutural de Fissuras         | Não Avaliado        | Métrica do modelo; não testada diretamente via UI. |
-| **RF-SYS-006** | Geração e Apresentação da Lista de Fissuras Analisadas  | Parcialmente Cumprido | Visualização OK. Exportação PDF/DOCX com falha (bloqueante). |
-| **RF-SYS-007** | Armazenamento Local de Imagens Processadas e Resultados | Não Avaliado        | Não testado nesta Sprint. |
-| **RNF-SYS-001** | Desempenho do Sistema                                 | Não Avaliado        | Não testado com métricas formalizadas. |
-| **RNF-SYS-002** | Usabilidade na Visualização e Gerenciamento de Imagens | Parcialmente Cumprido | Teste de Usabilidade com Cliente: boa intuição em algumas funções; ausência de feedback visual e campos obrigatórios não destacados. |
-| **RNF-SYS-003** | Precisão na Detecção de Fissuras                      | Não Avaliado        | Avaliado separadamente no teste de IA (YOLO), não diretamente pelo cliente. |
+| **RF-SYS-004** | Análise Geométrica de Fissuras                        | Não Avaliado        | ANão testado nesta Sprint.|
+| **RF-SYS-005** | Classificação de Risco Estrutural de Fissuras         | Não Avaliado        | Não testado nesta Sprint. |
+| **RF-SYS-006** | Geração e Apresentação da Lista de Fissuras Analisadas  | Não Avaliado | Não testado nesta Sprint. |
+| **RF-SYS-007** | Armazenamento Local de Imagens Processadas e Resultados | Não Avaliado        | Não testado nesta Sprint.|
+| **RNF-SYS-001** | Desempenho do Sistema                                 | Não Avaliado        | Não testado nesta Sprint. |
+| **RNF-SYS-002** | Usabilidade na Visualização e Gerenciamento de Imagens |Não Avaliado |Não testado nesta Sprint. |
+| **RNF-SYS-003** | Precisão na Detecção de Fissuras                      | Não Avaliado        | Não testado nesta Sprint.|
 
 ---
 
