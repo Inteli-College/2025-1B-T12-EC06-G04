@@ -140,6 +140,7 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: Edifício Residencial Centro",
                             value: "{name()}",
                             oninput: move |e| name.set(e.value())
                         }
@@ -150,6 +151,7 @@ pub fn NewProject() -> Element {
                         label { "Descrição" }
                         textarea {
                             class: "form-textarea",
+                            placeholder: "Descreva o projeto, suas características principais e objetivos...",
                             value: "{description()}",
                             rows: "4",
                             oninput: move |e| description.set(e.value())
@@ -162,6 +164,7 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: João Silva",
                             value: "{leader()}",
                             oninput: move |e| leader.set(e.value())
                         }
@@ -172,6 +175,7 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: Concreto armado, Alvenaria estrutural, Metálica",
                             value: "{structure_type()}",
                             oninput: move |e| structure_type.set(e.value())
                         }
@@ -183,8 +187,9 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "number",
+                            placeholder: "2025",
                             value: "{year()}",
-                            min: "1800",
+                            min: "2000",
                             max: "2100",
                             oninput: move |e| year.set(e.value())
                         }
@@ -197,6 +202,7 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Informações adicionais, considerações especiais...",
                             value: "{observations()}",
                             oninput: move |e| observations.set(e.value())
                         }

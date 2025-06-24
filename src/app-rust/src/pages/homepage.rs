@@ -122,13 +122,7 @@ pub fn HomePage() -> Element {
         body {
             header { class: "page-header",
                 div { class: "header-group",
-                    i { class: "material-icons", "menu" }
                     h1 { "Files: {files.read().current()}" }
-                }
-                button {
-                    class: "icon-button",
-                    onclick: move |_| files.write().go_up(),
-                    i { class: "material-icons", "logout" }
                 }
             }
 
@@ -189,7 +183,31 @@ pub fn HomePage() -> Element {
 
             main {
                 class: "folder-grid",
-                { folder_cards.into_iter() }
+                if folder_cards.is_empty() {
+                    div { 
+                        class: "empty-state",
+                        div { class: "empty-state-content",
+                            div { class: "empty-state-icon-wrapper",
+                                i { class: "material-icons empty-icon", "folder_open" }
+                            }
+                            h3 { class: "empty-state-title", "Nenhuma pasta encontrada" }
+                            p { 
+                                class: "empty-state-description", 
+                                "Não existem pastas neste diretório.",
+                                br {},
+                                "Que tal criar sua primeira pasta para começar?"
+                            }
+                            Link { 
+                                to: Route::NewProject {},
+                                class: "btn btn-primary create-folder-btn",
+                                i { class: "material-icons", "add" }
+                                "Criar Nova Pasta"
+                            }
+                        }
+                    }
+                } else {
+                    { folder_cards.into_iter() }
+                }
             }
 
             if let Some(err) = files.read().err.as_ref() {

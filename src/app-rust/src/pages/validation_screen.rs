@@ -235,7 +235,6 @@ pub fn ValidationScreen() -> Element {
                         }
                         div { class: "text-right text-sm text-gray-600",
                             p { "Imagem {current_image_index() + 1} de {total_images}" }
-                            p { "Visualizadas: {viewed_count}/{total_images}" }
                             p { "Incorretas: {incorrect_count}" }
                         }
                     }
@@ -347,7 +346,7 @@ pub fn ValidationScreen() -> Element {
                     div { class: "modal-content",
                         i { class: "material-icons modal-icon", "warning" }
                         h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Confirmação" }
-                        p { class: "text-gray-600 mb-6", "Você ainda não visualizou todas as imagens. Deseja confirmar a validação mesmo assim?" }
+                        p { class: "text-gray-600 mb-6", "Confirmando você assume ter verificado todas as imagens, e se elas estão corretas ou incorretas. Deseja confirmar?"}
                         div { class: "d-flex gap-4 justify-center",
                             button { class: "btn btn-secondary", onclick: close_dialog, "Cancelar" }
                             button { class: "btn btn-primary", onclick: move |_| confirm_validation(), "Confirmar" }
