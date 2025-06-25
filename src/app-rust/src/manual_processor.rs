@@ -1,5 +1,3 @@
-// manual_processor.rs (versão final corrigida)
-
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use rfd::AsyncFileDialog;
@@ -10,9 +8,12 @@ use std::process::{Command, Stdio};
 use serde::Deserialize;
 use dioxus_router::prelude::Link;
 use dioxus_router::prelude::use_navigator;
-use crate::Route; // <--- LINHA ADICIONADA AQUI PARA CORRIGIR O ERRO
+use crate::Route; 
 use tokio::time;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
+use crate::pages::create_project::ProjectStatus;
+use crate::utils::file_manager::update_project_status;
+
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -44,8 +45,6 @@ pub struct ImageData {
     pub preview_url: Option<String>,
 }
 
-/// Lê um arquivo de imagem, determina seu tipo MIME pela extensão,
-/// e o retorna como um Data URI (string codificada em Base64).
 fn create_data_uri(path: &Path) -> Option<String> {
     let mime_type = match path.extension().and_then(std::ffi::OsStr::to_str) {
         Some("png") => "image/png",
@@ -184,14 +183,19 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
 
                 match run_yolo_script_and_parse_results(&project_name_clone, status_writer, &base_dir).await {
                     Ok(analysis_results) => {
-                        status_writer.set(format!(
-                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos. Redirecionando para validação...",
-                            analysis_results.len()
-                        ));
+                        if let Err(e) = update_project_status(&project_name_clone, ProjectStatus::ProcessingComplete) {
+                             status_writer.set(format!("Análise concluída, mas falha ao atualizar status do projeto: {}", e));
+                        } else {
+                            status_writer.set(format!(
+                                "Análise de imagens concluída. {} resultados. Redirecionando para validação...",
+                                analysis_results.len()
+                            ));
+                        }
                         
                         time::sleep(time::Duration::from_millis(2000)).await;
                         
-                        navigator.push(Route::ValidationScreen {});
+                        // MODIFICAÇÃO: Navega para a rota renomeada.
+                        navigator.push(Route::ValidationPage {});
                     }
                     Err(e) => {
                         status_writer.set(format!("Erro durante a análise de imagens: {}", e));
@@ -454,8 +458,9 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                 let detection_file = base_dir.join("Projects").join(&project_name_for_detection_check).join("detection_results.json");
                                 if detection_file.exists() {
                                     rsx! {
+                                        // MODIFICAÇÃO: Link para a rota renomeada.
                                         Link {
-                                            to: Route::ValidationScreen {},
+                                            to: Route::ValidationPage {},
                                             class: "btn btn-success",
                                             i { class: "material-icons", "verified" }
                                             "Validar Resultados"

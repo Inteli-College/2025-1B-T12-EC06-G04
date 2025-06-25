@@ -1656,6 +1656,7 @@ dependencies = [
  "dioxus-router",
  "env_logger",
  "futures",
+ "futures-channel",
  "futures-util",
  "handlebars",
  "home",

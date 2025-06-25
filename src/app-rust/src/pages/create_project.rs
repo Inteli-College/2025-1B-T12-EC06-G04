@@ -2,13 +2,24 @@ use dioxus::prelude::*;
 use std::path::{Path, PathBuf};
 use dioxus_router::prelude::Link;
 use crate::Route;
-use serde::{Serialize, Deserialize}; // <--- ADICIONADO
-use std::fs::File; // <--- ADICIONADO
-use std::io::Write; // <--- ADICIONADO
+use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::Write;
+// ADIÇÃO: Import necessário para o #[serde(default)] funcionar
+use std::default::Default;
 
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
-// --- NOVA STRUCT PARA METADADOS DO PROJETO ---
+// ADIÇÃO: Enum para rastrear o estado do projeto.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub enum ProjectStatus {
+    #[default] // O estado padrão quando um projeto é criado ou o campo não existe no JSON
+    Created, // Projeto recém-criado, precisa organizar as imagens e processar
+    ProcessingComplete, // Análise de IA concluída, pronto para validação
+    ValidationComplete, // Validação feita, pronto para ver gráficos e relatórios
+}
+
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct ProjectMetadata {
     pub name: String,
@@ -17,19 +28,22 @@ pub struct ProjectMetadata {
     pub leader: String,
     pub structure_type: String,
     pub observations: String,
+    // ADIÇÃO: Campo para armazenar o status atual do projeto.
+    #[serde(default)]
+    pub status: ProjectStatus,
 }
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let projects_dir = base_dir.join("Projects"); 
-    
+    let projects_dir = base_dir.join("Projects");
+
     if !projects_dir.exists() {
         if let Err(e) = std::fs::create_dir_all(&projects_dir) {
             eprintln!("Erro ao criar diretório Projects em {}: {}", projects_dir.display(), e);
             return None;
         }
     }
-    
+
     Some(projects_dir)
 }
 
@@ -40,7 +54,6 @@ fn sanitize_name(name: &str) -> String {
         .collect::<String>()
 }
 
-// --- NOVA FUNÇÃO PARA SALVAR METADADOS ---
 fn save_project_metadata(project_folder: &Path, metadata: &ProjectMetadata) -> Result<(), std::io::Error> {
     let metadata_path = project_folder.join("project_meta.json");
     let file = File::create(metadata_path)?;
@@ -49,7 +62,6 @@ fn save_project_metadata(project_folder: &Path, metadata: &ProjectMetadata) -> R
     writer.flush()?;
     Ok(())
 }
-
 
 #[component]
 pub fn NewProject() -> Element {
@@ -65,8 +77,37 @@ pub fn NewProject() -> Element {
     let mut images_path = use_signal(|| None::<PathBuf>);
 
     let create_project = move |_| {
-        if name().trim().is_empty() || year().trim().is_empty() {
-            status.set("Por favor, preencha nome e ano.".to_string());
+        let mut missing_fields = Vec::new();
+        let mut year_error = None;
+
+        if name().trim().is_empty() {
+            missing_fields.push("Nome do Projeto");
+        }
+        if leader().trim().is_empty() {
+            missing_fields.push("Líder responsável pelo projeto");
+        }
+        if structure_type().trim().is_empty() {
+            missing_fields.push("Tipo de estrutura do edifício");
+        }
+
+        match year().trim().parse::<i32>() {
+            Ok(y) if (2000..=2100).contains(&y) => {},
+            Ok(_) => {
+                year_error = Some("O Ano deve estar entre 2000 e 2100.");
+            },
+            Err(_) => {
+                missing_fields.push("Ano");
+            }
+        }
+
+        if !missing_fields.is_empty() {
+            let error_msg = format!("Por favor, preencha os campos obrigatórios: {}.", missing_fields.join(", "));
+            status.set(error_msg);
+            return;
+        }
+
+        if let Some(err) = year_error {
+            status.set(err.to_string());
             return;
         }
 
@@ -81,8 +122,8 @@ pub fn NewProject() -> Element {
         }
 
         *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
-        
-        // --- LÓGICA DE CRIAÇÃO MODIFICADA ---
+
+        // MODIFICAÇÃO: O status é definido explicitamente aqui.
         let metadata = ProjectMetadata {
             name: name().trim().to_string(),
             description: description().trim().to_string(),
@@ -90,6 +131,7 @@ pub fn NewProject() -> Element {
             leader: leader().trim().to_string(),
             structure_type: structure_type().trim().to_string(),
             observations: observations().trim().to_string(),
+            status: ProjectStatus::Created, // Projeto começa neste estado.
         };
 
         spawn(async move {
@@ -105,7 +147,6 @@ pub fn NewProject() -> Element {
                 if let Err(e) = std::fs::create_dir_all(&new_folder) {
                     status.set(format!("Erro ao criar pasta: {}", e));
                 } else {
-                    // Salva o arquivo de metadados
                     match save_project_metadata(&new_folder, &metadata) {
                         Ok(_) => {
                             status.set(format!("Projeto criado em: {}", new_folder.display()));
@@ -113,7 +154,6 @@ pub fn NewProject() -> Element {
                         }
                         Err(e) => {
                              status.set(format!("Erro ao salvar metadados do projeto: {}", e));
-                             // Se falhou ao salvar o JSON, remove a pasta criada
                              _ = std::fs::remove_dir_all(&new_folder);
                         }
                     }
@@ -263,7 +303,10 @@ pub fn NewProject() -> Element {
                     }
 
                     if !status().is_empty() {
-                        p { class: "status-message info", "{status()}" }
+                        p { 
+                            class: if status().starts_with("Projeto criado") { "status-message success" } else { "status-message error" }, 
+                            "{status()}" 
+                        }
                         
                         div { class: "flex justify-between mt-4",
                             

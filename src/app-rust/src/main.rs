@@ -2,10 +2,10 @@
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use dioxus::desktop::{Config, WindowBuilder};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs;
-use dioxus_desktop::wry::http::{Request, Response, StatusCode}; 
-use std::borrow::Cow; 
+use dioxus_desktop::wry::http::{Request, Response, StatusCode};
+use std::borrow::Cow;
 
 mod pages {
     pub mod report;
@@ -26,11 +26,12 @@ mod utils {
 mod report_structures;
 mod manual_processor;
 
+// MODIFICAÇÃO: Importa o componente com o novo nome `ValidationPage`.
 use pages::report::ReportView;
 use pages::graph::GraphView;
 use pages::select_images::SelectImages;
 use pages::homepage::HomePage;
-use pages::validation_screen::ValidationScreen;
+use pages::validation_screen::ValidationPage;
 use manual_processor::ManualProcessor;
 use pages::create_project::NewProject;
 use pages::proccess::Process;
@@ -39,26 +40,20 @@ use pages::proccess::Process;
 fn main() {
     // Obter o diretório base do CARGO_MANIFEST_DIR
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let projects_root_dir = base_dir.join("Projects"); // Este será o diretório raiz para o protocolo
+    let projects_root_dir = base_dir.join("Projects");
 
     // Configurar o Dioxus Desktop
     dioxus::LaunchBuilder::desktop()
         .with_cfg(
             Config::new()
                 .with_window(WindowBuilder::new().with_resizable(true))
-                // Configura um protocolo personalizado 'project-image'
-                // para servir arquivos do diretório `projects_root_dir`.
                 .with_custom_protocol("project-image", move |request: Request<Vec<u8>>| {
                     let path_str = request.uri().path();
-                    // Remove a barra inicial para obter o caminho relativo correto.
                     let relative_to_projects = PathBuf::from(path_str.trim_start_matches('/'));
-                    // Constrói o caminho completo do arquivo no sistema de arquivos.
                     let full_path = projects_root_dir.join(&relative_to_projects);
 
-                    // Tenta ler o arquivo do sistema de arquivos.
                     match fs::read(&full_path) {
                         Ok(bytes) => {
-                            // Se a leitura for bem-sucedida, retorna a imagem com o tipo MIME correto.
                             Response::builder()
                                 .status(StatusCode::OK)
                                 .header("Content-Type", guess_mime_type(&full_path))
@@ -71,7 +66,6 @@ fn main() {
                                 })
                         }
                         Err(e) => {
-                            // Se houver um erro na leitura, imprime o erro e retorna um status NOT_FOUND.
                             eprintln!("Erro ao ler arquivo {}: {:?}", full_path.display(), e);
                             Response::builder()
                                 .status(StatusCode::NOT_FOUND)
@@ -89,7 +83,6 @@ fn main() {
         .launch(App);
 }
 
-// Função auxiliar para adivinhar o tipo MIME do arquivo com base na extensão.
 fn guess_mime_type(path: &PathBuf) -> &'static str {
     match path.extension().and_then(|s| s.to_str()) {
         Some("png") => "image/png",
@@ -99,7 +92,7 @@ fn guess_mime_type(path: &PathBuf) -> &'static str {
         Some("bmp") => "image/bmp",
         Some("webp") => "image/webp",
         Some("tiff") | Some("tif") => "image/tiff",
-        _ => "application/octet-stream", // Tipo genérico para o que não for reconhecido
+        _ => "application/octet-stream",
     }
 }
 
@@ -114,7 +107,6 @@ fn App() -> Element {
     }
 }
 
-// Define as rotas da aplicação.
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[route("/")]
@@ -138,6 +130,7 @@ pub enum Route {
     #[route("/processamento-manual")]
     ManualProcessor {project_name: String},
 
+    // MODIFICAÇÃO: A rota agora aponta para o componente renomeado `ValidationPage`.
     #[route("/validate")]
-    ValidationScreen {},
+    ValidationPage {},
 }

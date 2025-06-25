@@ -12,6 +12,7 @@ use crate::manual_processor::ManualProcessorProps;
 use crate::pages::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 use tokio;
+use crate::utils::file_manager::{Files, FileEntry};
 
 #[component]
 pub fn SelectImages() -> Element {
@@ -26,7 +27,6 @@ pub fn SelectImages() -> Element {
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
     rsx! {
-        // Replaced tailwind.css with styles.css
         document::Stylesheet { href: asset!("/assets/styles.css") }
         document::Link {
             href: "https://fonts.googleapis.com/icon?family=Material+Icons",
@@ -69,7 +69,7 @@ pub fn SelectImages() -> Element {
                     }
                     input {
                         class: "form-input",
-                        style: "max-width: 120px;", // Added style for smaller width
+                        style: "max-width: 120px;",
                         r#type: "number",
                         value: "{threshold()}",
                         min: "10",
@@ -88,6 +88,20 @@ pub fn SelectImages() -> Element {
                         disabled: is_processing() || folder_path().is_none(),
                         onclick: move |_| {
                             if let Some(path_str) = folder_path() {
+                                let project_name = match PROJECT_NAME.try_read() {
+                                    Ok(guard) => match guard.as_ref() {
+                                        Some(name) => name.clone(),
+                                        None => {
+                                            status.set("Erro: Nenhum projeto selecionado. Crie um projeto primeiro.".to_string());
+                                            return;
+                                        }
+                                    },
+                                    Err(_) => {
+                                        status.set("Erro crítico ao ler o nome do projeto.".to_string());
+                                        return;
+                                    }
+                                };
+
                                 is_processing.set(true);
                                 status.set("Processando imagens...".to_string());
 
@@ -96,7 +110,11 @@ pub fn SelectImages() -> Element {
                                 let path_clone_for_state = path_str.clone();
 
                                 spawn(async move {
-                                    let result = process_folder(&path_clone_for_processing, threshold_value);
+                                    let result = process_folder(
+                                        &path_clone_for_processing, 
+                                        threshold_value, 
+                                        &project_name
+                                    );
 
                                     match result {
                                         Ok(result_data) => {
@@ -106,7 +124,8 @@ pub fn SelectImages() -> Element {
                                                     result_data.images_with_gps, result_data.predio_groups));
                                                 processed_folder_signal.set(Some(PathBuf::from(path_clone_for_state)));
                                                 tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
-                                                navigator.push(AppRoute::ValidationScreen {});
+                                                // MODIFICAÇÃO: Navega para a rota renomeada.
+                                                navigator.push(AppRoute::ValidationPage {});
                                             } else {
                                                 status.set("Nenhuma imagem com GPS foi encontrada.".to_string());
                                                 processed_folder_signal.set(None);
@@ -197,7 +216,8 @@ pub fn SelectImages() -> Element {
                                                 let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
                                                 let detection_file = base_dir.join("Projects").join(project_name).join("detection_results.json");
                                                 if detection_file.exists() {
-                                                    navigator.push(AppRoute::ValidationScreen {});
+                                                    // MODIFICAÇÃO: Navega para a rota renomeada.
+                                                    navigator.push(AppRoute::ValidationPage {});
                                                 } else {
                                                     status.set("Erro: Resultados não encontrados. Execute o processamento de IA.".to_string());
                                                 }
@@ -228,7 +248,6 @@ pub fn SelectImages() -> Element {
     }
 }
 
-// NOTE: The `folders_popup` component was also updated to use the new style classes.
 fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
     let initial_path_from_state = processed_folder_signal.read().clone();
@@ -241,7 +260,6 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
 
     let mut new_folder_name = use_signal(String::new);
     let mut new_folder_description = use_signal(String::new);
-    // Corrected line:
     let mut show_new_folder_input = use_signal(|| false);
 
     let file_cards = files.read().path_names.iter().enumerate()
@@ -280,7 +298,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             i {
                 class: "material-icons icon-button",
                 onclick: move |_| files.write().go_up(),
-                "logout" // This icon probably means "go up" or "exit"
+                "logout"
             }
         }
 
@@ -331,7 +349,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
 
                 div { style: "display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;",
                     button {
-                        class: "btn-secondary", // Assuming a secondary button style exists
+                        class: "btn-secondary",
                         style: "border: none;",
                         onclick: move |_| {
                             show_new_folder_input.set(false);
@@ -376,145 +394,5 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             },
             "Selecionar Pasta Atual"
         }
-    }
-}
-
-// Helper function from folders.rs
-fn display_from_projects(path: &Path) -> Option<PathBuf> {
-    for ancestor in path.ancestors() {
-        if ancestor.file_name().map_or(false, |name| name == "projects") {
-            return path.strip_prefix(ancestor).ok().map(|p| p.to_path_buf());
-        }
-    }
-    None
-}
-
-// FileEntry and Files structs from folders.rs
-struct FileEntry {
-    path: PathBuf,
-    created: Option<String>,
-}
-
-struct Files {
-    base_path: PathBuf,
-    current_path: PathBuf,
-    path_names: Vec<FileEntry>,
-    err: Option<String>,
-}
-
-impl Files {
-    fn new(initial_path_option: Option<PathBuf>) -> Self {
-        let base_path = match initial_path_option {
-            Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
-        };
-
-        if let Err(e) = std::fs::create_dir_all(&base_path) {
-            eprintln!("Falha ao criar diretório base em Files::new: {} ({:?})", base_path.display(), e);
-        }
-
-        let current_path = base_path.clone();
-
-        let mut files_instance = Self {
-            base_path,
-            current_path,
-            path_names: vec![],
-            err: None,
-        };
-
-        files_instance.reload_path_list();
-        files_instance
-    }
-
-    fn update_base_path_if_different(&mut self, new_initial_path_option: Option<PathBuf>) {
-        let new_base_path = match new_initial_path_option {
-            Some(path) => path,
-            None => PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("projects"),
-        };
-
-        if self.base_path != new_base_path {
-            self.base_path = new_base_path.clone();
-            self.current_path = new_base_path;
-            if let Err(e) = std::fs::create_dir_all(&self.base_path) {
-                self.err = Some(format!("Falha ao criar novo diretório base {}: {:?}", self.base_path.display(), e));
-            } else {
-                self.err = None;
-            }
-            self.reload_path_list();
-        }
-    }
-
-    pub fn create_folder_with_description(&mut self, name: String, description: String) {
-        let path = self.current_path.join(&name);
-        if let Err(err) = std::fs::create_dir_all(&path) {
-            self.err = Some(format!("Erro ao criar pasta: {err}"));
-            return;
-        }
-
-        let desc_path = path.join("description.txt");
-        if let Err(err) = std::fs::write(&desc_path, description) {
-            self.err = Some(format!("Erro ao salvar descrição: {err}"));
-            return;
-        }
-
-        self.reload_path_list();
-    }
-
-    fn reload_path_list(&mut self) {
-        let paths = match std::fs::read_dir(&self.current_path) {
-            Ok(e) => e,
-            Err(err) => {
-                self.err = Some(format!("Erro ao ler diretório: {err:?}"));
-                return;
-            }
-        };
-
-        let collected = paths.collect::<Vec<_>>();
-        self.clear_err();
-        self.path_names.clear();
-
-        for entry in collected {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                let created = entry.metadata()
-                    .and_then(|m| m.created())
-                    .ok()
-                    .and_then(|time| {
-                        let datetime: DateTime<Local> = time.into();
-                        Some(datetime.format("%d/%m/%Y %H:%M").to_string())
-                    });
-
-                self.path_names.push(FileEntry { path, created });
-            }
-        }
-    }
-
-    fn go_up(&mut self) {
-        if self.current_path != self.base_path {
-            if let Some(parent) = self.current_path.parent() {
-                if parent.starts_with(&self.base_path) {
-                    self.current_path = parent.to_path_buf();
-                    self.reload_path_list();
-                }
-            }
-        }
-    }
-
-    fn enter_dir(&mut self, dir_id: usize) {
-        if let Some(entry) = self.path_names.get(dir_id) {
-            let path = &entry.path;
-            if path.is_dir() && path.starts_with(&self.base_path) {
-                self.current_path = path.clone();
-                self.reload_path_list();
-            }
-        }
-    }
-
-    fn current(&self) -> String {
-        self.current_path.display().to_string()
-    }
-
-    fn clear_err(&mut self) {
-        self.err = None;
     }
 }

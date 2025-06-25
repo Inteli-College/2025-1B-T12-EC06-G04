@@ -8,16 +8,9 @@ use dioxus_router::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-// --- Estrutura de metadados do projeto (pode ser movida para um módulo compartilhado no futuro) ---
-#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
-pub struct ProjectMetadata {
-    pub name: String,
-    pub description: String,
-    pub year: String,
-    pub leader: String,
-    pub structure_type: String,
-    pub observations: String,
-}
+// MODIFICAÇÃO: A struct é importada de create_project para manter uma fonte única.
+use crate::pages::create_project::{ProjectMetadata, ProjectStatus};
+
 
 // --- Structs for parsing detection_results.json ---
 #[derive(Deserialize, Debug, Clone)]
@@ -57,7 +50,7 @@ type HeatmapData = HashMap<String, HashMap<String, u32>>;
 
 // --- Error type for JSON reading ---
 #[derive(Debug)]
-enum JsonReadError {
+pub enum JsonReadError {
     Io(io::Error),
     Json(serde_json::Error),
     PathError(String),
@@ -89,8 +82,8 @@ fn sanitize_name(name: &str) -> String {
         .collect::<String>()
 }
 
-// --- NOVA FUNÇÃO: Ler metadados do projeto ---
-fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, JsonReadError> {
+// --- MODIFICAÇÃO: Tornada pública para ser usada em outros módulos (homepage) ---
+pub fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, JsonReadError> {
     let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Diretório 'Projects' não encontrado".to_string()))?;
     let meta_path = projects_dir.join(project_name).join("project_meta.json");
     
@@ -783,7 +776,6 @@ struct EditProjectModalProps {
 
 #[component]
 fn EditProjectModal(props: EditProjectModalProps) -> Element {
-    // CORREÇÃO: Clonar o project_name aqui para uso nos hooks e closures.
     let project_name_clone = props.project_name.clone();
 
     let initial_metadata = use_resource(move || {
@@ -800,6 +792,9 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
     let mut structure_type = use_signal(|| String::new());
     let mut observations = use_signal(|| String::new());
     let mut status_message = use_signal(String::new);
+    // ADIÇÃO: Sinal para manter o status atual, embora não seja editável pelo usuário.
+    let mut current_status = use_signal(ProjectStatus::default);
+
     
     use_effect(move || {
         if let Some(Ok(data)) = initial_metadata.read().as_ref() {
@@ -809,13 +804,14 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
             leader.set(data.leader.clone());
             structure_type.set(data.structure_type.clone());
             observations.set(data.observations.clone());
+            current_status.set(data.status.clone()); // Armazena o status atual
         }
     });
 
     let handle_save = move |_| {
-        // Usa o clone original feito no início do componente.
         let original_folder_name = props.project_name.clone();
         
+        // MODIFICAÇÃO: Inclui o status atual ao salvar.
         let new_metadata = ProjectMetadata {
             name: name(),
             description: description(),
@@ -823,6 +819,7 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
             leader: leader(),
             structure_type: structure_type(),
             observations: observations(),
+            status: current_status.read().clone(), // Re-salva o status que não foi alterado
         };
 
         let new_sanitized_name = sanitize_name(&new_metadata.name);

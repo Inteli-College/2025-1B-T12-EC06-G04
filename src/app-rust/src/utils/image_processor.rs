@@ -198,7 +198,7 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     
     // Primeiro tenta extrair GPS Position (que contém latitude e longitude juntos)
-    let re_gps_position = Regex::new(r#"GPS Position\s*:\s*(.+)"#).unwrap();
+    let re_gps_position = Regex::new(r#"GPS Position\s*:\s*(.+)"#)?;
     if let Some(caps) = re_gps_position.captures(&stdout) {
         if let Some(position_str) = caps.get(1) {
             // Tenta extrair latitude e longitude do GPS Position
@@ -217,10 +217,10 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
         }
     } else {
         // Se não encontrou GPS Position, tenta extrair latitude e longitude separadamente
-        let re_lat = Regex::new(r#"GPS Latitude\s*:\s*(.+)"#).unwrap();
-        let re_lon = Regex::new(r#"GPS Longitude\s*:\s*(.+)"#).unwrap();
-        let re_lat_ref = Regex::new(r#"GPS Latitude Ref\s*:\s*([NS])"#).unwrap();
-        let re_lon_ref = Regex::new(r#"GPS Longitude Ref\s*:\s*([EW])"#).unwrap();
+        let re_lat = Regex::new(r#"GPS Latitude\s*:\s*(.+)"#)?;
+        let re_lon = Regex::new(r#"GPS Longitude\s*:\s*(.+)"#)?;
+        let re_lat_ref = Regex::new(r#"GPS Latitude Ref\s*:\s*([NS])"#)?;
+        let re_lon_ref = Regex::new(r#"GPS Longitude Ref\s*:\s*([EW])"#)?;
 
         let mut lat_val: Option<f64> = None;
         let mut lon_val: Option<f64> = None;
@@ -269,7 +269,7 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
     }
 
     // Extrai GPSImgDirection
-    let re_direction = Regex::new(r#"GPS Img Direction\s*:\s*(.+)"#).unwrap();
+    let re_direction = Regex::new(r#"GPS Img Direction\s*:\s*(.+)"#)?;
     if let Some(caps) = re_direction.captures(&stdout) {
         if let Some(dir_str) = caps.get(1) {
             // Tenta converter para float
@@ -430,18 +430,16 @@ fn sanitize_filename(name: &str) -> String {
 }
 
 // Função principal de processamento (MODIFICADA SIGNIFICATIVAMENTE)
-pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
-    let project_name = match PROJECT_NAME.try_read() {
-        Ok(guard) => match &*guard {
-            Some(name) => name.clone(),
-            None => return Err(anyhow!("Nome do projeto não definido")),
-        },
-        Err(_) => return Err(anyhow!("Erro ao ler nome do projeto")),
-    };
+pub fn process_folder(
+    folder_path_str: &str, 
+    distance_threshold_meters: f64, 
+    project_name: &str
+) -> Result<ProcessingStats> {
 
     // Construct path relative to CARGO_MANIFEST_DIR (src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let images_base_path = base_dir.join("Projects").join(&project_name).join("images");
+    // A variável 'project_name' agora vem diretamente do argumento da função
+    let images_base_path = base_dir.join("Projects").join(project_name).join("images");
 
     let input_folder_path = Path::new(folder_path_str); // Path for input images
     let tag_map = nome_para_tag();

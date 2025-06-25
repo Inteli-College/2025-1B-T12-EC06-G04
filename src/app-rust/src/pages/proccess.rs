@@ -24,7 +24,20 @@ use crate::{
         run_yolo_script_and_parse_results
     }
 };
+use tokio::task;
+use tokio::time::{sleep, Duration};
+use dioxus::hooks::{use_coroutine, to_owned};
+use crate::pages::create_project::ProjectStatus;
+use crate::utils::file_manager::update_project_status;
 
+
+// Uma struct de mensagem para iniciar o processamento na coroutine
+#[derive(Clone)]
+struct ProcessRequest {
+    path: String,
+    threshold: f64,
+    project_name: String,
+}
 
 #[component]
 pub fn Process() -> Element {
@@ -35,6 +48,61 @@ pub fn Process() -> Element {
     let mut is_processing = use_signal(|| false);
     let mut is_selecting_folder = use_signal(|| false);
     let navigator = use_navigator();
+
+    let processor_coroutine = use_coroutine(move |mut rx: UnboundedReceiver<ProcessRequest>| {
+    to_owned![status, stats, is_processing, navigator];
+    async move {
+        while let Some(req) = rx.next().await {
+            status.set("Organizando imagens... (Isso pode demorar um pouco)".to_string());
+            
+            let project_name_for_thread = req.project_name.clone();
+
+            let blocking_result = task::spawn_blocking(move || {
+                process_folder(&req.path, req.threshold, &project_name_for_thread)
+            }).await;
+
+                match blocking_result {
+                    Ok(Ok(result_data)) => {
+                        stats.set(Some(result_data.clone()));
+                        if result_data.images_with_gps > 0 {
+                            status.set(format!("{} prédios encontrados. Iniciando análise de IA...", result_data.predio_groups));
+                            let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                            
+                            match run_yolo_script_and_parse_results(&req.project_name, status, &base_dir).await {
+                                Ok(analysis_results) => {
+                                    if let Err(e) = update_project_status(&req.project_name, ProjectStatus::ProcessingComplete) {
+                                        status.set(format!("Análise concluída, mas falha ao atualizar status: {}", e));
+                                    } else {
+                                        status.set(format!("Análise concluída! {} resultados.", analysis_results.len()));
+                                    }
+
+                                    sleep(Duration::from_secs(2)).await;
+                                    status.set("Redirecionando...".to_string());
+                                    sleep(Duration::from_secs(1)).await;
+                                    // MODIFICAÇÃO: Navega para a rota renomeada.
+                                    navigator.push(AppRoute::ValidationPage {});
+                                }
+                                Err(e) => {
+                                    status.set(format!("Erro na análise de IA: {}", e));
+                                }
+                            }
+                        } else {
+                            status.set("Concluído. Nenhuma imagem com GPS foi encontrada.".to_string());
+                            sleep(Duration::from_secs(2)).await;
+                            status.set("Redirecionando...".to_string());
+                            sleep(Duration::from_secs(1)).await;
+                            // MODIFICAÇÃO: Navega para a rota renomeada.
+                            navigator.push(AppRoute::ValidationPage {});
+                        }
+                    },
+                    Ok(Err(e)) => status.set(format!("Erro no processamento de pastas: {}", e)),
+                    Err(e) => status.set(format!("Erro crítico na thread de processamento: {}", e)),
+                };
+                
+                is_processing.set(false);
+            }
+        }
+    });
 
     let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
 
@@ -49,14 +117,6 @@ pub fn Process() -> Element {
         }
     });
 
-    let open_folders_window = move |_evt: MouseEvent| {
-        let tx = handle.tx();
-        dioxus::desktop::window().new_window(
-            VirtualDom::new_with_props(folders_popup, Rc::new(move |path| tx.unbounded_send(path).unwrap())),
-            Default::default(),
-        );
-    };
-
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles.css") }
         document::Link {
@@ -64,11 +124,23 @@ pub fn Process() -> Element {
             rel: "stylesheet"
         }
 
+        if is_processing() {
+            div {
+                style: "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; gap: 1.5rem;",
+                div { class: "spinner" }
+                p {
+                    style: "color: white; font-size: 1.2rem; font-family: 'Poppins', sans-serif;",
+                    "{status}"
+                }
+            }
+        }
+
+
         div {
-            div { 
+            div {
                 class: "container",
                 style: "max-width: 800px;",
-                
+
                 div {
                     style:"display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
@@ -80,7 +152,7 @@ pub fn Process() -> Element {
                 }
 
                 div { class: "card",
-                    
+
                     div { class: "input-group",
                         input {
                             class: "form-input",
@@ -92,7 +164,7 @@ pub fn Process() -> Element {
 
                         button {
                             class: "btn btn-primary",
-                            disabled: is_selecting_folder(),
+                            disabled: is_selecting_folder() || is_processing(),
                             onclick: move |_| {
                                 is_selecting_folder.set(true);
                                 spawn(async move {
@@ -109,7 +181,7 @@ pub fn Process() -> Element {
 
                     hr { class: "form-divider" }
 
-                    div { 
+                    div {
                         class: "form-group",
                         label { "Distância máxima entre imagens do mesmo prédio (metros):" }
                         input {
@@ -141,54 +213,30 @@ pub fn Process() -> Element {
                                 disabled: is_processing() || folder_path().is_none() || !project_name_available(),
                                 onclick: move |_| {
                                     if let Some(path_str) = folder_path() {
-                                        if !project_name_available() {
-                                            status.set("Erro: Crie um projeto antes de processar.".to_string());
-                                            return;
-                                        }
-                                        is_processing.set(true);
-                                        status.set("Processando imagens...".to_string());
-                                
-                                        let path_clone_for_processing = path_str.clone();
-                                        let threshold_value = threshold();
-                                        let project_name_clone = PROJECT_NAME.try_read().unwrap().clone().unwrap();
-                                
-                                        spawn(async move {
-                                            let result = process_folder(&path_clone_for_processing, threshold_value);
-                                            match result {
-                                                Ok(result_data) => {
-                                                    stats.set(Some(result_data.clone()));
-                                                    if result_data.images_with_gps > 0 {
-                                                        status.set(format!("Processamento de pastas concluído! {} imagens com GPS organizadas em {} prédios. Iniciando análise de IA...", 
-                                                        result_data.images_with_gps, result_data.predio_groups));
-
-                                                        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                                                        match run_yolo_script_and_parse_results(&project_name_clone, status, &base_dir).await {
-                                                            Ok(analysis_results) => {
-                                                                status.set(format!(
-                                                                    "Análise de IA concluída. {} conjunto(s) de resultados recebidos. Redirecionando para a homepage...",
-                                                                    analysis_results.len()
-                                                                ));
-                                                                navigator.push(AppRoute::ValidationScreen {});
-                                                            }
-                                                            Err(e) => {
-                                                                status.set(format!("Erro durante a análise de IA: {}", e));
-                                                            }
-                                                        }
-                                                    }
-                                                    else {
-                                                        status.set("Processamento concluído, mas nenhuma imagem com GPS foi encontrada. Redirecionando para a homepage...".to_string());
-                                                        navigator.push(AppRoute::ValidationScreen {});
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    status.set(format!("Erro no processamento de pastas: {}", e));
-                                                }
+                                        let project_name_guard = match PROJECT_NAME.try_read() {
+                                            Ok(guard) => guard,
+                                            Err(_) => {
+                                                status.set("Erro: Não foi possível acessar o nome do projeto. Tente novamente.".to_string());
+                                                return;
                                             }
-                                            is_processing.set(false);
+                                        };
+
+                                        let project_name = match project_name_guard.as_ref() {
+                                            Some(name) => name.clone(),
+                                            None => {
+                                                status.set("Erro: Nome do projeto é inválido.".to_string());
+                                                return;
+                                            }
+                                        };
+
+                                        is_processing.set(true);
+                                        status.set("Iniciando processamento...".to_string());
+
+                                        processor_coroutine.send(ProcessRequest {
+                                            path: path_str,
+                                            threshold: threshold(),
+                                            project_name: project_name
                                         });
-                                    } 
-                                    else {
-                                        status.set("Erro: Selecione uma pasta de imagens primeiro.".to_string());
                                     }
                                 },
                                     i { class: "material-icons", "sync" }
@@ -215,13 +263,10 @@ pub fn Process() -> Element {
                         }
                     }
 
-                    if is_processing() {
-                        p { class: "status-message info", "Carregando... Por favor, aguarde." }
-                    }
-                    if !status.read().is_empty() {
+                    if !is_processing() && !status.read().is_empty() {
                         p { class: "status-message info", "{status}" }
                     }
-                    
+
                     if let Some(stats_data) = stats.read().as_ref() {
                         div { class: "card", style: "background: #f8f9fa;",
                             h2 { style: "font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;", "Estatísticas" }
@@ -244,8 +289,7 @@ pub fn Process() -> Element {
 
                         if !is_processing() && stats_data.images_with_gps > 0 {
                             div { class: "text-center",
-                            
-                                // Botão para validação só aparece se o arquivo detection_results.json existir
+
                                 {
                                     let project_name = PROJECT_NAME.try_read().ok().and_then(|guard| guard.clone());
                                     if let Some(name) = project_name {
@@ -253,9 +297,10 @@ pub fn Process() -> Element {
                                         let detection_file = base_dir.join("Projects").join(&name).join("detection_results.json");
                                         if detection_file.exists() {
                                             rsx! {
+                                                // MODIFICAÇÃO: Link para a rota renomeada.
                                                 Link {
-                                                    to: AppRoute::ValidationScreen {},
-                                                    button { 
+                                                    to: AppRoute::ValidationPage {},
+                                                    button {
                                                         class: "btn btn-primary",
                                                         i { class: "material-icons", "verified" }
                                                         "Validar Resultados da IA"
@@ -263,9 +308,9 @@ pub fn Process() -> Element {
                                                 }
                                             }
                                         } else {
-                                            rsx! { 
-                                                p { class: "text-gray-600 text-sm italic", 
-                                                    "Processamento de IA ainda não concluído" 
+                                            rsx! {
+                                                p { class: "text-gray-600 text-sm italic",
+                                                    "Processamento de IA ainda não concluído"
                                                 }
                                             }
                                         }
@@ -282,11 +327,12 @@ pub fn Process() -> Element {
     }
 }
 
+// O componente folders_popup permanece o mesmo
 fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
     let initial_path_from_state = processed_folder_signal.read().clone();
     let mut files = use_signal(|| Files::new(initial_path_from_state));
-    
+
     use_effect(move || {
         let new_path = processed_folder_signal.read().clone();
         files.write().update_base_path_if_different(new_path);
@@ -360,9 +406,9 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
             if *show_new_folder_input.read() {
                 div {
                     class: "fixed bottom-24 right-6 bg-white border shadow-lg rounded-lg p-4 flex flex-col gap-2 w-80 max-w-full z-50",
-    
+
                     h2 { class: "text-lg font-semibold text-gray-800", "Novo Projeto" }
-    
+
                     input {
                         class: "border rounded px-3 py-2 w-full",
                         r#type: "text",
@@ -378,7 +424,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
                         value: "{new_folder_description.read()}",
                         oninput: move |e| new_folder_description.set(e.value())
                     }
-    
+
                     div { class: "flex justify-end gap-2 mt-2",
                         button {
                             style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
@@ -396,7 +442,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
                             onclick: move |_| {
                                 let name = new_folder_name.read().trim().to_string();
                                 let description = new_folder_description.read().trim().to_string();
-    
+
                                 if !name.is_empty() {
                                     files.write().create_folder_with_description(name.clone(), description.clone());
                                     new_folder_name.set(String::new());
@@ -409,7 +455,7 @@ fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
                     }
                 }
             }
-    
+
             button {
                 style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
                 class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
