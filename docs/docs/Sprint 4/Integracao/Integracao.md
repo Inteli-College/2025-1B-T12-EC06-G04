@@ -3,10 +3,6 @@ title: Integração entre Python e Rust
 sidebar_position: 0
 ---
 
----
-title: Integração entre Python e Rust
-sidebar_position: 0
----
 
 import Admonition from '@theme/Admonition';
 
