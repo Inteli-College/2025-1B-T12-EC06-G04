@@ -12,9 +12,9 @@ title: Teste de Requisitos e de Usabilidade
 
 <div align="center">
 
-  <sub>Figura 1 - Testes com Cliente (Parte 1)  </sub>
+  <sub>Figura 1 - Testes com Estudantes Contextualizados Sobre as Necessidades do Parceiro</sub>
 
-  ![Tela Inicial](../../static/img/testeusuario1.jpeg)
+  ![Tela Inicial](../../static/img/testeLarissa.jpeg)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -22,9 +22,9 @@ title: Teste de Requisitos e de Usabilidade
 
 <div align="center">
 
-  <sub>Figura 1 - Testes com Cliente (Parte 1)  </sub>
+  <sub>Figura 2 - Testes com Estudantes com o Mesmo Projeto</sub>
 
-  ![Tela Inicial](../../static/img/testeusuario1.jpeg)
+  ![Tela Inicial](../../static/img/testeVitoria.jpeg)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
