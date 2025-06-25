@@ -95,7 +95,7 @@ pub fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, Json
 }
 
 // --- NOVA FUNÇÃO: Salvar metadados do projeto ---
-fn save_project_metadata(project_folder_name: &str, metadata: &ProjectMetadata) -> Result<(), io::Error> {
+pub fn save_project_metadata(project_folder_name: &str, metadata: &ProjectMetadata) -> Result<(), io::Error> {
     if let Some(projects_dir) = get_projects_dir() {
         let project_path = projects_dir.join(project_folder_name);
         let metadata_path = project_path.join("project_meta.json");

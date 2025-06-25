@@ -5,6 +5,8 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
 use crate::Route;
+use crate::pages::graph::{read_project_metadata, save_project_metadata}; // Importe as funções
+use crate::pages::create_project::ProjectStatus; // Importe o enum de Status
 
 // Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
@@ -143,27 +145,49 @@ pub fn ValidationPage() -> Element {
     let toggle_incorrect = move |_| { if has_images { let idx = *current_image_index.read(); let mut data = validation_data.write(); if idx < data.len() { data[idx].is_incorrect = !data[idx].is_incorrect; } } };
 
     let mut confirm_validation = move || {
-        spawn(async move {
-            let project_name_for_save = project_display_name.read().clone().unwrap_or_else(|| "unknown_project".to_string());
-            let data = validation_data.read();
-            let incorrect_images: Vec<String> = data.iter().filter(|img| img.is_incorrect).map(|img| img.path.clone()).collect();
-            let results = ValidationResults {
-                total_images: data.len(),
-                incorrect_images,
-                validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-                project_name: project_name_for_save.clone(),
-            };
-            match salvar_resultados_validacao(&project_name_for_save, &results) {
-                Ok(_) => {
-                    status_message.set("Validação salva com sucesso!".to_string());
-                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    navigator.push(Route::HomePage {});
+    spawn(async move {
+        let project_name_for_save = project_folder_name.read().clone().unwrap_or_else(|| "unknown_project".to_string());
+        let data = validation_data.read();
+        let incorrect_images: Vec<String> = data.iter().filter(|img| img.is_incorrect).map(|img| img.path.clone()).collect();
+        let results = ValidationResults {
+            total_images: data.len(),
+            incorrect_images,
+            validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            project_name: project_display_name.read().clone().unwrap_or_default(),
+        };
+
+        // 1. Salva os resultados da validação
+        match salvar_resultados_validacao(&project_name_for_save, &results) {
+            Ok(_) => {
+                // 2. Tenta ler e atualizar os metadados do projeto
+                match read_project_metadata(&project_name_for_save) {
+                    Ok(mut metadata) => {
+                        // 3. Atualiza o status
+                        metadata.status = ProjectStatus::ValidationComplete;
+
+                        // 4. Salva os metadados atualizados
+                        if let Err(e) = save_project_metadata(&project_name_for_save, &metadata) {
+                            status_message.set(format!("Erro ao atualizar status do projeto: {}", e));
+                            return; // Sai se não conseguir salvar
+                        }
+                        
+                        // 5. Sucesso! Navega para a página de gráficos
+                        status_message.set("Validação salva com sucesso!".to_string());
+                        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                        navigator.push(Route::GraphView { project_name: project_name_for_save });
+                    }
+                    Err(_) => {
+                        status_message.set("Erro: Não foi possível ler os metadados para atualizar o status.".to_string());
+                    }
                 }
-                Err(e) => { status_message.set(format!("Erro ao salvar validação: {}", e)); }
             }
-        });
-        show_confirmation_dialog.set(false);
-    };
+            Err(e) => {
+                status_message.set(format!("Erro ao salvar validação: {}", e));
+            }
+        }
+    });
+    show_confirmation_dialog.set(false);
+};
 
     let attempt_confirm = move |_| { if validation_data.read().iter().all(|img| img.has_been_viewed) { confirm_validation(); } else { show_confirmation_dialog.set(true); } };
     let close_dialog = move |_| { show_confirmation_dialog.set(false); };
