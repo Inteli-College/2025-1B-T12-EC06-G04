@@ -3,11 +3,8 @@ use dioxus_router::prelude::*;
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use crate::pages::create_project::PROJECT_NAME;
+use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
 use crate::Route;
-use crate::pages::create_project::ProjectStatus;
-use crate::utils::file_manager::update_project_status;
-
 
 // Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
@@ -71,6 +68,7 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
     Ok(())
 }
 
+/// Componente principal da tela de validação.
 #[component]
 pub fn ValidationPage() -> Element {
     let navigator = use_navigator();
@@ -87,27 +85,31 @@ pub fn ValidationPage() -> Element {
     });
 
     use_effect(move || {
-        let projects_root_dir_for_strip = projects_root_dir_signal.clone();
+        let projects_root_dir_for_strip = projects_root_dir_signal.clone(); 
         spawn(async move {
             match PROJECT_NAME.try_read() {
                 Ok(project_name_guard) => {
-                    if let Some(p_name) = &*project_name_guard {
-                        project_display_name.set(Some(p_name.clone()));
-                        project_folder_name.set(Some(p_name.clone()));
+                    if let Some(absolute_project_path_str) = &*project_name_guard { 
+                        let absolute_project_path_buf = PathBuf::from(absolute_project_path_str);
+                        let p_name_only = absolute_project_path_buf.file_name()
+                                                     .and_then(|os_str| os_str.to_str())
+                                                     .map(|s| s.to_string());
+                        project_display_name.set(p_name_only.clone()); 
+                        project_folder_name.set(p_name_only.clone());
 
-                        match carregar_dados_deteccao(p_name) {
+                        match carregar_dados_deteccao(p_name_only.unwrap_or_default().as_str()) {
                             Ok(data) => {
                                 let validation_states: Vec<ImageValidationState> = data.into_iter().filter_map(|img| {
                                     let full_image_path_from_json = PathBuf::from(&img.path);
                                     let projects_root_dir_val = projects_root_dir_for_strip.read();
                                     let relative_image_path = if full_image_path_from_json.is_absolute() {
-                                        let base_projects_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects");
-                                        full_image_path_from_json.strip_prefix(base_projects_dir).ok().and_then(|p| p.to_str()).map(|s| s.to_string())
+                                        let stripped = full_image_path_from_json.strip_prefix(&*projects_root_dir_val);
+                                        stripped.ok().and_then(|p| p.to_str()).map(|s| s.to_string())
                                     } else {
-                                        Some(img.path.clone())
+                                        Some(img.path.clone()) 
                                     };
                                     relative_image_path.map(|rel_path| ImageValidationState {
-                                        path: rel_path.strip_prefix(p_name).unwrap_or(&rel_path).trim_start_matches(['/', '\\']).to_string(),
+                                        path: rel_path,
                                         fissuras: img.fissura,
                                         is_incorrect: false,
                                         has_been_viewed: false,
@@ -118,9 +120,9 @@ pub fn ValidationPage() -> Element {
                             }
                             Err(e) => { error_message.set(e); loading.set(false); }
                         }
-                    } else { error_message.set("Nome do projeto não encontrado no estado global.".to_string()); loading.set(false); }
+                    } else { error_message.set("Caminho do projeto não encontrado".to_string()); loading.set(false); }
                 }
-                Err(_) => { error_message.set("Erro ao acessar nome do projeto (GlobalSignal)".to_string()); loading.set(false); }
+                Err(_) => { error_message.set("Erro ao acessar caminho do projeto (GlobalSignal)".to_string()); loading.set(false); }
             }
         });
     });
@@ -139,31 +141,23 @@ pub fn ValidationPage() -> Element {
     let next_image = move |_| { if current_image_index() < total_images - 1 { current_image_index.set(current_image_index() + 1); } };
     let previous_image = move |_| { if current_image_index() > 0 { current_image_index.set(current_image_index() - 1); } };
     let toggle_incorrect = move |_| { if has_images { let idx = *current_image_index.read(); let mut data = validation_data.write(); if idx < data.len() { data[idx].is_incorrect = !data[idx].is_incorrect; } } };
-    
-    // MODIFICAÇÃO: A closure `confirm_validation` é declarada como `mut` e a lógica foi simplificada.
+
     let mut confirm_validation = move || {
         spawn(async move {
-            let project_name_for_save = project_folder_name.read().clone().unwrap_or_else(|| "unknown_project".to_string());
+            let project_name_for_save = project_display_name.read().clone().unwrap_or_else(|| "unknown_project".to_string());
             let data = validation_data.read();
             let incorrect_images: Vec<String> = data.iter().filter(|img| img.is_incorrect).map(|img| img.path.clone()).collect();
-            
             let results = ValidationResults {
                 total_images: data.len(),
                 incorrect_images,
                 validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
                 project_name: project_name_for_save.clone(),
             };
-
             match salvar_resultados_validacao(&project_name_for_save, &results) {
                 Ok(_) => {
-                    if let Err(e) = update_project_status(&project_name_for_save, ProjectStatus::ValidationComplete) {
-                        status_message.set(format!("Validação salva, mas erro ao atualizar status: {}", e));
-                    } else {
-                        status_message.set("Validação salva com sucesso!".to_string());
-                    }
-
+                    status_message.set("Validação salva com sucesso!".to_string());
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    navigator.push(Route::GraphView { project_name: project_name_for_save });
+                    navigator.push(Route::HomePage {});
                 }
                 Err(e) => { status_message.set(format!("Erro ao salvar validação: {}", e)); }
             }

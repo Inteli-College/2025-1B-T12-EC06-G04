@@ -1,3 +1,5 @@
+// proccess.rs
+
 use dioxus::prelude::*;
 use dioxus_router::prelude::use_navigator;
 use crate::Route;
@@ -140,6 +142,19 @@ pub fn Process() -> Element {
             div {
                 class: "container",
                 style: "max-width: 800px;",
+
+                // BOTÃO ADICIONADO AQUI
+                div {
+                    style: "margin-bottom: 2rem;",
+                    button {
+                        class: "btn btn-secondary",
+                        onclick: move |_| {
+                            navigator.push(Route::HomePage {});
+                        },
+                        i { class: "material-icons", "arrow_back" }
+                        "Voltar ao Início"
+                    }
+                }
 
                 div {
                     style:"display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem;",
