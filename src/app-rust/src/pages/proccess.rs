@@ -220,7 +220,8 @@ pub fn Process() -> Element {
                     }
 
                     div {
-                        class: "d-flex gap-6 justify-center items-center mt-6",
+                        class: "flex",
+                        style: "gap: 1.5rem; display: flex; flex-direction: row; justify-content: space-between;",
                             button {
                                 class:"btn btn-primary",
                                 style: "flex: 1; font-size: 1rem;",
@@ -257,10 +258,11 @@ pub fn Process() -> Element {
                                     if is_processing() { "Processando..." } else { "Automático" }
                             }
 
-                            div { class: "flex-col items-center",
-                            div { style:"border-left: 1px solid var(--border-color); height: 20px;" }
-                            p { class: "text-gray-600 text-sm", "OU" }
-                            div { style:"border-left: 1px solid var(--border-color); height: 20px;" }
+                        div {
+                            style:"display: flex; flex-direction: column; justify-content: center; align-items: center;",
+                            div { style:"border-left: 1px solid #ccc; height: 24px;" }
+                            p { style:"color: #888; margin: 4px 0;" }
+                            div { style:"border-left: 1px solid #ccc; height: 24px;" }
                         }
                         Link {
                             to: Route::ManualProcessor {

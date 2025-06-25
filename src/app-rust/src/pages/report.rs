@@ -198,17 +198,17 @@ pub fn ReportView(props: ReportViewProps) -> Element {
 
         body {
             header {
-                class: "page-header d-flex justify-center items-center gap-4", // Usando classes utilitárias
+                class: "page-header",
+                style: "justify-content: center;",
                 i { class: "material-icons", "description" }
-                h1 { "Relatório de Inspeção" }
+                h1 { "Relatório de Inspeção - 14 BIS" }
             }
-            div { 
-                class: "container py-8",
-                main {
+            main {
                 class: "container",
                 div {
                     class: "report-button-bar",
                     
+                    // MODIFICAÇÃO AQUI
                     Link {
                         to: Route::GraphView { project_name: props.project_name.clone() },
                         class: "btn btn-secondary",

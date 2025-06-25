@@ -442,7 +442,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
 
                     div { class: "mt-6 space-y-4",
                         if !status().is_empty() {
-                            p { class: "status-message info", "{status()}" }
+                            p { class: "status-message info text-center", "{status()}" }
                         }
                         
                         div { class: "d-flex justify-end gap-4",

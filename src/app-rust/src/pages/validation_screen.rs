@@ -180,10 +180,10 @@ pub fn ValidationPage() -> Element {
     if !error_message().is_empty() {
         return rsx! {
             div { class: "status-screen-container",
-                div { class: "card text-center",
+                div { class: "status-card",
                     i { class: "material-icons status-card-icon text-red", "error_outline" }
                     h2 { class: "text-xl font-bold text-gray-800 mb-4", "Erro ao Carregar Dados" }
-                    p { class: "status-message error", "{error_message()}" }
+                    p { class: "text-gray-600 mb-6", "{error_message()}" }
                     button {
                         class: "btn btn-primary",
                         onclick: move |_| navigator.go_back(),
@@ -332,7 +332,9 @@ pub fn ValidationPage() -> Element {
                                 button { class: "btn btn-secondary w-full", onclick: move |_| navigator.go_back(), "Cancelar e Voltar" }
                             }
                             if !status_message().is_empty() {
-                                p { class: "status-message info mt-4", "{status_message()}" }
+                                div { class: "status-box info",
+                                    p { class: "status-box-text", "{status_message()}" }
+                                }
                             }
                         }
                     }
