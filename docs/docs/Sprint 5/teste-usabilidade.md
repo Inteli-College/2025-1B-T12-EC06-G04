@@ -1,3 +1,7 @@
+---
+title: Teste de Requisitos e de Usabilidade 
+---
+
 # Documentação de Testes de Usabilidade — Sprint 5
 
 ## Teste de Usabilidade com o Colegas da faculdade
@@ -10,7 +14,7 @@
 
   <sub>Figura 1 - Testes com Cliente (Parte 1)  </sub>
 
-  ![Tela Inicial](../../../static/img/testeusuario1.jpeg)
+  ![Tela Inicial](../../static/img/testeusuario1.jpeg)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
@@ -20,7 +24,7 @@
 
   <sub>Figura 1 - Testes com Cliente (Parte 1)  </sub>
 
-  ![Tela Inicial](../../../static/img/testeusuario1.jpeg)
+  ![Tela Inicial](../../static/img/testeusuario1.jpeg)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
