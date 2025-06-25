@@ -3,6 +3,40 @@
 version = 4
 
 [[package]]
+name = "Group_14_bis"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "csv",
+ "dioxus",
+ "dioxus-desktop",
+ "dioxus-router",
+ "env_logger",
+ "futures",
+ "futures-util",
+ "handlebars",
+ "home",
+ "kamadak-exif",
+ "log",
+ "markdown_to_text",
+ "notify",
+ "num-traits",
+ "open",
+ "printpdf",
+ "pulldown-cmark 0.9.6",
+ "rand 0.8.5",
+ "regex",
+ "rfd 0.12.1",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "walkdir",
+ "web-sys",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1641,40 +1675,6 @@ checksum = "38e2275cc4e4fc009b0669731a1e5ab7ebf11f469eaede2bab9309a5b4d6057f"
 dependencies = [
  "memoffset",
  "rustc_version 0.4.1",
-]
-
-[[package]]
-name = "file-explorer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "csv",
- "dioxus",
- "dioxus-desktop",
- "dioxus-router",
- "env_logger",
- "futures",
- "futures-util",
- "handlebars",
- "home",
- "kamadak-exif",
- "log",
- "markdown_to_text",
- "notify",
- "num-traits",
- "open",
- "printpdf",
- "pulldown-cmark 0.9.6",
- "rand 0.8.5",
- "regex",
- "rfd 0.12.1",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "walkdir",
- "web-sys",
 ]
 
 [[package]]
