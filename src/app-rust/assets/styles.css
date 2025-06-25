@@ -113,6 +113,31 @@ a {
 }
 
 /* --- COMPONENTES: BOTÕES --- */
+
+.btn-info {
+    background-color: var(--primary-blue);
+    color: var(--text-light);
+    border-color: var(--primary-blue);
+}
+.btn-info:hover {
+    background-color: var(--primary-blue-darker);
+    border-color: var(--primary-blue-darker);
+}
+
+.btn-danger:hover {
+    background-color: #a93a3a;
+}
+
+.btn-neutral {
+    background-color: var(--gray-600);
+    color: var(--text-light);
+    border-color: var(--gray-600);
+}
+.btn-neutral:hover {
+    background-color: var(--gray-800);
+    border-color: var(--gray-800);
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -257,6 +282,75 @@ a {
 }
 
 /* --- PÁGINA: HOMEPAGE (PASTAS) --- */
+
+.page-header {
+    /* Altera o alinhamento para centralizar o conteúdo principal */
+    justify-content: center;
+    text-align: center;
+}
+
+/* 2. Novo Estilo para a Barra de Pesquisa */
+.controls-bar .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 350px; /* Largura ajustável */
+    max-width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--gray-500);
+    pointer-events: none; /* Permite clicar "através" do ícone */
+    transition: color 0.2s ease;
+}
+
+/* Remove estilos antigos e adiciona novos */
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.75rem; /* Padding esquerdo para o ícone */
+    border-radius: 8px; /* Bordas mais arredondadas */
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-light);
+    font-size: 1rem;
+    transition: all 0.2s var(--transition-curve);
+}
+
+/* Melhora o efeito de foco */
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(58, 90, 156, 0.15);
+}
+
+/* Faz o ícone ficar azul quando o input está focado */
+.search-input:focus + .search-icon,
+.search-container:focus-within .search-icon {
+    color: var(--primary-blue);
+}
+
+/* 3. Animação para a Aparição dos Filtros */
+@keyframes slideDownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    /* Aplica a animação */
+    animation: slideDownFadeIn 0.3s var(--transition-curve) forwards;
+}
+
 .controls-bar {
     display: flex;
     flex-wrap: wrap;
@@ -616,6 +710,7 @@ a {
 .mx-auto { margin-left: auto; margin-right: auto; }
 .mb-4 { margin-bottom: 1rem; }
 .mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2.5rem; }
 .p-6 { padding: 1.5rem; }
 .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
 .py-4 { padding-top: 1rem; padding-bottom: 1rem; }

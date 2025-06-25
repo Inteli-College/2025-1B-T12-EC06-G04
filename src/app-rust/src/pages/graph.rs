@@ -597,42 +597,38 @@ pub fn GraphView(props: GraphViewProps) -> Element {
 
                     div {
                         class: "d-flex justify-between items-center w-full mb-8 flex-wrap gap-4",
-                        div {
-                            class: "d-flex",
-                            button {
-                                class: "btn btn-secondary",
-                                onclick: move |_| { navigator.push(Route::HomePage {}); },
-                                i { class: "material-icons", "arrow_back" }
-                                "Voltar ao Início"
-                            }
+                        button {
+                            class: "btn btn-neutral",
+                            onclick: move |_| { navigator.push(Route::HomePage {}); },
+                            i { class: "material-icons", "arrow_back" }
+                            "Voltar ao Início"
                         }
                         
-                        div {
-                            class: "d-flex gap-4",
+                        button {
+                            class: "btn btn-info",
+                            onclick: move |_| show_edit_modal.set(true),
+                            i { class: "material-icons", "edit" }
+                            "Editar Projeto"
+                        }
+
+                        button {
+                            class: "btn btn-danger",
+                            onclick: move |_| show_delete_modal.set(true),
+                            i { class: "material-icons", "delete" }
+                            "Excluir Projeto"
+                        }
+
+                        if let Some(building_name) = report_target_building {
                             button {
-                                class: "btn btn-secondary",
-                                onclick: move |_| show_edit_modal.set(true),
-                                i { class: "material-icons", "edit" }
-                                "Editar Projeto"
-                            }
-                            button {
-                                class: "btn btn-danger",
-                                onclick: move |_| show_delete_modal.set(true),
-                                i { class: "material-icons", "delete" }
-                                "Excluir Projeto"
-                            }
-                            if let Some(building_name) = report_target_building {
-                                button {
-                                    class: "btn btn-primary",
-                                    onclick: move |_| {
-                                        navigator.push(Route::ReportView { 
-                                            project_name: project_name_for_button.clone(), 
-                                            building_name: building_name.clone() 
-                                        });
-                                    },
-                                    "Visualizar Relatório"
-                                    i { class: "material-icons", "arrow_forward" }
-                                }
+                                class: "btn btn-neutral",
+                                onclick: move |_| {
+                                    navigator.push(Route::ReportView { 
+                                        project_name: project_name_for_button.clone(), 
+                                        building_name: building_name.clone() 
+                                    });
+                                },
+                                i { class: "material-icons", "arrow_forward" }
+                                "Visualizar Relatório"
                             }
                         }
                     }
