@@ -166,14 +166,6 @@ pub fn NewProject() -> Element {
         });
     };
 
-    let handle_back = move |_| {
-        if let Some(path) = project_path() {
-            if let Err(e) = std::fs::remove_dir_all(&path) {
-                eprintln!("Erro ao remover pasta: {}", e);
-            }
-        }
-    };
-
     let handle_image_upload = move |_| {
         if let Some(path) = project_path() {
             let images_dir = path.join("images");
@@ -200,6 +192,16 @@ pub fn NewProject() -> Element {
                 class: "container",
                 style: "max-width: 700px;",
 
+                // BOTÃO DE VOLTAR MODIFICADO
+                Link {
+                    to: Route::HomePage {},
+                    class: "btn btn-secondary",
+                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem; display: flex; align-items: center; gap: 0.5rem;",
+                    title: "Voltar para a página inicial",
+                    i { class: "material-icons", "arrow_back" }
+                    "Voltar ao Início"
+                }
+
                 div {
                     style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
@@ -208,15 +210,6 @@ pub fn NewProject() -> Element {
                         "Criar Novo Projeto"
                     },
                     hr { class: "form-divider", style: "flex-grow: 1;" },
-                }
-                
-                Link {
-                    to: Route::HomePage {},
-                    class: "btn btn-danger",
-                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem;",
-                    onclick: handle_back,
-                    title: "Voltar para a página inicial",
-                    i { class: "material-icons", "arrow_back" }
                 }
 
                 div { 

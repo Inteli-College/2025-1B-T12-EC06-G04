@@ -1,29 +1,20 @@
-// proccess.rs
-
 use dioxus::prelude::*;
 use dioxus_router::prelude::use_navigator;
 use crate::Route;
 use dioxus_router::prelude::Link;
 use rfd::AsyncFileDialog;
 use futures_util::StreamExt;
-use chrono::{DateTime, Local};
 use std::{
     path::PathBuf,
-    rc::Rc,
+    fs, // MODIFICAÇÃO: Adicionado para manipulação de arquivos.
 };
 use crate::{
     utils::image_processor::{process_folder, ProcessingStats},
     Route as AppRoute,
     pages::create_project::PROJECT_NAME,
-    utils::file_manager::{
-        display_from_projects,
-        Files,
-        FileEntry,
-    },
     manual_processor::{
-        ManualProcessor,
-        ManualProcessorProps,
-        run_yolo_script_and_parse_results
+        run_yolo_script_and_parse_results,
+        ImageAnalysisResult, // MODIFICAÇÃO: Importado para usar no salvamento.
     }
 };
 use tokio::task;
@@ -32,13 +23,30 @@ use dioxus::hooks::{use_coroutine, to_owned};
 use crate::pages::create_project::ProjectStatus;
 use crate::utils::file_manager::update_project_status;
 
-
-// Uma struct de mensagem para iniciar o processamento na coroutine
 #[derive(Clone)]
 struct ProcessRequest {
     path: String,
     threshold: f64,
     project_name: String,
+}
+
+// MODIFICAÇÃO: Função auxiliar para salvar os resultados, semelhante à do manual_processor.
+// Como esta lógica é necessária em ambos os locais, o ideal seria movê-la para um módulo de utilitários compartilhado.
+// Por enquanto, replicamos aqui para simplicidade.
+fn save_detection_results_for_auto(
+    project_name: &str,
+    results: &Vec<ImageAnalysisResult>
+) -> Result<(), String> {
+    let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let results_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
+
+    let json_content = serde_json::to_string_pretty(results)
+        .map_err(|e| format!("Erro ao serializar resultados da detecção: {}", e))?;
+
+    fs::write(&results_path, json_content)
+        .map_err(|e| format!("Erro ao salvar arquivo de resultados da detecção ({}): {}", results_path.display(), e))?;
+
+    Ok(())
 }
 
 #[component]
@@ -52,16 +60,16 @@ pub fn Process() -> Element {
     let navigator = use_navigator();
 
     let processor_coroutine = use_coroutine(move |mut rx: UnboundedReceiver<ProcessRequest>| {
-    to_owned![status, stats, is_processing, navigator];
-    async move {
-        while let Some(req) = rx.next().await {
-            status.set("Organizando imagens... (Isso pode demorar um pouco)".to_string());
-            
-            let project_name_for_thread = req.project_name.clone();
+        to_owned![status, stats, is_processing, navigator];
+        async move {
+            while let Some(req) = rx.next().await {
+                status.set("Organizando imagens... (Isso pode demorar um pouco)".to_string());
 
-            let blocking_result = task::spawn_blocking(move || {
-                process_folder(&req.path, req.threshold, &project_name_for_thread)
-            }).await;
+                let project_name_for_thread = req.project_name.clone();
+
+                let blocking_result = task::spawn_blocking(move || {
+                    process_folder(&req.path, req.threshold, &project_name_for_thread)
+                }).await;
 
                 match blocking_result {
                     Ok(Ok(result_data)) => {
@@ -72,16 +80,22 @@ pub fn Process() -> Element {
                             
                             match run_yolo_script_and_parse_results(&req.project_name, status, &base_dir).await {
                                 Ok(analysis_results) => {
+                                    // MODIFICAÇÃO: Salva os resultados em um arquivo JSON.
+                                    if let Err(e) = save_detection_results_for_auto(&req.project_name, &analysis_results) {
+                                        status.set(format!("Erro Crítico: Falha ao salvar resultados da análise: {}", e));
+                                        is_processing.set(false);
+                                        return;
+                                    }
+
                                     if let Err(e) = update_project_status(&req.project_name, ProjectStatus::ProcessingComplete) {
                                         status.set(format!("Análise concluída, mas falha ao atualizar status: {}", e));
                                     } else {
-                                        status.set(format!("Análise concluída! {} resultados.", analysis_results.len()));
+                                        status.set(format!("Análise concluída e salva! {} resultados.", analysis_results.len()));
                                     }
 
                                     sleep(Duration::from_secs(2)).await;
                                     status.set("Redirecionando...".to_string());
                                     sleep(Duration::from_secs(1)).await;
-                                    // MODIFICAÇÃO: Navega para a rota renomeada.
                                     navigator.push(AppRoute::ValidationPage {});
                                 }
                                 Err(e) => {
@@ -93,7 +107,7 @@ pub fn Process() -> Element {
                             sleep(Duration::from_secs(2)).await;
                             status.set("Redirecionando...".to_string());
                             sleep(Duration::from_secs(1)).await;
-                            // MODIFICAÇÃO: Navega para a rota renomeada.
+                            // MODIFICAÇÃO: Mesmo sem GPS, o usuário pode ter processado manualmente. Leva para a página de validação.
                             navigator.push(AppRoute::ValidationPage {});
                         }
                     },
@@ -106,18 +120,12 @@ pub fn Process() -> Element {
         }
     });
 
-    let mut processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
-
     let project_name_available = use_memo(move || {
         PROJECT_NAME.try_read().map_or(false, |guard| guard.is_some())
     });
-
-    let handle = use_coroutine(move |mut rx: UnboundedReceiver<Option<PathBuf>>| async move {
-        use futures_util::StreamExt;
-        while let Some(path) = rx.next().await {
-            processed_folder_signal.set(path);
-        }
-    });
+    
+    // O CÓDIGO RSX ABAIXO NÃO PRECISA DE ALTERAÇÕES.
+    // Ele já lida corretamente com a navegação e a exibição de status.
 
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles.css") }
@@ -137,27 +145,22 @@ pub fn Process() -> Element {
             }
         }
 
-
         div {
             div {
                 class: "container",
                 style: "max-width: 800px;",
 
-                // BOTÃO ADICIONADO AQUI
-                div {
-                    style: "margin-bottom: 2rem;",
-                    button {
-                        class: "btn btn-secondary",
-                        onclick: move |_| {
-                            navigator.push(Route::HomePage {});
-                        },
-                        i { class: "material-icons", "arrow_back" }
-                        "Voltar ao Início"
-                    }
+                Link {
+                    to: Route::HomePage {},
+                    class: "btn btn-secondary",
+                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem; display: flex; align-items: center; gap: 0.5rem;",
+                    title: "Voltar para a página inicial",
+                    i { class: "material-icons", "arrow_back" }
+                    "Voltar ao Início"
                 }
 
                 div {
-                    style:"display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem;",
+                    style:"display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem; margin-top: 4rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                     h1 {
                         style: "color: black; font-weight: bold; font-size: 1.5rem; text-align: center; white-space: nowrap;",
@@ -265,8 +268,9 @@ pub fn Process() -> Element {
                             div { style:"border-left: 1px solid #ccc; height: 24px;" }
                         }
                         Link {
+                            // MODIFICAÇÃO: Corrigido para passar o nome do projeto corretamente.
                             to: Route::ManualProcessor {
-                                project_name: project_name_available.to_string().clone()
+                                project_name: PROJECT_NAME.with(|opt| opt.clone().unwrap_or_default())
                             },
                             button {
                                 class:"btn btn-primary",
@@ -312,7 +316,6 @@ pub fn Process() -> Element {
                                         let detection_file = base_dir.join("Projects").join(&name).join("detection_results.json");
                                         if detection_file.exists() {
                                             rsx! {
-                                                // MODIFICAÇÃO: Link para a rota renomeada.
                                                 Link {
                                                     to: AppRoute::ValidationPage {},
                                                     button {
@@ -337,156 +340,6 @@ pub fn Process() -> Element {
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-// O componente folders_popup permanece o mesmo
-fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
-    let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
-    let initial_path_from_state = processed_folder_signal.read().clone();
-    let mut files = use_signal(|| Files::new(initial_path_from_state));
-
-    use_effect(move || {
-        let new_path = processed_folder_signal.read().clone();
-        files.write().update_base_path_if_different(new_path);
-    });
-
-    let mut new_folder_name = use_signal(|| String::new());
-    let mut new_folder_description = use_signal(|| String::new());
-    let mut show_new_folder_input = use_signal(|| false);
-
-    let file_cards = files.read().path_names.iter().enumerate()
-    .filter_map(|(dir_id, entry)| {
-        let path = &entry.path;
-        let path_end = path.file_name()?.to_string_lossy();
-        let path_display = display_from_projects(path)
-            .map(|p| p.display().to_string())
-            .unwrap_or_else(|| path.display().to_string());
-        let created = entry.created.clone().unwrap_or_default();
-
-        Some(rsx!(
-            div {
-                class: "flex flex-col items-center text-center bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-lg hover:bg-blue-50 transition duration-300 ease-in-out",
-                key: "{path_display}",
-                onclick: move |_| files.write().enter_dir(dir_id),
-
-                i { class: "material-icons text-6xl text-blue-500 mb-2", "folder" }
-                h2 { class: "mt-2 font-semibold text-base text-gray-900 truncate max-w-full", "{path_end}" }
-                p { class: "text-xs text-gray-400 mt-1", "{created}" }
-            }
-        ))
-    })
-    .filter_map(Result::ok)
-    .collect::<Vec<_>>();
-
-    rsx! {
-        document::Stylesheet { href: asset!("/assets/styles.css") }
-
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            document::Link {
-                href: "https://fonts.googleapis.com/icon?family=Material+Icons",
-                rel: "stylesheet"
-            }
-
-            header { class: "flex items-center justify-between bg-blue-600 text-black p-4 shadow",
-                div { class: "flex items-center gap-4",
-                    i { class: "material-icons", "menu" }
-                    h1 { class: "text-xl font-bold", "Files: {files.read().current()}" }
-                }
-                i {
-                    class: "material-icons cursor-pointer hover:text-red-200",
-                    onclick: move |_| files.write().go_up(),
-                    "logout"
-                }
-            }
-
-            main {
-                class: "p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto",
-                { file_cards.into_iter() }
-            }
-
-            if let Some(err) = files.read().err.as_ref() {
-                div { class: "bg-red-100 text-red-700 p-4 rounded shadow flex justify-between items-center col-span-full",
-                    code { class: "text-sm", "{err}" }
-                    button {
-                        class: "text-red-500 hover:text-red-700",
-                        onclick: move |_| files.write().clear_err(),
-                        "x"
-                    }
-                }
-            }
-
-            if *show_new_folder_input.read() {
-                div {
-                    class: "fixed bottom-24 right-6 bg-white border shadow-lg rounded-lg p-4 flex flex-col gap-2 w-80 max-w-full z-50",
-
-                    h2 { class: "text-lg font-semibold text-gray-800", "Novo Projeto" }
-
-                    input {
-                        class: "border rounded px-3 py-2 w-full",
-                        r#type: "text",
-                        placeholder: "Nome da nova pasta",
-                        value: "{new_folder_name.read()}",
-                        oninput: move |e| new_folder_name.set(e.value())
-                    }
-
-                    textarea {
-                        class: "border rounded px-3 py-2 w-full resize-none",
-                        rows: "4",
-                        placeholder: "Descrição do projeto",
-                        value: "{new_folder_description.read()}",
-                        oninput: move |e| new_folder_description.set(e.value())
-                    }
-
-                    div { class: "flex justify-end gap-2 mt-2",
-                        button {
-                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
-                            class: "text-gray-500 text-sm hover:underline",
-                            onclick: move |_| {
-                                show_new_folder_input.set(false);
-                                new_folder_name.set(String::new());
-                                new_folder_description.set(String::new());
-                            },
-                            "Cancelar"
-                        }
-                        button {
-                            style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 8px 12px; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
-                            class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded",
-                            onclick: move |_| {
-                                let name = new_folder_name.read().trim().to_string();
-                                let description = new_folder_description.read().trim().to_string();
-
-                                if !name.is_empty() {
-                                    files.write().create_folder_with_description(name.clone(), description.clone());
-                                    new_folder_name.set(String::new());
-                                    new_folder_description.set(String::new());
-                                    show_new_folder_input.set(false);
-                                }
-                            },
-                            "Criar Pasta"
-                        }
-                    }
-                }
-            }
-
-            button {
-                style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 0.5rem 1.5rem; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
-                class: "fixed bottom-6 right-6 bg-purple-100 hover:bg-purple-200 text-purple-600 shadow-lg p-4 rounded-full",
-                title: "Nova Pasta",
-                onclick: move |_| show_new_folder_input.set(true),
-                i { class: "material-icons", "edit" }
-            }
-
-            button {
-                style:"background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 8px 12px; border-radius: 8px; color: white; font-weight: 500; cursor: pointer;",
-                class: "fixed bottom-6 left-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg",
-                onclick: move |_| {
-                    send(Some(files.read().current_path.clone()));
-                    dioxus::desktop::window().close();
-                },
-                "Selecionar Pasta"
             }
         }
     }
