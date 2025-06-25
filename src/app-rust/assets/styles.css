@@ -1254,3 +1254,59 @@ a {
     transform: scale(1.15);
     background-color: white;
 }
+
+/* --- ADIÇÕES PARA MODAIS DE EDIÇÃO E EXCLUSÃO --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(26, 26, 26, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+.modal-content {
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px var(--shadow-key);
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 90%;
+    margin: 1rem;
+    position: relative; /* Para o botão de fechar */
+    animation: fadeIn 0.3s var(--transition-curve);
+}
+.modal-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--status-yellow);
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-icon:hover {
+    background-color: var(--gray-100);
+    color: var(--text-dark);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

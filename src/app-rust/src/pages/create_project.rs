@@ -2,16 +2,29 @@ use dioxus::prelude::*;
 use std::path::{Path, PathBuf};
 use dioxus_router::prelude::Link;
 use crate::Route;
+use serde::{Serialize, Deserialize}; // <--- ADICIONADO
+use std::fs::File; // <--- ADICIONADO
+use std::io::Write; // <--- ADICIONADO
 
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
+
+// --- NOVA STRUCT PARA METADADOS DO PROJETO ---
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ProjectMetadata {
+    pub name: String,
+    pub description: String,
+    pub year: String,
+    pub leader: String,
+    pub structure_type: String,
+    pub observations: String,
+}
 
 fn get_or_create_projects_dir() -> Option<PathBuf> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let projects_dir = base_dir.join("Projects"); 
     
-    // Tenta criar o diretório se não existir
     if !projects_dir.exists() {
-        if let Err(e) = std::fs::create_dir_all(&projects_dir) { // Use create_dir_all for robustness
+        if let Err(e) = std::fs::create_dir_all(&projects_dir) {
             eprintln!("Erro ao criar diretório Projects em {}: {}", projects_dir.display(), e);
             return None;
         }
@@ -26,6 +39,17 @@ fn sanitize_name(name: &str) -> String {
         .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
         .collect::<String>()
 }
+
+// --- NOVA FUNÇÃO PARA SALVAR METADADOS ---
+fn save_project_metadata(project_folder: &Path, metadata: &ProjectMetadata) -> Result<(), std::io::Error> {
+    let metadata_path = project_folder.join("project_meta.json");
+    let file = File::create(metadata_path)?;
+    let mut writer = std::io::BufWriter::new(file);
+    serde_json::to_writer_pretty(&mut writer, metadata)?;
+    writer.flush()?;
+    Ok(())
+}
+
 
 #[component]
 pub fn NewProject() -> Element {
@@ -48,7 +72,6 @@ pub fn NewProject() -> Element {
 
         is_creating.set(true);
         let project_name_raw = name().trim().to_string();
-        let project_year = year().trim().to_string();
         let sanitized_project_name = sanitize_name(&project_name_raw);
 
         if sanitized_project_name.is_empty() {
@@ -59,17 +82,41 @@ pub fn NewProject() -> Element {
 
         *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
         
-        let project_name_for_folder = sanitized_project_name;
+        // --- LÓGICA DE CRIAÇÃO MODIFICADA ---
+        let metadata = ProjectMetadata {
+            name: name().trim().to_string(),
+            description: description().trim().to_string(),
+            year: year().trim().to_string(),
+            leader: leader().trim().to_string(),
+            structure_type: structure_type().trim().to_string(),
+            observations: observations().trim().to_string(),
+        };
 
         spawn(async move {
             if let Some(projects_dir) = get_or_create_projects_dir() {
-                let new_folder = projects_dir.join(project_name_for_folder);
+                let new_folder = projects_dir.join(&sanitized_project_name);
+
+                if new_folder.exists() {
+                    status.set(format!("Erro: Projeto '{}' já existe.", sanitized_project_name));
+                    is_creating.set(false);
+                    return;
+                }
 
                 if let Err(e) = std::fs::create_dir_all(&new_folder) {
                     status.set(format!("Erro ao criar pasta: {}", e));
                 } else {
-                    status.set(format!("Projeto criado em: {}", new_folder.display()));
-                    project_path.set(Some(new_folder));
+                    // Salva o arquivo de metadados
+                    match save_project_metadata(&new_folder, &metadata) {
+                        Ok(_) => {
+                            status.set(format!("Projeto criado em: {}", new_folder.display()));
+                            project_path.set(Some(new_folder));
+                        }
+                        Err(e) => {
+                             status.set(format!("Erro ao salvar metadados do projeto: {}", e));
+                             // Se falhou ao salvar o JSON, remove a pasta criada
+                             _ = std::fs::remove_dir_all(&new_folder);
+                        }
+                    }
                 }
             } else {
                 status.set("Erro: Não foi possível criar ou acessar o diretório Projects".to_string());
