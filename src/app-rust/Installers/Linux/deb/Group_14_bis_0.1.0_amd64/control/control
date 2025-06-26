@@ -1,0 +1,7 @@
+Package: 14-bis
+Version: 0.1.0
+Architecture: amd64
+Installed-Size: 13635
+Maintainer: 
+Description: Visualizador e gerador de relatórios
+ Aplicativo para organizar projetos e gerar relatórios com imagens.
