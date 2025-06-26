@@ -11,7 +11,7 @@ RequestExecutionLevel admin
 
 Section "Install"
     SetOutPath "$INSTDIR"
-    File "target/x86_64-pc-windows-gnu/release/Group_14_bis.exe"
+    File "target/release/Group_14_bis.exe"  ; Certifique-se de que o nome do arquivo está correto
     CreateShortcut "$DESKTOP\14-Bis.lnk" "$INSTDIR\Group_14_bis.exe"
     CreateShortcut "$DESKTOP\Desinstalar 14-Bis.lnk" "$INSTDIR\uninstall.exe"
     WriteUninstaller "$INSTDIR\uninstall.exe"
