@@ -1,6 +1,3 @@
-// Arquivo: src/data_generator.rs
-// Script para gerar dados de teste que simula a saída do modelo de classificação
-
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
@@ -8,7 +5,6 @@ use chrono::Local;
 use rand::Rng;
 
 pub fn generate_sample_csv() -> Result<(), Box<dyn std::error::Error>> {
-    // Cria a pasta data se não existir
     let data_dir = Path::new("./data");
     if !data_dir.exists() {
         fs::create_dir_all(data_dir)?;
@@ -18,10 +14,8 @@ pub fn generate_sample_csv() -> Result<(), Box<dyn std::error::Error>> {
     let file_path = data_dir.join("teste_fissuras.csv");
     let mut file = File::create(&file_path)?;
 
-    // Cabeçalho CSV
     writeln!(file, "predio,termica,retracao")?;
 
-    // Dados simulados mais realistas
     let predios = vec![
         ("Edifício Residencial Alpha", (8.0, 15.0), (12.0, 28.0)),
         ("Torre Comercial Beta", (5.0, 12.0), (15.0, 35.0)), 

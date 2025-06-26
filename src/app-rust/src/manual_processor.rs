@@ -1,15 +1,19 @@
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use rfd::AsyncFileDialog;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs;
 use dioxus::prelude::Readable;
 use std::process::{Command, Stdio};
 use serde::Deserialize;
 use dioxus_router::prelude::Link;
 use dioxus_router::prelude::use_navigator;
-use crate::Route;
+use crate::Route; 
 use tokio::time;
+use base64::{engine::general_purpose::STANDARD, Engine as _};
+use crate::pages::create_project::ProjectStatus;
+use crate::utils::file_manager::update_project_status;
+
 
 #[derive(Props, Clone, PartialEq)]
 pub struct ManualProcessorProps {
@@ -41,6 +45,23 @@ pub struct ImageData {
     pub preview_url: Option<String>,
 }
 
+fn create_data_uri(path: &Path) -> Option<String> {
+    let mime_type = match path.extension().and_then(std::ffi::OsStr::to_str) {
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("bmp") => "image/bmp",
+        Some("webp") => "image/webp",
+        Some("tiff") | Some("tif") => "image/tiff",
+        _ => "application/octet-stream",
+    };
+
+    let image_bytes = fs::read(path).ok()?;
+    let base64_str = STANDARD.encode(&image_bytes);
+    Some(format!("data:{};base64,{}", mime_type, base64_str))
+}
+
+
 #[component]
 pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     let mut num_buildings = use_signal(|| 1);
@@ -52,7 +73,6 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     let mut status = use_signal(String::new);
     let navigator = use_navigator();
 
-    // Clone project_name early to use in multiple places
     let project_name_for_closure = props.project_name.clone();
     let project_name_for_detection_check = props.project_name.clone();
 
@@ -163,16 +183,18 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
 
                 match run_yolo_script_and_parse_results(&project_name_clone, status_writer, &base_dir).await {
                     Ok(analysis_results) => {
-                        status_writer.set(format!(
-                            "Análise de imagens concluída. {} conjunto(s) de resultados de imagem recebidos. Redirecionando para validação...",
-                            analysis_results.len()
-                        ));
+                        if let Err(e) = update_project_status(&project_name_clone, ProjectStatus::ProcessingComplete) {
+                             status_writer.set(format!("Análise concluída, mas falha ao atualizar status do projeto: {}", e));
+                        } else {
+                            status_writer.set(format!(
+                                "Análise de imagens concluída. {} resultados. Redirecionando para validação...",
+                                analysis_results.len()
+                            ));
+                        }
                         
-                        // Aguardar um pouco para o usuário ver a mensagem de sucesso
                         time::sleep(time::Duration::from_millis(2000)).await;
-                        
-                        // Navegar para a tela de validação
-                        navigator.push(Route::ValidationScreen {});
+
+                        navigator.push(Route::ValidationPage {});
                     }
                     Err(e) => {
                         status_writer.set(format!("Erro durante a análise de imagens: {}", e));
@@ -185,22 +207,22 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
     };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-100 text-gray-900 font-sans",
-            document::Stylesheet { href: asset!("/assets/tailwind.css") }
+        div { class: "manual-processor-page",
+            document::Stylesheet { href: asset!("/assets/styles.css") }
             document::Link {
                 href: "https://fonts.googleapis.com/icon?family=Material+Icons",
                 rel: "stylesheet"
             }
 
-            div { class: "container mx-auto px-4 py-8 max-w-4xl",
+            div { class: "container py-8",
                                 
-                div { class: "bg-white rounded-lg shadow-md p-6 mb-6",
-                    div { class: "mb-6",
-                        label { class: "block text-gray-700 mb-2", 
+                div { class: "card mb-6",
+                    div { class: "form-group mb-6",
+                        label { 
                             "Número de Prédios (1-20):" 
                         }
                         select {
-                            class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white",
+                            class: "form-input",
                             value: "{num_buildings()}",
                             onchange: move |e| {
                                 if let Ok(val) = e.value().parse::<usize>() {
@@ -230,11 +252,11 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                 let facade_count_val = facade_counts_data[i];
                                 
                                 rsx! {
-                                    div { key: "building-{i}", class: "bg-white rounded-lg shadow-md p-6 mb-6",
-                                        div { class: "mb-6",
-                                            label { class: "block text-gray-700 mb-2", "Nome do Prédio:" }
+                                    div { key: "building-{i}", class: "card mb-6",
+                                        div { class: "form-group mb-6",
+                                            label { "Nome do Prédio:" }
                                             input {
-                                                class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                                                class: "form-input",
                                                 value: "{building_name_val}",
                                                 oninput: move |e| {
                                                     let new_building_name = e.value();
@@ -244,10 +266,10 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                             }
                                         }
             
-                                        div { class: "mb-6",
-                                            label { class: "block text-gray-700 mb-2", "Número de Fachadas (1-8):" }
+                                        div { class: "form-group mb-6",
+                                            label { "Número de Fachadas (1-8):" }
                                             select {
-                                                class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white",
+                                                class: "form-input",
                                                 value: "{facade_count_val}",
                                                 onchange: move |e| {
                                                     if let Ok(val) = e.value().parse::<usize>() {
@@ -269,14 +291,19 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                     .and_then(|map| map.get(&j))
                                                     .cloned()
                                                     .unwrap_or_else(|| format!("Fachada {}", j + 1));
+                                                
+                                                let image_count = buildings_data.get(i)
+                                                    .and_then(|b| b.facades.get(&current_facade_name_for_ui))
+                                                    .map(|images| images.len())
+                                                    .unwrap_or(0);
 
                                                 rsx! {
-                                                    div { key: "facade-{i}-{j}", class: "bg-gray-50 rounded-lg p-4",
-                                                        div { class: "flex items-center justify-between mb-4",
-                                                            div { class: "flex-1 mr-4",
-                                                                label { class: "block text-gray-700 mb-2", "Nome da Fachada:" }
+                                                    div { key: "facade-{i}-{j}", class: "facade-card",
+                                                        div { class: "d-flex items-center justify-between mb-4",
+                                                            div { class: "form-group flex-1 mr-4",
+                                                                label { "Nome da Fachada:" }
                                                                 input {
-                                                                    class: "w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500",
+                                                                    class: "form-input",
                                                                     placeholder: "Nome da fachada",
                                                                     value: "{current_facade_name_for_ui}",
                                                                     oninput: move |e| {
@@ -301,7 +328,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                 }
                                                             }
                                                             button {
-                                                                class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2",
+                                                                class: "btn btn-primary",
                                                                 onclick: move |_| {
                                                                     let building_idx = i;
                                                                     let facade_ui_idx_for_add = j;
@@ -309,12 +336,6 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                         status.set("Selecionando imagens...".to_string());
                                                                         if let Some(files) = AsyncFileDialog::new()
                                                                             .add_filter("Todas as Imagens", &["jpg", "jpeg", "png", "gif", "bmp", "webp", "tiff", "tif"])
-                                                                            .add_filter("JPEG", &["jpg", "jpeg"])
-                                                                            .add_filter("PNG", &["png"])
-                                                                            .add_filter("GIF", &["gif"])
-                                                                            .add_filter("BMP", &["bmp"])
-                                                                            .add_filter("WebP", &["webp"])
-                                                                            .add_filter("TIFF", &["tiff", "tif"])
                                                                             .set_title("Selecionar Imagens")
                                                                             .set_directory("/")
                                                                             .pick_files()
@@ -328,10 +349,14 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                     
                                                                             let image_data_vec: Vec<ImageData> = files
                                                                                 .iter()
-                                                                                .map(|f| ImageData {
-                                                                                    path: f.path().display().to_string(),
-                                                                                    name: f.file_name(),
-                                                                                    preview_url: None,
+                                                                                .map(|f| {
+                                                                                    let preview_url = create_data_uri(f.path());
+                                                                                    
+                                                                                    ImageData {
+                                                                                        path: f.path().display().to_string(),
+                                                                                        name: f.file_name(),
+                                                                                        preview_url,
+                                                                                    }
                                                                                 })
                                                                                 .collect();
                                                                             
@@ -350,22 +375,26 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                 "Adicionar Imagens"
                                                             }
                                                         }
+                                                        
+                                                        div { class: "d-flex justify-between items-center mb-4",
+                                                            p { class: "text-gray-600 text-sm", "Total de imagens: {image_count}" }
+                                                        }
                     
                                                         if let Some(images_for_facade) = buildings_data[i].facades.get(&current_facade_name_for_ui) {
                                                             if !images_for_facade.is_empty() {
-                                                                div { class: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4",
+                                                                div { class: "image-grid",
                                                                     for (img_idx, img_data) in images_for_facade.iter().enumerate() {
-                                                                        div { key: "img-{i}-{j}-{img_idx}", class: "relative group",
-                                                                            div { class: "aspect-w-4 aspect-h-3 bg-gray-200 rounded-lg overflow-hidden",
+                                                                        div { key: "img-{i}-{j}-{img_idx}", class: "image-preview-item",
+                                                                            div { class: "image-wrapper",
                                                                                 img {
-                                                                                    src: "file://{img_data.path}",
-                                                                                    class: "w-full h-full object-cover",
+                                                                                    src: "{img_data.preview_url.as_deref().unwrap_or_default()}",
+                                                                                    class: "preview-image",
                                                                                     alt: "{img_data.name}"
                                                                                 }
                                                                             }
-                                                                            div { class: "absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center",
+                                                                            div { class: "delete-overlay",
                                                                                 button {
-                                                                                    class: "text-white hover:text-red-500",
+                                                                                    class: "delete-button",
                                                                                     onclick: move |_| {
                                                                                         let building_idx_del = i;
                                                                                         let facade_ui_idx_del = j;
@@ -388,7 +417,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                                                                     i { class: "material-icons", "delete" }
                                                                                 }
                                                                             }
-                                                                            p { class: "mt-2 text-sm text-gray-600 truncate", "{img_data.name}" }
+                                                                            p { class: "image-name", "{img_data.name}" }
                                                                         }
                                                                     }
                                                                 }
@@ -402,7 +431,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                 }
                             } else {
                                 rsx! {
-                                    div { key: "loading-{i}", class: "bg-gray-100 rounded-lg p-4 animate-pulse",
+                                    div { key: "loading-{i}", class: "status-box info",
                                         "Carregando dados do prédio..."
                                     }
                                 }
@@ -412,26 +441,25 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
 
                     div { class: "mt-6 space-y-4",
                         if !status().is_empty() {
-                            p { class: "text-center text-gray-700", "{status()}" }
+                            p { class: "status-message info text-center", "{status()}" }
                         }
                         
-                        div { class: "flex justify-end gap-4",
+                        div { class: "d-flex justify-end gap-4",
                             button {
-                                class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
+                                class: "btn btn-primary",
                                 disabled: is_processing(),
                                 onclick: organize_folders,
                                 if is_processing() { "Processando..." } else { "Organizar e Processar Imagens" }
                             }
                             
-                            // Botão para validação só aparece se o arquivo detection_results.json existir
                             {
                                 let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
                                 let detection_file = base_dir.join("Projects").join(&project_name_for_detection_check).join("detection_results.json");
                                 if detection_file.exists() {
                                     rsx! {
                                         Link {
-                                            to: Route::ValidationScreen {},
-                                            class: "px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2",
+                                            to: Route::ValidationPage {},
+                                            class: "btn btn-success",
                                             i { class: "material-icons", "verified" }
                                             "Validar Resultados"
                                         }
@@ -455,7 +483,6 @@ pub async fn run_yolo_script_and_parse_results(
 ) -> Result<Vec<ImageAnalysisResult>, String> {
     status.set("Preparando para executar script de análise de imagens...".to_string());
 
-    // Verificar se o diretório do projeto existe
     let project_dir = app_rust_dir.join("Projects").join(project_name);
     let images_dir = project_dir.join("images");
 
@@ -471,7 +498,6 @@ pub async fn run_yolo_script_and_parse_results(
         return Err(format!("O caminho não é um diretório válido: {}", images_dir.display()));
     }
 
-    // Procurar script e modelo YOLO em múltiplos locais possíveis
     let candidate_dirs = [
         app_rust_dir.join("..").join("model").join("Yolo").join("YOLO-Det-Py"),
         app_rust_dir.join("..").join("Yolo").join("YOLO-Det-Py"),
@@ -497,7 +523,6 @@ pub async fn run_yolo_script_and_parse_results(
 
     status.set("Executando script de análise de imagens... (Isso pode levar um tempo)".to_string());
 
-    // Passando apenas o nome do projeto, sem o prefixo "Projects/"
     let script_project_argument = project_name;
 
     let output = Command::new("python")
