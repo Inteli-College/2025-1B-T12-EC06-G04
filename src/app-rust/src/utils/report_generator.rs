@@ -17,12 +17,11 @@ fn simulate_cpp_model_and_image_processing(
     let mut faceta_id_counter = 1;
     let mut fissura_counter = 1;
 
-    // Mock facetas - let's create two for now
     let faceta1_id = format!("F{:02}", faceta_id_counter);
     facetas.push(Faceta {
         id: faceta1_id.clone(),
         orientacao: "Norte".to_string(),
-        qtd_rachaduras: 0, // Will be updated based on found fissuras
+        qtd_rachaduras: 0,
         observacoes: format!("Observações da faceta {} do {}", faceta1_id, building_name),
     });
     faceta_id_counter += 1;
@@ -31,7 +30,7 @@ fn simulate_cpp_model_and_image_processing(
     facetas.push(Faceta {
         id: faceta2_id.clone(),
         orientacao: "Leste".to_string(),
-        qtd_rachaduras: 0, // Will be updated based on found fissuras
+        qtd_rachaduras: 0,
         observacoes: format!("Observações da faceta {} do {}", faceta2_id, building_name),
     });
 
@@ -40,11 +39,10 @@ fn simulate_cpp_model_and_image_processing(
             let entry = entry?;
             let path = entry.path();
             if path.is_file() {
-                // Simulate data for each image found
+
                 let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
                 let image_path_in_report = format!("images/{}", file_name);
 
-                // Assign to a faceta (e.g., alternating or based on some logic)
                 let target_faceta_id = if fissura_counter % 2 == 0 { &faceta2_id } else { &faceta1_id };
 
                 fissuras.push(Fissura {
@@ -61,7 +59,6 @@ fn simulate_cpp_model_and_image_processing(
                     caminho_imagem: image_path_in_report,
                 });
 
-                // Update qtd_rachaduras for the faceta
                 if let Some(faceta) = facetas.iter_mut().find(|f| f.id == *target_faceta_id) {
                     faceta.qtd_rachaduras += 1;
                 }

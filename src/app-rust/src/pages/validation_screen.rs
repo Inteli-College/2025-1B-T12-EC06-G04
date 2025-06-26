@@ -3,24 +3,23 @@ use dioxus_router::prelude::*;
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
+use crate::pages::create_project::PROJECT_NAME;
 use crate::Route;
+use crate::pages::graph::{read_project_metadata, save_project_metadata};
+use crate::pages::create_project::ProjectStatus;
 
-// Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct FissuraValidation {
     pub name: String,
     pub confidence: f64,
 }
 
-// Estrutura para os dados de validação de imagem
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ImageValidationData {
     pub path: String, 
     pub fissura: Vec<FissuraValidation>,
 }
 
-// Estado de validação da imagem para a UI
 #[derive(Clone, PartialEq)]
 pub struct ImageValidationState {
     pub path: String, 
@@ -29,7 +28,6 @@ pub struct ImageValidationState {
     pub has_been_viewed: bool,
 }
 
-// Resultados da validação a serem salvos
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ValidationResults {
     pub total_images: usize,
@@ -38,7 +36,6 @@ pub struct ValidationResults {
     pub project_name: String,
 }
 
-// Função para carregar os dados de detecção de fissuras a partir de um arquivo JSON.
 fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData>, String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
@@ -54,7 +51,6 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
         .map_err(|e| format!("Erro ao parsear JSON: {}", e))
 }
 
-// Função para salvar os resultados da validação em um arquivo JSON.
 fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) -> Result<(), String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let validation_path = base_dir.join("Projects").join(project_name).join("validation_results.json");
@@ -68,9 +64,8 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
     Ok(())
 }
 
-/// Componente principal da tela de validação.
 #[component]
-pub fn ValidationScreen() -> Element {
+pub fn ValidationPage() -> Element {
     let navigator = use_navigator();
     let mut current_image_index = use_signal(|| 0usize);
     let mut validation_data = use_signal(|| Vec::<ImageValidationState>::new());
@@ -80,90 +75,54 @@ pub fn ValidationScreen() -> Element {
     let mut status_message = use_signal(|| String::new());
     let mut project_display_name: Signal<Option<String>> = use_signal(|| None);
     let mut project_folder_name: Signal<Option<String>> = use_signal(|| None);
-
-    // CORREÇÃO: projects_root_dir_signal precisa ser um Signal<PathBuf>
-    // Você pode usar use_context_provider para criar um sinal inicial,
-    // ou simplesmente criar um signal aqui se ele for usado apenas neste componente.
     let projects_root_dir_signal = use_signal(|| {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Projects")
     });
 
-    // Efeito para carregar os dados na inicialização do componente
     use_effect(move || {
-        // Clonamos o sinal para poder movê-lo para o bloco assíncrono.
         let projects_root_dir_for_strip = projects_root_dir_signal.clone(); 
-
         spawn(async move {
-            // Acessar PROJECT_NAME diretamente como GlobalSignal
             match PROJECT_NAME.try_read() {
                 Ok(project_name_guard) => {
                     if let Some(absolute_project_path_str) = &*project_name_guard { 
                         let absolute_project_path_buf = PathBuf::from(absolute_project_path_str);
-                        
                         let p_name_only = absolute_project_path_buf.file_name()
                                                      .and_then(|os_str| os_str.to_str())
                                                      .map(|s| s.to_string());
-                        
                         project_display_name.set(p_name_only.clone()); 
                         project_folder_name.set(p_name_only.clone());
 
                         match carregar_dados_deteccao(p_name_only.unwrap_or_default().as_str()) {
                             Ok(data) => {
-                                let validation_states: Vec<ImageValidationState> = data
-                                    .into_iter()
-                                    .filter_map(|img| {
-                                        eprintln!("DEBUG: Imagem original do JSON: {}", img.path);
-                                        let full_image_path_from_json = PathBuf::from(&img.path);
-                                        eprintln!("DEBUG: full_image_path_from_json (PathBuf): {:?}", full_image_path_from_json);
-                                        eprintln!("DEBUG: is_absolute: {}", full_image_path_from_json.is_absolute());
-                                        
-                                        // Acessa o valor do Signal PathBuf usando .read()
-                                        let projects_root_dir_val = projects_root_dir_for_strip.read();
-                                        eprintln!("DEBUG: projects_root_dir_val (PathBuf): {:?}", projects_root_dir_val);
-                                        
-                                        let relative_image_path = if full_image_path_from_json.is_absolute() {
-                                            let stripped = full_image_path_from_json.strip_prefix(&*projects_root_dir_val); // Usa &* para dereferenciar o valor lido
-                                            eprintln!("DEBUG: strip_prefix result (relative to Projects/): {:?}", stripped);
-                                            stripped
-                                                .ok()
-                                                .and_then(|p| p.to_str())
-                                                .map(|s| s.to_string())
-                                        } else {
-                                            eprintln!("DEBUG: path já é relativo, usando diretamente. (Este caso é menos esperado se o JSON contiver caminhos absolutos)");
-                                            Some(img.path.clone()) 
-                                        };
-
-                                        eprintln!("DEBUG: Caminho relativo final (Option<String>): {:?}", relative_image_path);
-
-                                        // Se não conseguir obter um caminho relativo, ignora a imagem.
-                                        relative_image_path.map(|rel_path| {
-                                            eprintln!("DEBUG: Adicionando imagem com caminho relativo: {}", rel_path);
-                                            ImageValidationState {
-                                                path: rel_path,
-                                                fissuras: img.fissura,
-                                                is_incorrect: false,
-                                                has_been_viewed: false,
-                                            }
-                                        })
+                                let mut validation_states: Vec<ImageValidationState> = data.into_iter().filter_map(|img| {
+                                    let full_image_path_from_json = PathBuf::from(&img.path);
+                                    let projects_root_dir_val = projects_root_dir_for_strip.read();
+                                    let relative_image_path = if full_image_path_from_json.is_absolute() {
+                                        let stripped = full_image_path_from_json.strip_prefix(&*projects_root_dir_val);
+                                        stripped.ok().and_then(|p| p.to_str()).map(|s| s.to_string())
+                                    } else {
+                                        Some(img.path.clone()) 
+                                    };
+                                    relative_image_path.map(|rel_path| ImageValidationState {
+                                        path: rel_path,
+                                        fissuras: img.fissura,
+                                        is_incorrect: false,
+                                        has_been_viewed: false, // Inicializa como não vista
                                     })
-                                    .collect();
+                                }).collect();
+
+                                if let Some(first_image) = validation_states.get_mut(0) {
+                                    first_image.has_been_viewed = true;
+                                }
+
                                 validation_data.set(validation_states);
                                 loading.set(false);
                             }
-                            Err(e) => {
-                                error_message.set(e);
-                                loading.set(false);
-                            }
+                            Err(e) => { error_message.set(e); loading.set(false); }
                         }
-                    } else {
-                        error_message.set("Caminho do projeto não encontrado".to_string());
-                        loading.set(false);
-                    }
+                    } else { error_message.set("Caminho do projeto não encontrado".to_string()); loading.set(false); }
                 }
-                Err(_) => {
-                    error_message.set("Erro ao acessar caminho do projeto (GlobalSignal)".to_string());
-                    loading.set(false);
-                }
+                Err(_) => { error_message.set("Erro ao acessar caminho do projeto (GlobalSignal)".to_string()); loading.set(false); }
             }
         });
     });
@@ -171,151 +130,103 @@ pub fn ValidationScreen() -> Element {
     let total_images = validation_data.read().len();
     let has_images = total_images > 0;
 
-    // Efeito para marcar a imagem atual como visualizada sempre que o índice muda
-    use_effect(move || {
-        if has_images {
-            let idx = *current_image_index.read();
-            let mut data = validation_data.write();
-            if idx < data.len() {
-                data[idx].has_been_viewed = true;
-            }
-        }
-    });
-
-    // Função para avançar para a próxima imagem
     let next_image = move |_| {
-        if current_image_index() < total_images - 1 {
-            current_image_index.set(current_image_index() + 1);
-        }
-    };
-
-    // Função para voltar para a imagem anterior
-    let previous_image = move |_| {
-        if current_image_index() > 0 {
-            current_image_index.set(current_image_index() - 1);
-        }
-    };
-
-    // Função para alternar o status de incorreto da imagem atual
-    let toggle_incorrect = move |_| {
-        if has_images {
-            let idx = *current_image_index.read();
+        let current_idx = current_image_index();
+        if current_idx < total_images - 1 {
+            let next_idx = current_idx + 1;
+            current_image_index.set(next_idx);
+            
             let mut data = validation_data.write();
-            if idx < data.len() {
-                data[idx].is_incorrect = !data[idx].is_incorrect;
+            if let Some(next_image_data) = data.get_mut(next_idx) {
+                next_image_data.has_been_viewed = true;
             }
         }
     };
 
-    // Função para confirmar a validação e salvar os resultados
+    let previous_image = move |_| {
+        let current_idx = current_image_index();
+        if current_idx > 0 {
+            let prev_idx = current_idx - 1;
+            current_image_index.set(prev_idx);
+
+            let mut data = validation_data.write();
+             if let Some(prev_image_data) = data.get_mut(prev_idx) {
+                prev_image_data.has_been_viewed = true;
+            }
+        }
+    };
+
+    let toggle_incorrect = move |_| { 
+        if has_images { 
+            let idx = *current_image_index.read(); 
+            let mut data = validation_data.write(); 
+            if idx < data.len() { 
+                data[idx].is_incorrect = !data[idx].is_incorrect; 
+            } 
+        } 
+    };
+
     let mut confirm_validation = move || {
-        spawn(async move {
-            // Usa o nome do projeto do sinal project_display_name
-            let project_name_for_save = project_display_name.read().clone()
-                .unwrap_or_else(|| {
-                    eprintln!("Aviso: Nome do projeto para salvar não disponível, tentando ler de PROJECT_NAME.");
-                    // Fallback: tenta ler diretamente do sinal global se project_display_name estiver vazio
-                    PROJECT_NAME.try_read()
-                        .ok()
-                        .and_then(|guard| 
-                            guard.as_ref() 
-                                .map(|s| {
-                                    PathBuf::from(s).file_name()
-                                        .and_then(|os| os.to_str())
-                                        .map(|s| s.to_string())
-                                })
-                                .flatten() 
-                        ) 
-                        .unwrap_or_else(|| "unknown_project".to_string())
-                });
-
-            let data = validation_data.read();
-            let incorrect_images: Vec<String> = data
-                .iter()
-                .filter(|img| img.is_incorrect)
-                .map(|img| img.path.clone())
-                .collect();
-
-            let results = ValidationResults {
-                total_images: data.len(),
-                incorrect_images,
-                validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-                project_name: project_name_for_save.clone(),
-            };
-
-            match salvar_resultados_validacao(&project_name_for_save, &results) {
-                Ok(_) => {
-                    status_message.set("Validação salva com sucesso!".to_string());
-                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                    navigator.push(Route::HomePage {});
-                }
-                Err(e) => {
-                    status_message.set(format!("Erro ao salvar validação: {}", e));
-                }
-            }
-        });
-        show_confirmation_dialog.set(false);
-    };
-
-    // Função para tentar confirmar a validação, mostrando diálogo se nem todas as imagens foram visualizadas
-    let attempt_confirm = move |_| {
+    spawn(async move {
+        let project_name_for_save = project_folder_name.read().clone().unwrap_or_else(|| "unknown_project".to_string());
         let data = validation_data.read();
-        let all_viewed = data.iter().all(|img| img.has_been_viewed);
-        
-        if all_viewed {
-            confirm_validation();
-        } else {
-            show_confirmation_dialog.set(true);
-        }
-    };
-
-    // Função para fechar o diálogo de confirmação
-    let close_dialog = move |_| {
-        show_confirmation_dialog.set(false);
-    };
-
-    // Exibição de tela de carregamento
-    if loading() {
-        return rsx! {
-            div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
-                div { class: "text-center",
-                    div { class: "animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4" }
-                    p { class: "text-gray-600", "Carregando dados de validação..." }
-                }
-            }
+        let incorrect_images: Vec<String> = data.iter().filter(|img| img.is_incorrect).map(|img| img.path.clone()).collect();
+        let results = ValidationResults {
+            total_images: data.len(),
+            incorrect_images,
+            validation_date: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            project_name: project_display_name.read().clone().unwrap_or_default(),
         };
-    }
 
-    // Exibição de tela de erro
-    if !error_message().is_empty() {
-        return rsx! {
-            div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
-                div { class: "bg-white rounded-lg shadow-md p-8 max-w-md",
-                    div { class: "text-center",
-                        i { class: "material-icons text-red-500 text-6xl mb-4", "error" }
-                        h2 { class: "text-xl font-bold text-gray-800 mb-4", "Erro ao Carregar Dados" }
-                        p { class: "text-gray-600 mb-6", "{error_message()}" }
-                        button {
-                            class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
-                            onclick: move |_| navigator.go_back(),
-                            "Voltar"
+        match salvar_resultados_validacao(&project_name_for_save, &results) {
+            Ok(_) => {
+                match read_project_metadata(&project_name_for_save) {
+                    Ok(mut metadata) => {
+                        metadata.status = ProjectStatus::ValidationComplete;
+
+                        if let Err(e) = save_project_metadata(&project_name_for_save, &metadata) {
+                            status_message.set(format!("Erro ao atualizar status do projeto: {}", e));
+                            return;
                         }
+                        
+                        status_message.set("Validação salva com sucesso!".to_string());
+                        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                        navigator.push(Route::GraphView { project_name: project_name_for_save });
+                    }
+                    Err(_) => {
+                        status_message.set("Erro: Não foi possível ler os metadados para atualizar o status.".to_string());
                     }
                 }
             }
+            Err(e) => {
+                status_message.set(format!("Erro ao salvar validação: {}", e));
+            }
+        }
+    });
+    show_confirmation_dialog.set(false);
+};
+
+    let attempt_confirm = move |_| { if validation_data.read().iter().all(|img| img.has_been_viewed) { confirm_validation(); } else { show_confirmation_dialog.set(true); } };
+    let close_dialog = move |_| { show_confirmation_dialog.set(false); };
+
+    if loading() {
+        return rsx! {
+            div { class: "status-screen-container",
+                div { class: "spinner" }
+                p { class: "text-gray-600", "Carregando dados de validação..." }
+            }
         };
     }
 
-    // Exibição quando não há imagens para validar
-    if total_images == 0 {
+    if !error_message().is_empty() {
         return rsx! {
-            div { class: "min-h-screen bg-gray-100 flex items-center justify-center",
-                div { class: "bg-white rounded-lg shadow-md p-8 max-w-md text-center",
-                    i { class: "material-icons text-yellow-500 text-6xl mb-4", "warning" }
-                    h2 { class: "text-xl font-bold text-gray-800 mb-4", "Nenhuma Imagem para Validar" }
-                    p { class: "text-gray-600 mb-6", "Não foram encontradas imagens com detecções para validação." }
+            div { class: "status-screen-container",
+                div { class: "status-card",
+                    i { class: "material-icons status-card-icon text-red", "error_outline" }
+                    h2 { class: "text-xl font-bold text-gray-800 mb-4", "Erro ao Carregar Dados" }
+                    p { class: "text-gray-600 mb-6", "{error_message()}" }
                     button {
-                        class: "px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
+                        class: "btn btn-primary",
                         onclick: move |_| navigator.go_back(),
                         "Voltar"
                     }
@@ -324,196 +235,156 @@ pub fn ValidationScreen() -> Element {
         };
     }
 
-    // Obtém a imagem atual a ser exibida
+    if total_images == 0 {
+        return rsx! {
+            div { class: "status-screen-container",
+                div { class: "status-card",
+                    i { class: "material-icons status-card-icon text-yellow", "warning" }
+                    h2 { class: "text-xl font-bold text-gray-800 mb-4", "Nenhuma Imagem para Validar" }
+                    p { class: "text-gray-600 mb-6", "Não foram encontradas imagens com detecções para validação." }
+                    button {
+                        class: "btn btn-primary",
+                        onclick: move |_| navigator.go_back(),
+                        "Voltar"
+                    }
+                }
+            }
+        };
+    }
+
     let current_image = &validation_data.read()[current_image_index()];
     let viewed_count = validation_data.read().iter().filter(|img| img.has_been_viewed).count();
     let incorrect_count = validation_data.read().iter().filter(|img| img.is_incorrect).count();
-
-    // Determina a classificação da fissura para exibição
-    let fissura_classification = if !current_image.fissuras.is_empty() {
-        current_image.fissuras[0].name.clone() 
-    } else {
-        "Nenhuma Fissura Detectada".to_string()
-    };
-
-    let image_src_path: String = if let Some(project_folder_name_val) = project_folder_name.read().as_ref() {
-        format!("{}/{}", project_folder_name_val, current_image.path) 
-    } else {
-        eprintln!("Aviso: Nome da pasta do projeto não disponível. Usando caminho original da imagem: {}", current_image.path);
-        current_image.path.clone()
-    };
+    let fissura_classification = if !current_image.fissuras.is_empty() { current_image.fissuras[0].name.clone() } else { "Nenhuma Fissura Detectada".to_string() };
+    let image_src_path: String = if let Some(project_folder_name_val) = project_folder_name.read().as_ref() { format!("{}/{}", project_folder_name_val, current_image.path) } else { current_image.path.clone() };
 
     rsx! {
-        div { class: "min-h-screen bg-gray-100 flex flex-col items-center justify-start",
-            document::Stylesheet { href: asset!("/assets/styles.css") }
-            document::Link {
-                href: "https://fonts.googleapis.com/icon?family=Material+Icons",
-                rel: "stylesheet"
+        div { class: "validation-page",
+            document::Link { href: "https://fonts.googleapis.com/icon?family=Material+Icons", rel: "stylesheet" }
+
+            button {
+                class: "btn btn-secondary",
+                style: "position: fixed; top: 1.5rem; left: 1.5rem; z-index: 10;",
+                title: "Voltar para a página inicial",
+                onclick: move |_| {
+                    navigator.push(Route::HomePage {});
+                },
+                i { class: "material-icons", "arrow_back" }
+                "Voltar ao Início"
             }
 
-            div { class: "bg-white shadow-sm border-b",
-                div { class: "container mx-auto px-6 py-4",
-                    div { class: "flex items-center justify-between",
+            div { class: "page-subheader",
+                div { class: "container",
+                    div { class: "d-flex items-center justify-between py-4",
                         div {
-                            h1 { 
-                                class: "text-2xl font-bold text-gray-800", 
-                                "Validação de Fissuras para ",
+                            h1 { class: "text-2xl font-bold text-gray-800",
+                                "Validação para o Projeto ",
                                 if let Some(name) = project_display_name.read().as_ref() {
-                                    "{name}"
-                                } else {
-                                    "o Projeto"
+                                    span { class: "text-primary", "{name}" }
                                 }
                             }
                             p { class: "text-gray-600", "Selecione as imagens com detecções incorretas" }
                         }
-                        div { class: "text-right",
-                            p { class: "text-sm text-gray-600", 
-                                "Imagem {current_image_index() + 1} de {total_images}" 
-                            }
-                            p { class: "text-sm text-gray-600", 
-                                "Visualizadas: {viewed_count}/{total_images}" 
-                            }
-                            p { class: "text-sm text-gray-600", 
-                                "Marcadas como incorretas: {incorrect_count}" 
-                            }
+                        div { class: "text-right text-sm text-gray-600",
+                            p { "Imagem {current_image_index() + 1} de {total_images}" }
+                            p { "Incorretas: {incorrect_count}" }
                         }
                     }
                 }
             }
 
-            div { class: "bg-white border-b",
-                div { class: "container mx-auto px-6 py-2",
-                    div { class: "w-full bg-gray-200 rounded-full h-2",
-                        div { 
-                            class: "bg-blue-600 h-2 rounded-full transition-all duration-300",
-                            style: "width: {(viewed_count as f64 / total_images as f64 * 100.0)}%"
-                        }
+            div { class: "page-subheader",
+                div { class: "container py-2",
+                    div { class: "progress-bar-container",
+                        div { class: "progress-bar-fill", style: "width: {(viewed_count as f64 / total_images as f64 * 100.0)}%" }
                     }
                 }
             }
 
-            div { class: "container mx-auto px-6 py-8",
-                div { class: "grid grid-cols-1 lg:grid-cols-3 gap-8",
-                    
-                    div { class: "lg:col-span-2",
-                        div { class: "bg-white rounded-lg shadow-md overflow-hidden",
-                            div { class: "p-6",
-                                h2 { 
-                                    class: "text-center text-3xl font-extrabold mb-4",
-                                    class: if fissura_classification == "retracao" { "text-red-600" } else if fissura_classification == "termica" { "text-orange-600" } else { "text-gray-800" },
-                                    "{fissura_classification.to_uppercase()}"
+            div { class: "container py-8",
+                div { class: "validation-grid",
+                    div { class: "grid-col-span-2-lg",
+                        div { class: "image-viewer-card p-6",
+                            h2 { 
+                                class: "text-3xl font-extrabold text-center uppercase mb-4",
+                                class: if fissura_classification == "retracao" { "text-red" } else if fissura_classification == "termica" { "text-orange" } else { "text-gray-800" },
+                                "{fissura_classification}"
+                            }
+                            div { class: "image-display-box",
+                                img { src: "project-image://{image_src_path}", alt: "Imagem para validação" }
+                            }
+                            div { class: "d-flex items-center justify-between",
+                                button {
+                                    class: "btn btn-primary d-flex items-center gap-2",
+                                    disabled: current_image_index() == 0,
+                                    onclick: previous_image,
+                                    i { class: "material-icons", "arrow_back" },
+                                    "Anterior"
                                 }
-                                div { class: "aspect-w-16 aspect-h-12 bg-gray-100 rounded-lg overflow-hidden mb-4",
-                                    img {
-                                        src: "project-image://{image_src_path}", 
-                                        class: "w-full h-full object-contain",
-                                        alt: "Imagem para validação"
-                                    }
+                                button {
+                                    class: format!("btn {} d-flex items-center gap-2", if current_image.is_incorrect { "btn-danger" } else { "btn-secondary" }),
+                                    onclick: toggle_incorrect,
+                                    i { class: "material-icons", if current_image.is_incorrect { "close" } else { "check" } },
+                                    if current_image.is_incorrect { "Incorreta" } else { "Marcar como Incorreta" }
                                 }
-                                
-                                div { class: "flex items-center justify-between",
-                                    button {
-                                        class: "btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
-                                        disabled: current_image_index() == 0,
-                                        onclick: previous_image,
-                                        i { class: "material-icons", "arrow_back" }
-                                        "Anterior"
-                                    }
-                                    
-                                    button {
-                                        class: format!("btn {} flex items-center gap-2",
-                                            if current_image.is_incorrect { "btn-danger" } else { "btn-secondary" }
-                                        ),
-                                        onclick: toggle_incorrect,
-                                        i { class: "material-icons", 
-                                            if current_image.is_incorrect { "close" } else { "check" }
-                                        }
-                                        if current_image.is_incorrect { "Marcada como Incorreta" } else { "Marcar como Incorreta" }
-                                    }
-                                    
-                                    button {
-                                        class: "btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed",
-                                        disabled: current_image_index() >= total_images - 1,
-                                        onclick: next_image,
-                                        "Próxima"
-                                        i { class: "material-icons", "arrow_forward" }
-                                    }
+                                button {
+                                    class: "btn btn-primary d-flex items-center gap-2",
+                                    disabled: current_image_index() >= total_images - 1,
+                                    onclick: next_image,
+                                    "Próxima",
+                                    i { class: "material-icons", "arrow_forward" }
                                 }
                             }
                         }
                     }
 
                     div { class: "space-y-6",
-                        
-                        div { class: "bg-white rounded-lg shadow-md p-6",
-                            h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Informações da Imagem" }
+                        div { class: "info-card",
+                            h3 { class: "info-card-title", "Informações da Imagem" }
                             div { class: "space-y-3",
                                 div {
-                                    span { class: "font-medium text-gray-700", "Caminho: " }
+                                    span { class: "font-semibold text-gray-800", "Arquivo: " }
                                     span { class: "text-sm text-gray-600 break-all", "{current_image.path.split('/').last().unwrap_or(&current_image.path)}" }
                                 }
-                                div {
-                                    span { class: "font-medium text-gray-700", "Status: " }
-                                    span { 
-                                        class: format!("text-sm px-2 py-1 rounded {}",
-                                            if current_image.is_incorrect { "bg-red-100 text-red-800" } else { "bg-green-100 text-green-800" }
-                                        ),
+                                div { class: "d-flex items-center gap-2",
+                                    span { class: "font-semibold text-gray-800", "Status: " }
+                                    span { class: format!("status-badge {}", if current_image.is_incorrect { "red" } else { "green" }),
                                         if current_image.is_incorrect { "Incorreta" } else { "Correta" }
                                     }
                                 }
-                                div {
-                                    span { class: "font-medium text-gray-700", "Visualizada: " }
-                                    span { 
-                                        class: format!("text-sm px-2 py-1 rounded {}",
-                                            if current_image.has_been_viewed { "bg-blue-100 text-blue-800" } else { "bg-gray-100 text-gray-800" }
-                                        ),
+                                div { class: "d-flex items-center gap-2",
+                                    span { class: "font-semibold text-gray-800", "Visualizada: " }
+                                    span { class: format!("status-badge {}", if current_image.has_been_viewed { "blue" } else { "gray" }),
                                         if current_image.has_been_viewed { "Sim" } else { "Não" }
                                     }
                                 }
                             }
                         }
 
-                        div { class: "bg-white rounded-lg shadow-md p-6",
-                            h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Fissuras Detectadas" }
+                        div { class: "info-card",
+                            h3 { class: "info-card-title", "Fissuras Detectadas" }
                             if current_image.fissuras.is_empty() {
                                 p { class: "text-gray-500 italic", "Nenhuma fissura detectada" }
                             } else {
                                 div { class: "space-y-3",
                                     for (idx, fissura) in current_image.fissuras.iter().enumerate() {
-                                        div { 
-                                            key: "{idx}",
-                                            class: "border border-gray-200 rounded-lg p-3 bg-gray-50",
-                                            div { class: "flex justify-between items-center",
-                                                span { class: "font-medium text-gray-800", "{fissura.name}" }
-                                                span { 
-                                                    class: "text-sm text-gray-600 bg-white px-2 py-1 rounded",
-                                                    "{(fissura.confidence * 100.0):.1}%" 
-                                                }
-                                            }
+                                        div { key: "{idx}", class: "fissura-list-item",
+                                            span { class: "name", "{fissura.name}" }
+                                            span { class: "confidence", "{(fissura.confidence * 100.0):.1}%" }
                                         }
                                     }
                                 }
                             }
                         }
 
-                        div { class: "bg-white rounded-lg shadow-md p-6",
-                            h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Ações" }
+                        div { class: "info-card",
+                            h3 { class: "info-card-title", "Ações" }
                             div { class: "space-y-3",
-                                button {
-                                    class: "btn btn-primary w-full",
-                                    onclick: attempt_confirm,
-                                    "Confirmar Validação"
-                                }
-                                button {
-                                    class: "btn w-full",
-                                    onclick: move |_| navigator.go_back(),
-                                    "Cancelar"
-                                }
+                                button { class: "btn btn-primary w-full", onclick: attempt_confirm, "Confirmar Validação" }
                             }
-                            
                             if !status_message().is_empty() {
-                                div { class: "mt-4 p-3 bg-blue-100 border border-blue-200 rounded-md",
-                                    p { class: "text-blue-800 text-sm", "{status_message()}" }
+                                div { class: "status-box info",
+                                    p { class: "status-box-text", "{status_message()}" }
                                 }
                             }
                         }
@@ -522,26 +393,14 @@ pub fn ValidationScreen() -> Element {
             }
 
             if show_confirmation_dialog() {
-                div { class: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50",
-                    div { class: "bg-white rounded-lg shadow-xl p-6 max-w-md mx-4",
-                        div { class: "text-center",
-                            i { class: "material-icons text-yellow-500 text-6xl mb-4", "warning" }
-                            h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Confirmação" }
-                            p { class: "text-gray-600 mb-6", 
-                                "Tem certeza que deseja confirmar sem checar se todas as imagens estão corretas? Você visualizou {viewed_count} de {total_images} imagens." 
-                            }
-                            div { class: "flex gap-4 justify-center",
-                                button {
-                                    class: "btn w-full",
-                                    onclick: close_dialog,
-                                    "Cancelar"
-                                }
-                                button {
-                                    class: "btn btn-primary",
-                                    onclick: move |_| confirm_validation(),
-                                    "Confirmar Mesmo Assim"
-                                }
-                            }
+                div { class: "modal-overlay",
+                    div { class: "modal-content",
+                        i { class: "material-icons modal-icon", "warning" }
+                        h3 { class: "text-lg font-semibold text-gray-800 mb-4", "Confirmação" }
+                        p { class: "text-gray-600 mb-6", "Confirmando você assume ter verificado todas as imagens, e se elas estão corretas ou incorretas. Deseja confirmar?"}
+                        div { class: "d-flex gap-4 justify-center",
+                            button { class: "btn btn-secondary", onclick: close_dialog, "Cancelar" }
+                            button { class: "btn btn-primary", onclick: move |_| confirm_validation(), "Confirmar" }
                         }
                     }
                 }

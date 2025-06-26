@@ -1,7 +1,7 @@
 [application]
 
 # App (Project) Name
-name = "file-explorer"
+name = "14bis"
 
 # Dioxus App Default Platform
 # desktop, web
@@ -16,7 +16,7 @@ asset_dir = "assets"
 [web.app]
 
 # HTML title tag content
-title = "file-explorer"
+title = "14 Bis"
 
 [web.watcher]
 

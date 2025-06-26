@@ -1,19 +1,19 @@
 use dioxus::prelude::*;
 use std::f64::consts::PI;
-use serde::Deserialize;
-use std::fs::File;
-use std::io::{self, BufReader};
+use serde::{Deserialize, Serialize};
+use std::fs::{self, File, OpenOptions};
+use std::io::{self, BufReader, BufWriter, Write};
 use crate::Route;
 use dioxus_router::prelude::*;
-use std::collections::HashMap;
-use std::path::Path;
-use std::path::PathBuf;
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+use crate::pages::create_project::{ProjectMetadata, ProjectStatus};
 
-// --- Structs for parsing detection_results.json ---
+
 #[derive(Deserialize, Debug, Clone)]
 struct DetectionFissura {
     name: String,
-    confidence: f64, // Confidence is f64 in the JSON
+    confidence: f64,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -21,10 +21,7 @@ struct ImageDetectionData {
     path: String,
     fissura: Vec<DetectionFissura>,
 }
-// Type alias for the root JSON structure (a list of ImageDetectionData)
-// type DetectionResults = Vec<ImageDetectionData>; // This will be the return type of our JSON reader
 
-// --- Structs for aggregated data for bar chart ---
 #[derive(Debug, Clone)]
 struct BuildingFissuraSummary {
     building_name: String,
@@ -32,9 +29,21 @@ struct BuildingFissuraSummary {
     retracao_count: u32,
 }
 
-// --- Error type for JSON reading ---
+#[derive(Debug, Clone, PartialEq)]
+struct BoxPlotStats {
+    min_whisker: f64,
+    q1: f64,
+    median: f64,
+    q3: f64,
+    max_whisker: f64,
+    outliers: Vec<f64>,
+}
+
+type HeatmapData = HashMap<String, HashMap<String, u32>>;
+
+
 #[derive(Debug)]
-enum JsonReadError {
+pub enum JsonReadError {
     Io(io::Error),
     Json(serde_json::Error),
     PathError(String),
@@ -52,26 +61,71 @@ impl From<serde_json::Error> for JsonReadError {
     }
 }
 
-// --- Function to read and parse detection_results.json ---
-fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionData>, JsonReadError> {
-    // Em vez de depender do diretório de trabalho atual (que pode variar conforme o modo
-    // de execução do binário), utilizamos o diretório base em que o Cargo localiza o
-    // `Cargo.toml` (CARGO_MANIFEST_DIR). A partir dele construímos o caminho até o
-    // arquivo `detection_results.json`.
+fn get_projects_dir() -> Option<PathBuf> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let json_path = base_dir
-        .join("Projects")
+    Some(base_dir.join("Projects"))
+}
+
+fn sanitize_name(name: &str) -> String {
+    name.replace(' ', "_")
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+        .collect::<String>()
+}
+
+pub fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, JsonReadError> {
+    let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Diretório 'Projects' não encontrado".to_string()))?;
+    let meta_path = projects_dir.join(project_name).join("project_meta.json");
+    
+    let file = File::open(&meta_path).map_err(JsonReadError::Io)?;
+    let reader = BufReader::new(file);
+    let metadata: ProjectMetadata = serde_json::from_reader(reader).map_err(JsonReadError::Json)?;
+
+    Ok(metadata)
+}
+
+pub fn save_project_metadata(project_folder_name: &str, metadata: &ProjectMetadata) -> Result<(), io::Error> {
+    if let Some(projects_dir) = get_projects_dir() {
+        let project_path = projects_dir.join(project_folder_name);
+        let metadata_path = project_path.join("project_meta.json");
+        
+        let file = OpenOptions::new().write(true).create(true).truncate(true).open(metadata_path)?;
+        
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(&mut writer, metadata)?;
+        writer.flush()?;
+    }
+    Ok(())
+}
+
+fn delete_project_folder(project_name: &str) -> Result<(), std::io::Error> {
+    if let Some(projects_dir) = get_projects_dir() {
+        let project_path = projects_dir.join(project_name);
+        if project_path.exists() {
+            if project_path.is_dir() {
+                fs::remove_dir_all(project_path)
+            } else {
+                Ok(())
+            }
+        } else {
+            Ok(())
+        }
+    } else {
+        Err(io::Error::new(io::ErrorKind::NotFound, "Diretório 'Projects' não encontrado."))
+    }
+}
+
+
+fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionData>, JsonReadError> {
+    let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Não foi possível encontrar o diretório 'Projects'".to_string()))?;
+    let json_path = projects_dir
         .join(project_name)
         .join("detection_results.json");
 
-    // Para fins de depuração, exibimos os caminhos calculados.
-    println!("[RUST graph.rs] Base dir (CARGO_MANIFEST_DIR): {}", base_dir.display());
-    println!("[RUST graph.rs] JSON path (relativo ao base_dir): {}", json_path.display());
+    println!("[RUST graph.rs] Tentando ler JSON de: {}", json_path.display());
 
-    // Tentamos abrir o arquivo.
     let file = File::open(&json_path).map_err(|e| {
         eprintln!("[RUST graph.rs] Erro ao abrir arquivo JSON em '{}': {}", json_path.display(), e);
-        eprintln!("[RUST graph.rs] Verifique se o arquivo existe e se as permissões estão corretas.");
         JsonReadError::Io(e)
     })?;
 
@@ -83,7 +137,15 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     Ok(results)
 }
 
-//  Helpers do gráfico do Donut 
+fn extract_building_name_from_path(image_path_str: &str) -> Option<String> {
+    let image_path = Path::new(image_path_str);
+    image_path.parent()?.parent()?.file_name()?.to_str().map(String::from)
+}
+
+fn extract_facade_name_from_path(image_path_str: &str) -> Option<String> {
+    let image_path = Path::new(image_path_str);
+    image_path.parent()?.file_name()?.to_str().map(String::from)
+}
 
 fn polar_to_cartesian(cx: f64, cy: f64, r: f64, angle_deg: f64) -> (f64, f64) {
     let angle_rad = (angle_deg - 90.0) * PI / 180.0;
@@ -111,7 +173,7 @@ fn donut_segment(
 ) -> String {
     let path = describe_arc(cx, cy, r, start_angle, end_angle);
     format!(
-        r###"<path d="{path}" fill="url(#{color_id})" stroke="#121212" stroke-width="2" style="filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.6)); opacity: 0;">
+        r###"<path class="donut-segment" d="{path}" fill="url(#{color_id})" stroke-width="2">
             <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
             <title>{label}</title>
         </path>"###
@@ -121,150 +183,306 @@ fn donut_segment(
 fn gerar_svg_donut(total_termica: u32, total_retracao: u32) -> String {
     let total_fissuras = total_termica + total_retracao;
     if total_fissuras == 0 {
-        return r##"<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-                   <text x="250" y="250" font-size="20" text-anchor="middle" fill="#ffffff" dominant-baseline="middle">Sem dados para Donut</text>
+        return r##"<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                   <text x="200" y="200" font-size="16" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
                  </svg>"##.to_string();
     }
     let angle_termica = (total_termica as f64 / total_fissuras as f64) * 360.0;
 
-    let cx = 250.0;
-    let cy = 250.0;
-    let raio_externo = 200.0;
-    let raio_interno = 120.0;
-
+    let cx = 200.0;
+    let cy = 200.0;
+    let raio_externo = 160.0;
+    let raio_interno = 100.0;
     let label_termica = format!("Térmica: {}", total_termica);
     let label_retracao = format!("Retração: {}", total_retracao);
 
-    let mut svg = String::new();
-    svg.push_str(r#"<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">"#);
-
-    svg.push_str(
-        r###"
-        <defs>
-            <linearGradient id="grad_red" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#ff5a5f; stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#d62828; stop-opacity:1" />
-            </linearGradient>
-            <linearGradient id="grad_blue" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#0077ff; stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#0055aa; stop-opacity:1" />
-            </linearGradient>
-        </defs>
-        "###
-    );
-
+    let mut svg = String::from(r#"<svg class="chart" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">"#);
+    svg.push_str(r###"<defs>
+            <linearGradient id="grad_red" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:var(--status-red); stop-opacity:1" /><stop offset="100%" style="stop-color:var(--status-red-dark); stop-opacity:1" /></linearGradient>
+            <linearGradient id="grad_blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:var(--primary-blue); stop-opacity:1" /><stop offset="100%" style="stop-color:var(--primary-blue-darker); stop-opacity:1" /></linearGradient>
+        </defs>"###);
     svg.push_str(&donut_segment(cx, cy, raio_externo, 0.0, angle_termica, "grad_red", &label_termica));
     svg.push_str(&donut_segment(cx, cy, raio_externo, angle_termica, 360.0, "grad_blue", &label_retracao));
-
-    svg.push_str(&format!(
-        r###"<circle cx="{cx}" cy="{cy}" r="{r}" fill="#242526"/>"###,
-        cx = cx,
-        cy = cy,
-        r = raio_interno
-    ));
-
-    svg.push_str(&format!(
-        r###"<text x="{cx}" y="{cy}" font-size="20" text-anchor="middle" fill="#ffffff" dominant-baseline="middle">Total Fissuras</text>"###,
-        cx = cx,
-        cy = cy
-    ));
-
+    svg.push_str(&format!(r###"<circle cx="{cx}" cy="{cy}" r="{raio_interno}" fill="var(--bg-light)" class="donut-hole"/>"###));
+    svg.push_str(&format!(r###"<text x="{cx}" y="{cy}" text-anchor="middle" fill="var(--text-dark)" dominant-baseline="central" class="donut-text-main">{total_fissuras}</text>"###));
+    svg.push_str(&format!(r###"<text x="{cx}" y="{cy}" dy="1.5em" text-anchor="middle" fill="var(--gray-600)" dominant-baseline="central" class="donut-text-sub">Total Fissuras</text>"###));
     svg.push_str("</svg>");
     svg
 }
 
-// Helper to extract building name like "Prédio X" from path
-// Assumes path structure like ".../images/Prédio X/Fachada Y/image.jpg"
-fn extract_building_name_from_path(image_path_str: &str) -> Option<String> {
-    let image_path = Path::new(image_path_str);
-    // Go up from file: Fachada Y -> Prédio X -> images
-    image_path.parent()?.parent()?.file_name()?.to_str().map(String::from)
-}
-
-//  Gráfico de Barras 
-
-fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary]) -> String {
+fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary], media_total: f64) -> String {
     if building_summaries.is_empty() {
-        return r##"<svg width="600" height="450" viewBox="0 0 600 450" xmlns="http://www.w3.org/2000/svg">
-                   <text x="300" y="225" font-size="20" text-anchor="middle" fill="#ffffff" dominant-baseline="middle">Sem dados para Barras</text>
+        return r##"<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+                   <text x="300" y="200" font-size="16" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
                  </svg>"##.to_string();
     }
-    let altura_total = 450;
-    let largura_barra = 30;
-    let espacamento = 80;
-    let largura_total_svg = 60 + building_summaries.len() as i32 * espacamento;
-
+    let altura_total = 400;
+    let largura_barra = 35;
+    let espacamento = 90;
+    let margem_esquerda = 60;
+    let largura_total_svg = margem_esquerda + building_summaries.len() as i32 * espacamento + 40;
     let max_count_val = building_summaries.iter()
-        .flat_map(|s| vec![s.termica_count, s.retracao_count])
+        .map(|s| s.termica_count + s.retracao_count)
         .max()
-        .unwrap_or(1) as f64;
-    let max_bar_height = 200.0; // Max height for a bar
+        .unwrap_or(1)
+        .max(media_total.ceil() as u32) as f64;
+    let max_bar_height = 250.0;
+    let y_base = 320.0;
 
-    let mut svg = format!(
-        r###"<svg width="{largura_total_svg}" height="{altura_total}" viewBox="0 0 {largura_total_svg} {altura_total}" xmlns="http://www.w3.org/2000/svg">"###
-    );
+    let mut svg = format!(r###"<svg class="chart" width="{largura_total_svg}" height="{altura_total}" viewBox="0 0 {largura_total_svg} {altura_total}" xmlns="http://www.w3.org/2000/svg">"###);
+    svg.push_str(r###"<defs>
+            <linearGradient id="grad_red_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--status-red);" /><stop offset="100%" style="stop-color:var(--status-red-dark);" /></linearGradient>
+            <linearGradient id="grad_blue_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--primary-blue);" /><stop offset="100%" style="stop-color:var(--primary-blue-darker);" /></linearGradient>
+        </defs>"###);
 
-    svg.push_str(
-        r###"
-        <defs>
-            <linearGradient id="grad_red" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#ff5a5f; stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#d62828; stop-opacity:1" />
-            </linearGradient>
-            <linearGradient id="grad_blue" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#0077ff; stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#0055aa; stop-opacity:1" />
-            </linearGradient>
-        </defs>
-        "###
-    );
+    if media_total > 0.0 && max_count_val > 0.0 {
+        let y_media = y_base - (media_total / max_count_val * max_bar_height);
+        svg.push_str(&format!(
+            r###"<line class="average-line" x1="{margem_esquerda}" y1="{y_media}" x2="{x2}" y2="{y_media}"><title>Média por Edifício: {media_total:.2}</title></line>"###,
+            x2 = largura_total_svg - 20
+        ));
+        svg.push_str(&format!(
+            r###"<text class="average-line-text" x="{x}" y="{y}" text-anchor="end" dominant-baseline="middle">Média ({media_total:.1})</text>"###,
+            x = largura_total_svg - 25,
+            y = y_media
+        ));
+    }
 
     for (i, summary) in building_summaries.iter().enumerate() {
-        let x_base = 60 + i as i32 * espacamento;
-        let h_termica = if max_count_val == 0.0 { 0.0 } else { (summary.termica_count as f64 / max_count_val * max_bar_height) };
-        let h_retracao = if max_count_val == 0.0 { 0.0 } else { (summary.retracao_count as f64 / max_count_val * max_bar_height) };
+        let x_base = margem_esquerda + i as i32 * espacamento;
+        let total_fissuras_edificio = summary.termica_count + summary.retracao_count;
+        let h_total = if max_count_val == 0.0 { 0.0 } else { (total_fissuras_edificio as f64 / max_count_val * max_bar_height) };
+        let proporcao_termica = if total_fissuras_edificio == 0 { 0.0 } else { summary.termica_count as f64 / total_fissuras_edificio as f64 };
 
-        // Térmica bar
-        svg.push_str(&format!(
-            r###"<rect x="{x}" y="{y}" width="{w}" height="0" fill="url(#grad_red)" rx="3">
-                    <animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" />
-                    <animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" />
-                    <title>Térmica: {val}</title>
-                </rect>"###,
-            x = x_base,
-            y = 250.0 - h_termica,
-            y_plus = 250.0,
-            w = largura_barra,
-            h = h_termica,
-            val = summary.termica_count
-        ));
+        let h_termica = h_total * proporcao_termica;
+        let h_retracao = h_total - h_termica;
 
-        // Retração bar
-        svg.push_str(&format!(
-            r###"<rect x="{x}" y="{y}" width="{w}" height="0" fill="url(#grad_blue)" rx="3">
-                    <animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" />
-                    <animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" />
-                    <title>Retração: {val}</title>
-                </rect>"###,
-            x = x_base + largura_barra + 2, // Small gap between bars
-            y = 250.0 - h_retracao,
-            y_plus = 250.0,
-            w = largura_barra,
-            h = h_retracao,
-            val = summary.retracao_count
-        ));
-
-        // Building name label
-        svg.push_str(&format!(
-            r###"<text x="{x_text}" y="270" font-size="10" text-anchor="middle" fill="#f0f0f0">{name}</text>"###,
-            x_text = x_base + largura_barra + 1, // Centered under the pair of bars
-            name = summary.building_name
-        ));
+        svg.push_str(&format!(r###"<g class="bar-group"><rect class="bar-segment bar-retracao" x="{x}" y="{y}" width="{w}" height="0" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Retração: {val}</title></rect>"###, x = x_base, y = y_base - h_retracao, y_plus = y_base, w = largura_barra, h = h_retracao, val = summary.retracao_count));
+        svg.push_str(&format!(r###"<rect class="bar-segment bar-termica" x="{x}" y="{y}" width="{w}" height="0" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Térmica: {val}</title></rect></g>"###, x = x_base, y = y_base - h_retracao - h_termica, y_plus = y_base - h_retracao, w = largura_barra, h = h_termica, val = summary.termica_count));
+        
+        svg.push_str(&format!(r###"<text class="bar-label" x="{x_text}" y="340" text-anchor="middle">{name}</text>"###, x_text = x_base + largura_barra / 2, name = summary.building_name));
     }
 
     svg.push_str("</svg>");
     svg
 }
+
+fn calculate_boxplot_stats(data: &mut Vec<f64>) -> Option<BoxPlotStats> {
+    if data.is_empty() {
+        return None;
+    }
+    data.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    let q1 = data[(data.len() as f64 * 0.25) as usize];
+    let median = data[(data.len() as f64 * 0.50) as usize];
+    let q3 = data[(data.len() as f64 * 0.75) as usize];
+    let iqr = q3 - q1;
+
+    let upper_whisker_bound = q3 + 1.5 * iqr;
+    let lower_whisker_bound = q1 - 1.5 * iqr;
+
+    let mut outliers = Vec::new();
+    let mut non_outliers = Vec::new();
+    for &val in data.iter() {
+        if val > upper_whisker_bound || val < lower_whisker_bound {
+            outliers.push(val);
+        } else {
+            non_outliers.push(val);
+        }
+    }
+
+    let min_whisker = *non_outliers.first().unwrap_or(&q1);
+    let max_whisker = *non_outliers.last().unwrap_or(&q3);
+
+    Some(BoxPlotStats { min_whisker, q1, median, q3, max_whisker, outliers })
+}
+
+fn gerar_svg_boxplot(stats_termica: &Option<BoxPlotStats>, stats_retracao: &Option<BoxPlotStats>) -> String {
+    if stats_termica.is_none() && stats_retracao.is_none() {
+        return r##"<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg"><text x="300" y="200" font-size="16" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text></svg>"##.to_string();
+    }
+    
+    let width = 600;
+    let height = 400;
+    let margin = (50.0, 50.0, 50.0, 50.0);
+    let plot_height = height as f64 - margin.0 - margin.2;
+
+    let mut svg = format!(r###"<svg class="chart" width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">"###);
+
+    svg.push_str(&format!(r###"<line class="axis-line" x1="{x1}" y1="50" x2="{x1}" y2="350" />"###, x1 = margin.3));
+    for i in 0..=10 {
+        let y = 350.0 - (i as f64 * (plot_height / 10.0));
+        let label = format!("{:.1}", i as f64 / 10.0);
+        svg.push_str(&format!(r###"<text class="axis-label y-axis-label" x="40" y="{y}" text-anchor="end" dominant-baseline="middle">{label}</text>"###));
+        svg.push_str(&format!(r###"<line class="grid-line" x1="50" y1="{y}" x2="{x2}" y2="{y}" />"###, x2 = width as f64 - margin.1));
+    }
+    svg.push_str(r###"<text class="axis-title" x="15" y="200" transform="rotate(-90 15,200)">Confiança</text>"###);
+    
+    let draw_box = |stats: &BoxPlotStats, x_center: f64| -> String {
+        let mut parts = String::new();
+        let scale = |v: f64| 350.0 - v * plot_height;
+
+        let y_q1 = scale(stats.q1);
+        let y_q3 = scale(stats.q3);
+        let y_median = scale(stats.median);
+        let y_min_w = scale(stats.min_whisker);
+        let y_max_w = scale(stats.max_whisker);
+        let box_width = 120.0;
+
+        parts.push_str(&format!(r###"<line class="whisker" x1="{x_center}" y1="{y_max_w}" x2="{x_center}" y2="{y_q3}" />"###));
+        parts.push_str(&format!(r###"<line class="whisker" x1="{x_center}" y1="{y_q1}" x2="{x_center}" y2="{y_min_w}" />"###));
+        parts.push_str(&format!(r###"<line class="whisker-end" x1="{x_center_min}" y1="{y_max_w}" x2="{x_center_plus}" y2="{y_max_w}" />"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
+        parts.push_str(&format!(r###"<line class="whisker-end" x1="{x_center_min}" y1="{y_min_w}" x2="{x_center_plus}" y2="{y_min_w}" />"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
+        
+        parts.push_str(&format!(r###"<rect class="box" x="{x}" y="{y}" width="{w}" height="{h}" />"###, x = x_center - box_width / 2.0, y = y_q3, w = box_width, h = y_q1 - y_q3));
+        
+        parts.push_str(&format!(r###"<line class="median" x1="{x_start}" y1="{y_median}" x2="{x_end}" y2="{y_median}" />"###, x_start = x_center - box_width / 2.0, x_end = x_center + box_width / 2.0));
+        
+        for &outlier in &stats.outliers {
+            let y_outlier = scale(outlier);
+            parts.push_str(&format!(r###"<circle class="outlier" cx="{x_center}" cy="{y_outlier}" r="4" />"###));
+        }
+        parts
+    };
+
+    if let Some(stats) = stats_termica {
+        // Agrupa os elementos do boxplot em um <g> com a classe apropriada
+        svg.push_str(&format!(r###"<g class="boxplot-group termica">{}</g>"###, draw_box(stats, 200.0)));
+        svg.push_str(r###"<text class="boxplot-label" x="200" y="375" text-anchor="middle">Térmica</text>"###);
+    }
+
+    if let Some(stats) = stats_retracao {
+        svg.push_str(&format!(r###"<g class="boxplot-group retracao">{}</g>"###, draw_box(stats, 400.0)));
+        svg.push_str(r###"<text class="boxplot-label" x="400" y="375" text-anchor="middle">Retração</text>"###);
+    }
+    
+    svg.push_str("</svg>");
+    svg
+}
+
+fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
+    if heatmap_data.is_empty() {
+        return r##"<svg width="100%" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                   <text x="400" y="200" font-size="8" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
+                 </svg>"##.to_string();
+    }
+
+    let mut building_names: Vec<String> = heatmap_data.keys().cloned().collect();
+    building_names.sort();
+
+    let facade_name_set: HashSet<String> = heatmap_data.values().flat_map(|facades| facades.keys()).cloned().collect();
+    let mut facade_names: Vec<String> = facade_name_set.into_iter().collect();
+    facade_names.sort();
+
+    let max_val = heatmap_data.values().flat_map(|f| f.values()).max().cloned().unwrap_or(0) as f64;
+    
+    let cell_size = 50.0;
+    let x_offset = 130.0; 
+    let y_offset = 100.0; 
+    let svg_width = x_offset + (facade_names.len() as f64 * cell_size) + 120.0;
+    let svg_height = y_offset + (building_names.len() as f64 * cell_size);
+
+    let mut svg = format!(
+        r###"<svg class="chart" viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">"###,
+        svg_width = svg_width,
+        svg_height = svg_height
+    );
+    
+    svg.push_str(r###"
+    <defs>
+        <style>
+            .heatmap-cell .cell-rect, .heatmap-cell .cell-text {
+                transition: all 0.2s ease-in-out;
+            }
+            .heatmap-cell:hover .cell-rect {
+                stroke: var(--primary-blue);
+                stroke-width: 2.5px;
+                stroke-opacity: 1;
+            }
+            .heatmap-cell:hover .cell-text {
+                opacity: 1;
+                font-weight: 700;
+            }
+            .heatmap-label, .heatmap-axis-label {
+                font-size: 10px;
+                fill: var(--text-dark);
+            }
+            .heatmap-axis-label {
+                text-anchor: end;
+            }
+        </style>
+        <linearGradient id="legendGradient" x1="0" x2="0" y1="1" y2="0">
+            <stop offset="0%" stop-color="var(--gray-100)" />
+            <stop offset="100%" stop-color="var(--status-red)" />
+        </linearGradient>
+    </defs>"###);
+
+    let get_color = |count: u32| {
+        if count == 0 { return "var(--gray-100)".to_string(); }
+        let intensity = (count as f64 / max_val).sqrt();
+        let r_start = 243.0; let g_start = 244.0; let b_start = 246.0;
+        let r_end = 201.0; let g_end = 74.0; let b_end = 74.0;
+        let r = (r_start + (r_end - r_start) * intensity).round() as u8;
+        let g = (g_start + (g_end - g_start) * intensity).round() as u8;
+        let b = (b_start + (b_end - b_start) * intensity).round() as u8;
+        format!("#{:02x}{:02x}{:02x}", r, g, b)
+    };
+    
+    for (row, building) in building_names.iter().enumerate() {
+        let y = y_offset + (row as f64 * cell_size);
+        svg.push_str(&format!(r###"<text class="heatmap-axis-label" x="{x}" y="{y_center}" dominant-baseline="middle">{building}</text>"###, x = x_offset - 15.0, y_center = y + cell_size / 2.0));
+
+        for (col, facade) in facade_names.iter().enumerate() {
+            let count = heatmap_data.get(building).and_then(|f| f.get(facade)).cloned().unwrap_or(0);
+            let color = get_color(count);
+            let x = x_offset + (col as f64 * cell_size);
+            
+            svg.push_str(r###"<g class="heatmap-cell" style="cursor: default;">"###);
+            svg.push_str(&format!(
+                r###"<rect class="cell-rect" x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" stroke="rgba(0,0,0,0.05)" stroke-width="1" rx="8">
+                    <title>Edifício: {building}\nFachada: {facade}\nFissuras: {count}</title>
+                    <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
+                </rect>"###,
+                x=x, y=y, size=cell_size, color=color, building=building, facade=facade, count=count
+            ));
+
+            if count > 0 {
+                let intensity = (count as f64 / max_val).sqrt();
+                let text_fill = if intensity > 0.6 { "white" } else { "var(--gray-800)" };
+                let initial_opacity = if intensity > 0.6 { 0.7 } else { 0.5 };
+                svg.push_str(&format!(
+                    r###"<text class="cell-text" x="{cx}" y="{cy}" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="middle" fill="{fill}" opacity="{opacity}" style="pointer-events: none;">
+                        {count}
+                    </text>"###,
+                    cx = x + cell_size / 2.0,
+                    cy = y + cell_size / 2.0,
+                    fill = text_fill,
+                    opacity = initial_opacity,
+                    count = count
+                ));
+            }
+            svg.push_str("</g>");
+        }
+    }
+
+    for (col, facade) in facade_names.iter().enumerate() {
+        let x = x_offset + (col as f64 * cell_size) + (cell_size / 2.0);
+        svg.push_str(&format!(r###"<text class="heatmap-label" x="{x}" y="{y}" text-anchor="middle" transform="rotate(-45, {x}, {y})">{facade}</text>"###, x = x + 25.0, y = y_offset - 40.0));
+    }
+
+    let legend_x = svg_width - 90.0;
+    let legend_y = 50.0;
+    let legend_height = 150.0;
+    svg.push_str(&format!(r###"<text x="{legend_x}" y="{y}" font-size="12" font-weight="500" fill="var(--text-dark)">Criticidade</text>"###, y = legend_y - 15.0));
+    svg.push_str(&format!(r###"<rect x='{legend_x}' y='{legend_y}' width='25' height='{legend_height}' rx='4' fill='url(#legendGradient)' />"###));
+    svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">{label}</text>"###, x = legend_x + 35.0, y = legend_y, label=max_val.ceil()));
+    svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">0</text>"###, x = legend_x + 35.0, y= legend_y + legend_height));
+
+
+    svg.push_str("</svg>");
+    svg
+}
+
 
 #[derive(Props, PartialEq, Clone)]
 pub struct GraphViewProps {
@@ -273,132 +491,224 @@ pub struct GraphViewProps {
 
 #[component]
 pub fn GraphView(props: GraphViewProps) -> Element {
+    let mut show_edit_modal = use_signal(|| false);
+    let mut show_delete_modal = use_signal(|| false);
+    let mut project_display_name = use_signal(|| props.project_name.clone());
+
+    use_effect({
+        let project_name = props.project_name.clone();
+        let mut display_name = project_display_name;
+        move || {
+            if let Ok(meta) = read_project_metadata(&project_name) {
+                if !meta.name.is_empty() {
+                    display_name.set(meta.name);
+                }
+            }
+        }
+    });
+
     match ler_json_detection_results(&props.project_name) {
         Ok(detection_data) => {
             let mut total_termica_overall = 0u32;
             let mut total_retracao_overall = 0u32;
             let mut building_fissura_map: HashMap<String, BuildingFissuraSummary> = HashMap::new();
+            
+            let mut confidences_termica: Vec<f64> = Vec::new();
+            let mut confidences_retracao: Vec<f64> = Vec::new();
+            
+            let mut heatmap_data: HeatmapData = HashMap::new();
 
-            for item_data in detection_data {
+            for item_data in detection_data.iter() {
                 let mut current_image_termica = 0u32;
                 let mut current_image_retracao = 0u32;
-                for fissura_item in item_data.fissura {
-                    if fissura_item.name.to_lowercase() == "termica" {
+                for fissura_item in item_data.fissura.iter() {
+                    let name_lower = fissura_item.name.to_lowercase();
+                    if name_lower == "termica" {
                         total_termica_overall += 1;
-                        current_image_termica +=1;
-                    } else if fissura_item.name.to_lowercase() == "retracao" || fissura_item.name.to_lowercase() == "retraçao" {
+                        current_image_termica += 1;
+                        confidences_termica.push(fissura_item.confidence);
+                    } else if name_lower == "retracao" || name_lower == "retraçao" {
                         total_retracao_overall += 1;
-                        current_image_retracao +=1;
+                        current_image_retracao += 1;
+                        confidences_retracao.push(fissura_item.confidence);
                     }
                 }
                 
-                // Aggregate for bar chart by building
                 if let Some(building_name) = extract_building_name_from_path(&item_data.path) {
                     let summary = building_fissura_map.entry(building_name.clone()).or_insert_with(|| BuildingFissuraSummary {
-                        building_name,
+                        building_name: building_name.clone(),
                         termica_count: 0,
                         retracao_count: 0,
                     });
                     summary.termica_count += current_image_termica;
                     summary.retracao_count += current_image_retracao;
+                    
+                    if let Some(facade_name) = extract_facade_name_from_path(&item_data.path) {
+                        let total_fissures_in_image = item_data.fissura.len() as u32;
+                        let building_entry = heatmap_data.entry(building_name.clone()).or_default();
+                        let facade_entry = building_entry.entry(facade_name).or_insert(0);
+                        *facade_entry += total_fissures_in_image;
+                    }
                 }
             }
             
-            let building_summaries: Vec<BuildingFissuraSummary> = building_fissura_map.values().cloned().collect();
+            let mut building_summaries: Vec<BuildingFissuraSummary> = building_fissura_map.values().cloned().collect();
+            building_summaries.sort_by(|a, b| a.building_name.cmp(&b.building_name));
+
+            let media_fissuras_por_edificio = if !building_summaries.is_empty() {
+                let total_fissuras: u32 = building_summaries.iter().map(|s| s.termica_count + s.retracao_count).sum();
+                total_fissuras as f64 / building_summaries.len() as f64
+            } else {
+                0.0
+            };
 
             let donut_svg = gerar_svg_donut(total_termica_overall, total_retracao_overall);
-            let barras_svg = gerar_svg_barras(&building_summaries);
+            let barras_svg = gerar_svg_barras(&building_summaries, media_fissuras_por_edificio);
+            
+            let stats_termica = calculate_boxplot_stats(&mut confidences_termica);
+            let stats_retracao = calculate_boxplot_stats(&mut confidences_retracao);
+            let boxplot_svg = gerar_svg_boxplot(&stats_termica, &stats_retracao);
+
+            let heatmap_svg = gerar_svg_heatmap(&heatmap_data);
+
             let navigator = use_navigator();
-
+            let report_target_building = building_summaries.first().map(|s| s.building_name.clone());
+            let project_name_for_button = props.project_name.clone();
+            let project_name_clone_for_delete = props.project_name.clone();
+            
             rsx! {
-                div {
-                    style: "
-                        background-color: #242526;
-                        color: #f0f0f0;
-                        font-family: 'Segoe UI', sans-serif;
-                        min-height: 100vh;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        padding: 40px;
-                        position: relative;
-                    ",
+                if show_edit_modal() {
+                    EditProjectModal {
+                        project_name: props.project_name.clone(),
+                        on_close: move |_| show_edit_modal.set(false),
+                        on_save: move |new_folder_name| {
+                            if let Some(name) = new_folder_name {
+                                navigator.replace(Route::GraphView { project_name: name });
+                            }
+                             if let Ok(meta) = read_project_metadata(&props.project_name) {
+                                if !meta.name.is_empty() {
+                                    project_display_name.set(meta.name);
+                                }
+                            }
+                            show_edit_modal.set(false);
+                        }
+                    }
+                }
 
-                    // Botão home
-                    button {
-                        onclick: move |_| {
-                            navigator.push(Route::HomePage {});  
+                if show_delete_modal() {
+                    DeleteConfirmationModal {
+                        project_name: project_display_name(),
+                        on_confirm: move |_| {
+                            let nav = navigator.clone();
+                            let name_to_delete = project_name_clone_for_delete.clone();
+                            spawn(async move {
+                                if delete_project_folder(&name_to_delete).is_ok() {
+                                    println!("Projeto {} deletado.", name_to_delete);
+                                    nav.push(Route::HomePage {});
+                                } else {
+                                    eprintln!("Falha ao deletar {}.", name_to_delete);
+                                }
+                            });
+                            show_delete_modal.set(false);
                         },
-                        style: "
-                            position: absolute;
-                            top: 20px;
-                            left: 20px;
-                            background-color: #ff5a5f;
-                            color: white;
-                            border: none;
-                            padding: 10px 16px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 14px;
-                        ",
-                        "← Início"
+                        on_cancel: move |_| show_delete_modal.set(false),
+                    }
+                }
+
+                div {
+                    class: "container py-8",
+                    
+                    div {
+                        class: "text-center mb-4",
+                        h1 { class: "page-header-title", "Análise Gráfica de Fissuras" }
+                        p { class: "text-lg text-gray-600", "Projeto: {project_display_name()}"}
                     }
 
                     div {
-                        style: "
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: flex-start;
-                            gap: 40px;
-                            flex-wrap: wrap;
-                            max-width: 1400px;
-                        ",
-
-                        h1 {
-                            style: "font-size: 32px; color: #ff5a5f; margin-bottom: 10px; text-align: center; width: 100%;",
-                            "Gráficos das Fissuras (Projeto: {props.project_name})"
+                        class: "d-flex justify-between items-center w-full mb-8 flex-wrap gap-4",
+                        button {
+                            class: "btn btn-neutral",
+                            onclick: move |_| { navigator.push(Route::HomePage {}); },
+                            i { class: "material-icons", "arrow_back" }
+                            "Voltar ao Início"
+                        }
+                        
+                        button {
+                            class: "btn btn-info",
+                            onclick: move |_| show_edit_modal.set(true),
+                            i { class: "material-icons", "edit" }
+                            "Editar Projeto"
                         }
 
-                        // gráfico Donut
+                        button {
+                            class: "btn btn-danger",
+                            onclick: move |_| show_delete_modal.set(true),
+                            i { class: "material-icons", "delete" }
+                            "Excluir Projeto"
+                        }
+
+                        if let Some(building_name) = report_target_building {
+                            button {
+                                class: "btn btn-neutral",
+                                onclick: move |_| {
+                                    navigator.push(Route::ReportView { 
+                                        project_name: project_name_for_button.clone(), 
+                                        building_name: building_name.clone() 
+                                    });
+                                },
+                                i { class: "material-icons", "arrow_forward" }
+                                "Visualizar Relatório"
+                            }
+                        }
+                    }
+
+                    div {
+                        class: "dashboard-grid",
+                        
                         div {
-                            style: "flex: 1; min-width: 400px; text-align: center;",
-                            h2 { style: "font-size: 24px; color: #ffffff;", "Distribuição Total de Fissuras" }
-                            div { dangerous_inner_html: donut_svg }
-                            p { style: "margin-top: 10px; font-size: 14px;", "Térmicas: {total_termica_overall} | Retração: {total_retracao_overall}" }
+                            class: "card dashboard-card",
+                            h2 { "Distribuição Geral" }
                             div {
-                                style: "margin-top: 10px; font-size: 14px;",
-                                span { style: "color: #ff5a5f; margin-right: 10px;", "⬤ Térmica" }
-                                span { style: "color: #0077ff;", "⬤ Retração" }
+                                class: "chart-container",
+                                dangerous_inner_html: donut_svg
+                            }
+                            div {
+                                class: "legend",
+                                div { class: "legend-item",
+                                    div { class: "legend-color-box", style: "background: linear-gradient(135deg, var(--status-red), var(--status-red-dark));" }
+                                    span { "Térmica ({total_termica_overall})" }
+                                }
+                                div { class: "legend-item",
+                                    div { class: "legend-color-box", style: "background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-darker));" }
+                                    span { "Retração ({total_retracao_overall})" }
+                                }
                             }
                         }
 
-                        // Barras e  botão 
+                         div {
+                            class: "card dashboard-card",
+                            h2 { "Confiança das Detecções" }
+                            div { 
+                                class: "chart-container", 
+                                dangerous_inner_html: boxplot_svg 
+                            }
+                        }
+                        
                         div {
-                            style: "flex: 1; min-width: 600px; position: relative;",
-                            h2 { style: "font-size: 24px; color: #ffffff;", "Fissuras por Edifício" }
+                            class: "card dashboard-card dashboard-card-large",
+                            h2 { "Fissuras por Edifício" }
                             div {
-                                style: "margin-top: 10px; overflow-x: auto;",
+                                class: "chart-container-scroll",
                                 div { dangerous_inner_html: barras_svg }
                             }
+                        }
 
-                            button {
-                                onclick: move |_| {
-                                    let building_name = "Galpão_3".to_string(); 
-                                    navigator.push(Route::ReportView { project_name: props.project_name.clone(), building_name });
-                                },
-                                style: "
-                                    position: absolute;
-                                    bottom: 10px;
-                                    right: 20px;
-                                    background-color: #0077ff;
-                                    color: white;
-                                    border: none;
-                                    padding: 10px 16px;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 16px;
-                                ",
-                                "Visualizar relatório detalhado →"
+                        div {
+                            class: "card dashboard-card dashboard-card-large",
+                            h2 { "Heatmap de Criticidade por Fachada" },
+                            div { 
+                                class: "chart-container",
+                                dangerous_inner_html: heatmap_svg 
                             }
                         }
                     }
@@ -407,16 +717,280 @@ pub fn GraphView(props: GraphViewProps) -> Element {
         }
         Err(e) => {
             let error_message = match e {
-                JsonReadError::Io(io_err) => format!("Erro de I/O ao ler arquivo JSON: {}. Verifique o caminho e permissões.", io_err),
-                JsonReadError::Json(json_err) => format!("Erro ao parsear JSON: {}. Verifique o formato do arquivo.", json_err),
-                JsonReadError::PathError(path_err) => format!("Erro no caminho do arquivo: {}", path_err),
+                JsonReadError::Io(io_err) => format!("Erro de I/O: {}. Verifique se o arquivo 'detection_results.json' existe e se o programa tem permissão para lê-lo.", io_err),
+                JsonReadError::Json(json_err) => format!("Erro de Formato: {}. O arquivo 'detection_results.json' parece estar corrompido ou mal formatado.", json_err),
+                JsonReadError::PathError(path_err) => format!("Erro de Caminho: {}", path_err),
             };
+
+            let navigator = use_navigator();
+            let project_name_clone = props.project_name.clone();
+
             rsx! {
+                if show_delete_modal() {
+                    DeleteConfirmationModal {
+                        project_name: props.project_name.clone(),
+                        on_confirm: move |_| {
+                            let nav = navigator.clone();
+                            let name_to_delete = project_name_clone.clone();
+                             spawn(async move {
+                                if delete_project_folder(&name_to_delete).is_ok() {
+                                    nav.push(Route::HomePage {});
+                                }
+                            });
+                        },
+                        on_cancel: move |_| show_delete_modal.set(false),
+                    }
+                }
+
                 div {
-                    style: "padding: 20px; color: red; text-align: center; font-family: 'Segoe UI', sans-serif; background-color: #242526; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;",
-                    h1 { "Erro ao carregar dados para o gráfico" },
-                    p { "{error_message}" },
-                    p { "Verifique se o arquivo 'Projects/{props.project_name}/detection_results.json' existe e está no formato correto."}
+                    class: "status-screen-container",
+                    div {
+                        class: "status-card",
+                        i { 
+                            class: "material-icons status-card-icon", 
+                            style: "color: var(--status-red);", 
+                            "error_outline" 
+                        }
+                        h1 { 
+                            class: "text-2xl font-bold mb-4",
+                            "Erro ao Carregar Gráficos" 
+                        }
+                        p {
+                            class: "text-gray-600 mb-6",
+                            "Não foi possível carregar os dados para o projeto: ",
+                            strong { "{props.project_name}" }
+                        }
+                        
+                        div {
+                            class: "status-box error",
+                            style: "text-align: left; background-color: var(--status-red-light); border-color: var(--status-red);",
+                            p { class: "status-box-text", style: "color: var(--status-red-dark); font-weight: 500;", "Detalhes do Erro:"}
+                            p { class: "status-box-text", style: "color: var(--status-red-dark);", "{error_message}"}
+                        }
+
+                        div {
+                            class: "d-flex justify-center gap-4",
+                            style: "margin-top: 2rem; width: 100%;",
+                            button {
+                                class: "btn btn-secondary",
+                                onclick: move |_| { navigator.push(Route::HomePage {}); },
+                                i { class: "material-icons", "home" }
+                                "Voltar ao Início"
+                            }
+                            button {
+                                class: "btn btn-danger",
+                                onclick: move |_| show_delete_modal.set(true),
+                                i { class: "material-icons", "delete_forever" }
+                                "Excluir Projeto"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+#[derive(Props, Clone, PartialEq)]
+struct EditProjectModalProps {
+    project_name: String,
+    on_close: EventHandler<()>,
+    on_save: EventHandler<Option<String>>,
+}
+
+#[component]
+fn EditProjectModal(props: EditProjectModalProps) -> Element {
+    let project_name_clone = props.project_name.clone();
+
+    let initial_metadata = use_resource(move || {
+        let name_for_resource = project_name_clone.clone();
+        async move {
+            read_project_metadata(&name_for_resource)
+        }
+    });
+
+    let mut name = use_signal(|| String::new());
+    let mut description = use_signal(|| String::new());
+    let mut year = use_signal(|| String::new());
+    let mut leader = use_signal(|| String::new());
+    let mut structure_type = use_signal(|| String::new());
+    let mut observations = use_signal(|| String::new());
+    let mut status_message = use_signal(String::new);
+    let mut current_status = use_signal(ProjectStatus::default);
+
+    
+    use_effect(move || {
+        if let Some(Ok(data)) = initial_metadata.read().as_ref() {
+            name.set(data.name.clone());
+            description.set(data.description.clone());
+            year.set(data.year.clone());
+            leader.set(data.leader.clone());
+            structure_type.set(data.structure_type.clone());
+            observations.set(data.observations.clone());
+            current_status.set(data.status.clone());
+        }
+    });
+
+    let handle_save = move |_| {
+        let original_folder_name = props.project_name.clone();
+        let new_metadata = ProjectMetadata {
+            name: name(),
+            description: description(),
+            year: year(),
+            leader: leader(),
+            structure_type: structure_type(),
+            observations: observations(),
+            status: current_status.read().clone(),
+        };
+
+        let new_sanitized_name = sanitize_name(&new_metadata.name);
+        
+        if new_sanitized_name.is_empty() {
+            status_message.set("O nome do projeto não pode ser vazio.".to_string());
+            return;
+        }
+
+        let name_changed = new_sanitized_name != original_folder_name;
+
+        spawn({
+            let on_save = props.on_save.clone();
+            async move {
+                if let Some(projects_dir) = get_projects_dir() {
+                    let original_path = projects_dir.join(&original_folder_name);
+                    let new_path = projects_dir.join(&new_sanitized_name);
+
+                    if name_changed {
+                        if new_path.exists() {
+                            status_message.set(format!("Erro: Já existe um projeto com o nome '{}'.", new_sanitized_name));
+                            return;
+                        }
+                        if let Err(e) = fs::rename(&original_path, &new_path) {
+                            status_message.set(format!("Erro ao renomear pasta: {}", e));
+                            return;
+                        }
+                    }
+
+                    if let Err(e) = save_project_metadata(&new_sanitized_name, &new_metadata) {
+                        status_message.set(format!("Erro ao salvar metadados: {}", e));
+                        if name_changed {
+                            _ = fs::rename(&new_path, &original_path);
+                        }
+                        return;
+                    }
+                    
+                    let new_name_opt = if name_changed { Some(new_sanitized_name) } else { None };
+                    on_save.call(new_name_opt);
+                }
+            }
+        });
+    };
+
+
+    rsx! {
+        div { class: "modal-overlay",
+            div { 
+                class: "modal-content",
+                style: "max-width: 700px;",
+                button {
+                    class: "btn-icon modal-close-btn",
+                    onclick: move |_| props.on_close.call(()),
+                    i { class: "material-icons", "close" }
+                }
+                
+                h2 { class: "modal-title", "Editar Projeto" }
+
+                match initial_metadata.read().as_ref() {
+                    Some(Ok(_)) => rsx! {
+                        div {
+                            class: "form-group",
+                            label { "Nome do Projeto" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{name()}", oninput: move |e| name.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Descrição" }
+                            textarea { class: "form-textarea", rows: "4", value: "{description()}", oninput: move |e| description.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Líder responsável pelo projeto" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{leader()}", oninput: move |e| leader.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Tipo de estrutura do edifício" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{structure_type()}", oninput: move |e| structure_type.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Ano" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "number", value: "{year()}", oninput: move |e| year.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Observações gerais" }
+                            input { class: "form-input", r#type: "text", value: "{observations()}", oninput: move |e| observations.set(e.value()) }
+                        }
+                        
+                        if !status_message().is_empty() {
+                            p { class: "status-message error", "{status_message()}" }
+                        }
+
+                        button {
+                            class: "btn btn-primary mt-4 w-full",
+                            onclick: handle_save,
+                            "Salvar Mudanças"
+                        }
+                    },
+                    Some(Err(e)) => rsx! { p { "Erro ao carregar dados do projeto: {e:?}" } },
+                    None => rsx! {
+                        div {
+                            class: "d-flex justify-center items-center",
+                            style: "min-height: 200px;",
+                            div { class: "spinner" }
+                            p { class: "text-gray-600", "Carregando..." }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+#[derive(Props, Clone, PartialEq)]
+struct DeleteConfirmationModalProps {
+    project_name: String,
+    on_confirm: EventHandler<()>,
+    on_cancel: EventHandler<()>,
+}
+
+#[component]
+fn DeleteConfirmationModal(props: DeleteConfirmationModalProps) -> Element {
+    rsx! {
+        div { class: "modal-overlay",
+            div { class: "modal-content",
+                i { class: "modal-icon material-icons", "warning_amber" }
+                h2 { class: "text-2xl font-bold mb-2", "Confirmar Exclusão" }
+                p {
+                    class: "text-gray-600 mb-6",
+                    "Você tem certeza que deseja excluir o projeto ",
+                    strong { "{props.project_name}" }
+                    "? Esta ação não pode ser desfeita."
+                }
+                div {
+                    class: "d-flex justify-center gap-4",
+                    button {
+                        class: "btn btn-secondary",
+                        onclick: move |_| props.on_cancel.call(()),
+                        "Cancelar"
+                    }
+                    button {
+                        class: "btn btn-danger",
+                        onclick: move |_| props.on_confirm.call(()),
+                        "Sim, Excluir"
+                    }
                 }
             }
         }
