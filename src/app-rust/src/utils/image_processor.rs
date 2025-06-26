@@ -1,4 +1,3 @@
-// image_processor.rs
 use std::path::{Path, PathBuf};
 use std::fs;
 use std::io::BufReader;
@@ -11,50 +10,44 @@ use exif::{Tag, In, Reader, Value};
 use crate::pages::create_project::PROJECT_NAME;
 use dioxus::prelude::Readable;
 
-// Representa uma localização geográfica
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub struct Location {
     pub latitude: f64,
     pub longitude: f64,
 }
 
-// Metadados extraídos de uma imagem
 #[derive(Debug, Clone)]
 pub struct ImageMetadata {
     pub path: PathBuf,
     pub file_name: String,
     pub location: Option<Location>,
-    pub gps_img_direction: Option<f64>, // Em graus, 0-359.99, Norte verdadeiro
+    pub gps_img_direction: Option<f64>, 
 }
 
-// Representa uma fachada de um prédio
 #[derive(Debug, Clone)]
 pub struct Fachada {
-    pub _nome: String, // "Norte", "Sul", "Leste", "Oeste", "Indefinida"
+    pub _nome: String,
     pub imagens: Vec<ImageMetadata>,
 }
 
-// Representa um prédio
 #[derive(Debug, Clone)]
 pub struct Predio {
-    pub id: String, // Ex: "Predio-1"
+    pub id: String,
     pub centroide: Location,
     pub fachadas: HashMap<String, Fachada>,
     pub todas_imagens_no_predio: Vec<ImageMetadata>,
 }
 
-// Estatísticas do processamento de imagens (mantida para compatibilidade e informação)
 #[derive(Debug, Clone, Default)]
 pub struct ProcessingStats {
     pub total_images: usize,
     pub images_with_gps: usize,
     pub images_without_gps: usize,
     pub images_with_direction: usize,
-    pub predio_groups: usize, // Renomeado de location_groups
+    pub predio_groups: usize,
     pub errors: Vec<String>,
 }
 
-// Mapeamento de nomes de tags para Tags EXIF (atualizado)
 fn nome_para_tag() -> HashMap<&'static str, Tag> {
     let mut m = HashMap::new();
     m.insert("GPSLatitude", Tag::GPSLatitude);
@@ -67,14 +60,13 @@ fn nome_para_tag() -> HashMap<&'static str, Tag> {
     m.insert("GPSTimeStamp", Tag::GPSTimeStamp);
     m.insert("GPSProcessingMethod", Tag::GPSProcessingMethod);
     m.insert("GPSMapDatum", Tag::GPSMapDatum);
-    m.insert("GPSImgDirection", Tag::GPSImgDirection); // Adicionado
-    m.insert("GPSImgDirectionRef", Tag::GPSImgDirectionRef); // Adicionado
+    m.insert("GPSImgDirection", Tag::GPSImgDirection);
+    m.insert("GPSImgDirectionRef", Tag::GPSImgDirectionRef);
     m
 }
 
-// Calcula a distância Haversine entre duas localizações em metros
 fn haversine_distance(loc1: &Location, loc2: &Location) -> f64 {
-    const R: f64 = 6371000.0; // Raio da Terra em metros
+    const R: f64 = 6371000.0;
     let d_lat = (loc2.latitude - loc1.latitude).to_radians();
     let d_lon = (loc2.longitude - loc1.longitude).to_radians();
     let lat1_rad = loc1.latitude.to_radians();
@@ -85,7 +77,6 @@ fn haversine_distance(loc1: &Location, loc2: &Location) -> f64 {
     R * c
 }
 
-// Calcula o centroide de uma lista de localizações
 fn calculate_centroid(locations: &[Location]) -> Option<Location> {
     if locations.is_empty() {
         return None;
@@ -102,7 +93,6 @@ fn calculate_centroid(locations: &[Location]) -> Option<Location> {
     })
 }
 
-// Determina a fachada com base na direção da imagem
 fn determinar_fachada_nome(direction: Option<f64>) -> String {
     match direction {
         Some(dir) => {
@@ -115,14 +105,13 @@ fn determinar_fachada_nome(direction: Option<f64>) -> String {
             } else if dir >= 225.0 && dir < 315.0 {
                 "Oeste".to_string()
             } else {
-                "Indefinida".to_string() // Caso de valor inválido fora de 0-360
+                "Indefinida".to_string()
             }
         }
         None => "Indefinida".to_string(),
     }
 }
 
-// Verifica se o exiftool está disponível no sistema
 fn is_exiftool_available() -> bool {
     match Command::new("exiftool").arg("-ver").output() {
         Ok(_) => true,
@@ -130,10 +119,7 @@ fn is_exiftool_available() -> bool {
     }
 }
 
-// Função para converter coordenadas no formato "X deg Y' Z.ZZ" S/N/E/W para decimal
 fn parse_dms_to_decimal(dms_str: &str) -> Option<f64> {
-    // Regex para capturar graus, minutos, segundos e direção
-    // Formato: "16 deg 38' 18.20" S" ou variações
     let re = Regex::new(r#"(\d+)\s*deg\s*(\d+)'\s*([\d.]+)"?\s*([NSEW])?"#).ok()?;
     
     if let Some(caps) = re.captures(dms_str) {
@@ -142,8 +128,6 @@ fn parse_dms_to_decimal(dms_str: &str) -> Option<f64> {
         let seconds: f64 = caps.get(3)?.as_str().parse().ok()?;
         
         let mut decimal = degrees + (minutes / 60.0) + (seconds / 3600.0);
-        
-        // Aplicar sinal negativo se for Sul ou Oeste
         if let Some(direction) = caps.get(4) {
             let dir = direction.as_str();
             if dir == "S" || dir == "W" {
@@ -153,8 +137,6 @@ fn parse_dms_to_decimal(dms_str: &str) -> Option<f64> {
         
         return Some(decimal);
     }
-    
-    // Tenta outro formato: "16.6384 S" ou "161.1255 E"
     let re_decimal = Regex::new(r#"([\d.-]+)\s*([NSEW])"#).ok()?;
     if let Some(caps) = re_decimal.captures(dms_str) {
         let mut decimal: f64 = caps.get(1)?.as_str().parse().ok()?;
@@ -166,8 +148,6 @@ fn parse_dms_to_decimal(dms_str: &str) -> Option<f64> {
         
         return Some(decimal);
     }
-    
-    // Tenta formato puramente numérico
     if let Ok(decimal) = dms_str.trim().parse::<f64>() {
         return Some(decimal);
     }
@@ -175,7 +155,6 @@ fn parse_dms_to_decimal(dms_str: &str) -> Option<f64> {
     None
 }
 
-// Extrai metadados usando exiftool (mais robusto)
 fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
     let file_name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
     let mut image_meta = ImageMetadata {
@@ -185,7 +164,6 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
         gps_img_direction: None,
     };
 
-    // Executa exiftool para obter metadados completos
     let output = Command::new("exiftool")
         .arg(path)
         .output()
@@ -197,14 +175,11 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     
-    // Primeiro tenta extrair GPS Position (que contém latitude e longitude juntos)
-    let re_gps_position = Regex::new(r#"GPS Position\s*:\s*(.+)"#).unwrap();
+    let re_gps_position = Regex::new(r#"GPS Position\s*:\s*(.+)"#)?;
     if let Some(caps) = re_gps_position.captures(&stdout) {
         if let Some(position_str) = caps.get(1) {
-            // Tenta extrair latitude e longitude do GPS Position
             let position = position_str.as_str();
-            
-            // Formato típico: "16 deg 38' 18.20\" S, 161 deg 7' 31.68\" E"
+
             let parts: Vec<&str> = position.split(',').collect();
             if parts.len() >= 2 {
                 let lat_str = parts[0].trim();
@@ -216,32 +191,28 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
             }
         }
     } else {
-        // Se não encontrou GPS Position, tenta extrair latitude e longitude separadamente
-        let re_lat = Regex::new(r#"GPS Latitude\s*:\s*(.+)"#).unwrap();
-        let re_lon = Regex::new(r#"GPS Longitude\s*:\s*(.+)"#).unwrap();
-        let re_lat_ref = Regex::new(r#"GPS Latitude Ref\s*:\s*([NS])"#).unwrap();
-        let re_lon_ref = Regex::new(r#"GPS Longitude Ref\s*:\s*([EW])"#).unwrap();
+        let re_lat = Regex::new(r#"GPS Latitude\s*:\s*(.+)"#)?;
+        let re_lon = Regex::new(r#"GPS Longitude\s*:\s*(.+)"#)?;
+        let re_lat_ref = Regex::new(r#"GPS Latitude Ref\s*:\s*([NS])"#)?;
+        let re_lon_ref = Regex::new(r#"GPS Longitude Ref\s*:\s*([EW])"#)?;
 
         let mut lat_val: Option<f64> = None;
         let mut lon_val: Option<f64> = None;
         let mut lat_ref: Option<&str> = None;
         let mut lon_ref: Option<&str> = None;
 
-        // Extrai latitude
         if let Some(caps) = re_lat.captures(&stdout) {
             if let Some(lat_str) = caps.get(1) {
                 lat_val = parse_dms_to_decimal(lat_str.as_str());
             }
         }
 
-        // Extrai longitude
         if let Some(caps) = re_lon.captures(&stdout) {
             if let Some(lon_str) = caps.get(1) {
                 lon_val = parse_dms_to_decimal(lon_str.as_str());
             }
         }
 
-        // Extrai referências (N/S, E/W)
         if let Some(caps) = re_lat_ref.captures(&stdout) {
             if let Some(ref_str) = caps.get(1) {
                 lat_ref = Some(ref_str.as_str());
@@ -254,9 +225,7 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
             }
         }
 
-        // Combina os valores e referências
         if let (Some(mut lat), Some(mut lon)) = (lat_val, lon_val) {
-            // Aplica referências se não foram aplicadas pelo parser
             if let Some("S") = lat_ref {
                 if lat > 0.0 { lat = -lat; }
             }
@@ -268,18 +237,15 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
         }
     }
 
-    // Extrai GPSImgDirection
-    let re_direction = Regex::new(r#"GPS Img Direction\s*:\s*(.+)"#).unwrap();
+    let re_direction = Regex::new(r#"GPS Img Direction\s*:\s*(.+)"#)?;
     if let Some(caps) = re_direction.captures(&stdout) {
         if let Some(dir_str) = caps.get(1) {
-            // Tenta converter para float
             if let Ok(direction) = dir_str.as_str().trim().parse::<f64>() {
                 image_meta.gps_img_direction = Some(direction);
             }
         }
     }
 
-    // Debug: Imprime informações sobre a extração
     if image_meta.location.is_some() {
         println!("ExifTool extraiu GPS para {}: {:?}", path.display(), image_meta.location);
     } else {
@@ -289,7 +255,6 @@ fn extract_image_metadata_exiftool(path: &Path) -> Result<ImageMetadata> {
     Ok(image_meta)
 }
 
-// Extrai metadados (localização e direção) de um arquivo de imagem usando a biblioteca exif
 fn extract_image_metadata_lib(path: &Path, tag_map: &HashMap<&str, Tag>) -> Result<ImageMetadata> {
     let file_name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
     let mut image_meta = ImageMetadata {
@@ -306,14 +271,12 @@ fn extract_image_metadata_lib(path: &Path, tag_map: &HashMap<&str, Tag>) -> Resu
     let exif_reader = Reader::new();
     match exif_reader.read_from_container(&mut buf_reader) {
         Ok(exif_data) => {
-            // Extrair localização (usando lógica similar à original)
             if let Some(loc) = extract_gps_rational(&exif_data, tag_map) {
                 image_meta.location = Some(loc);
             } else if let Some(loc) = extract_gps_string(&exif_data, tag_map) {
                 image_meta.location = Some(loc);
             }
 
-            // Extrair GPSImgDirection
             if let Some(direction_field) = exif_data.get_field(Tag::GPSImgDirection, In::PRIMARY) {
                 match &direction_field.value {
                     Value::Rational(ref v) if !v.is_empty() => {
@@ -329,24 +292,17 @@ fn extract_image_metadata_lib(path: &Path, tag_map: &HashMap<&str, Tag>) -> Resu
     Ok(image_meta)
 }
 
-// Função principal para extrair metadados, tentando primeiro com a biblioteca e depois com exiftool
 fn extract_image_metadata(path: &Path, tag_map: &HashMap<&str, Tag>, use_exiftool: bool) -> Result<ImageMetadata> {
-    // Se exiftool está disponível, tenta primeiro com ele (mais confiável)
     if use_exiftool {
         let exiftool_result = extract_image_metadata_exiftool(path);
         if exiftool_result.is_ok() && exiftool_result.as_ref().unwrap().location.is_some() {
             return exiftool_result;
         }
     }
-    
-    // Se exiftool falhou ou não está disponível, tenta com a biblioteca exif
     let lib_result = extract_image_metadata_lib(path, tag_map);
-    
-    // Se ambos falharam, retorna o resultado da biblioteca (que provavelmente é um erro ou sem GPS)
     lib_result
 }
 
-// Funções auxiliares para extrair GPS (mantidas e usadas por extract_image_metadata_lib)
 fn extract_gps_rational(exif: &exif::Exif, tag_map: &HashMap<&str, Tag>) -> Option<Location> {
     let lat_tag = tag_map.get("GPSLatitude")?;
     let lat_ref_tag = tag_map.get("GPSLatitudeRef")?;
@@ -410,7 +366,6 @@ fn extract_gps_string(exif: &exif::Exif, tag_map: &HashMap<&str, Tag>) -> Option
         _ => return None,
     };
 
-    // Usa a função parse_dms_to_decimal para converter strings DMS para decimal
     let lat_with_ref = format!("{} {}", lat_str, lat_ref_str);
     let lon_with_ref = format!("{} {}", lon_str, lon_ref_str);
     
@@ -420,7 +375,6 @@ fn extract_gps_string(exif: &exif::Exif, tag_map: &HashMap<&str, Tag>) -> Option
     Some(Location { latitude: lat, longitude: lon })
 }
 
-// Função para sanitizar nomes de arquivos/diretórios
 fn sanitize_filename(name: &str) -> String {
     let forbidden_chars: &[char] = &['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
     name.replace(' ', "_")
@@ -429,24 +383,18 @@ fn sanitize_filename(name: &str) -> String {
         .collect()
 }
 
-// Função principal de processamento (MODIFICADA SIGNIFICATIVAMENTE)
-pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> Result<ProcessingStats> {
-    let project_name = match PROJECT_NAME.try_read() {
-        Ok(guard) => match &*guard {
-            Some(name) => name.clone(),
-            None => return Err(anyhow!("Nome do projeto não definido")),
-        },
-        Err(_) => return Err(anyhow!("Erro ao ler nome do projeto")),
-    };
+pub fn process_folder(
+    folder_path_str: &str, 
+    distance_threshold_meters: f64, 
+    project_name: &str
+) -> Result<ProcessingStats> {
 
-    // Construct path relative to CARGO_MANIFEST_DIR (src/app-rust/Projects)
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let images_base_path = base_dir.join("Projects").join(&project_name).join("images");
+    let images_base_path = base_dir.join("Projects").join(project_name).join("images");
 
-    let input_folder_path = Path::new(folder_path_str); // Path for input images
+    let input_folder_path = Path::new(folder_path_str); 
     let tag_map = nome_para_tag();
     
-    // Verifica se exiftool está disponível
     let use_exiftool = is_exiftool_available();
     if use_exiftool {
         println!("ExifTool encontrado, usando para extração de metadados.");
@@ -470,8 +418,6 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
     {
         stats.total_images += 1;
         let path = entry.path();
-        
-        // Tenta extrair metadados com biblioteca e fallback para exiftool
         match extract_image_metadata(path, &tag_map, use_exiftool) {
             Ok(metadata) => {
                 if metadata.location.is_some() {
@@ -500,8 +446,6 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
     }
 
     let mut predios: Vec<Predio> = Vec::new();
-    
-    // Agrupamento de imagens em prédios
     let mut images_to_assign = images_with_location.clone();
 
     for image_meta in images_to_assign.drain(..) {
@@ -526,10 +470,9 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
         }
     }
 
-    // Classificação de Fachadas e Criação de Pastas
     for predio in predios.iter_mut() {
-        let sanitized_predio_id = sanitize_filename(&predio.id); // Sanitizar ID do prédio
-        let predio_target_dir = images_base_path.join(&sanitized_predio_id); // Usar ID sanitizado
+        let sanitized_predio_id = sanitize_filename(&predio.id);
+        let predio_target_dir = images_base_path.join(&sanitized_predio_id); 
         if let Err(e) = fs::create_dir_all(&predio_target_dir) {
             stats.errors.push(format!("Erro ao criar pasta do prédio {}: {}", sanitized_predio_id, e));
             continue;
@@ -538,7 +481,7 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
         for image_data in &predio.todas_imagens_no_predio {
             let fachada_nome_str = determinar_fachada_nome(image_data.gps_img_direction);
             let base_fachada_dir_name = format!("fachada-{}", fachada_nome_str);
-            let sanitized_fachada_dir_name = sanitize_filename(&base_fachada_dir_name); // Sanitizar nome da fachada
+            let sanitized_fachada_dir_name = sanitize_filename(&base_fachada_dir_name);
             
             let fachada_entry = predio.fachadas.entry(fachada_nome_str.clone()).or_insert_with(|| Fachada {
                 _nome: fachada_nome_str.clone(),
@@ -546,20 +489,17 @@ pub fn process_folder(folder_path_str: &str, distance_threshold_meters: f64) -> 
             });
             fachada_entry.imagens.push(image_data.clone());
 
-            // Criar pasta da fachada e copiar imagem
-            let fachada_target_dir = predio_target_dir.join(&sanitized_fachada_dir_name); // Usar nome sanitizado
+            let fachada_target_dir = predio_target_dir.join(&sanitized_fachada_dir_name);
             if let Err(e) = fs::create_dir_all(&fachada_target_dir) {
                 stats.errors.push(format!("Erro ao criar diretório {}: {}", fachada_target_dir.display(), e));
-                continue; // Pula para a próxima imagem se não puder criar a pasta da fachada
+                continue; 
             }
 
-            let sanitized_image_filename = sanitize_filename(&image_data.file_name); // Sanitizar nome do arquivo da imagem
-            let target_image_path = fachada_target_dir.join(&sanitized_image_filename); // Usar nome do arquivo sanitizado
-            
-            // Tentar copiar o arquivo
+            let sanitized_image_filename = sanitize_filename(&image_data.file_name); 
+            let target_image_path = fachada_target_dir.join(&sanitized_image_filename);
+
             match fs::copy(&image_data.path, &target_image_path) {
                 Ok(_) => {
-                    // Se a cópia foi bem-sucedida, tentar apagar o arquivo original
                     if let Err(e_remove) = fs::remove_file(&image_data.path) {
                         stats.errors.push(format!(
                             "Falha ao apagar arquivo original {}: {:?}",

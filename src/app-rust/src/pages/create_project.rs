@@ -1,22 +1,46 @@
 use dioxus::prelude::*;
 use std::path::{Path, PathBuf};
-use dioxus_router::prelude::Link;
+use dioxus_router::prelude::{use_navigator, Link};
 use crate::Route;
+use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::Write;
+use std::default::Default;
 
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub enum ProjectStatus {
+    #[default]
+    Created,
+    ProcessingComplete, 
+    ValidationComplete, 
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ProjectMetadata {
+    pub name: String,
+    pub description: String,
+    pub year: String,
+    pub leader: String,
+    pub structure_type: String,
+    pub observations: String,
+    #[serde(default)]
+    pub status: ProjectStatus,
+}
+
 fn get_or_create_projects_dir() -> Option<PathBuf> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let projects_dir = base_dir.join("Projects"); 
-    
-    // Tenta criar o diretório se não existir
+    let projects_dir = base_dir.join("Projects");
+
     if !projects_dir.exists() {
-        if let Err(e) = std::fs::create_dir_all(&projects_dir) { // Use create_dir_all for robustness
+        if let Err(e) = std::fs::create_dir_all(&projects_dir) {
             eprintln!("Erro ao criar diretório Projects em {}: {}", projects_dir.display(), e);
             return None;
         }
     }
-    
+
     Some(projects_dir)
 }
 
@@ -25,6 +49,15 @@ fn sanitize_name(name: &str) -> String {
         .chars()
         .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
         .collect::<String>()
+}
+
+fn save_project_metadata(project_folder: &Path, metadata: &ProjectMetadata) -> Result<(), std::io::Error> {
+    let metadata_path = project_folder.join("project_meta.json");
+    let file = File::create(metadata_path)?;
+    let mut writer = std::io::BufWriter::new(file);
+    serde_json::to_writer_pretty(&mut writer, metadata)?;
+    writer.flush()?;
+    Ok(())
 }
 
 #[component]
@@ -39,16 +72,45 @@ pub fn NewProject() -> Element {
     let mut is_creating = use_signal(|| false);
     let mut project_path = use_signal(|| None::<PathBuf>);
     let mut images_path = use_signal(|| None::<PathBuf>);
+    let navigator = use_navigator();
 
     let create_project = move |_| {
-        if name().trim().is_empty() || year().trim().is_empty() {
-            status.set("Por favor, preencha nome e ano.".to_string());
+        let mut missing_fields = Vec::new();
+        let mut year_error = None;
+
+        if name().trim().is_empty() {
+            missing_fields.push("Nome do Projeto");
+        }
+        if leader().trim().is_empty() {
+            missing_fields.push("Líder responsável pelo projeto");
+        }
+        if structure_type().trim().is_empty() {
+            missing_fields.push("Tipo de estrutura do edifício");
+        }
+
+        match year().trim().parse::<i32>() {
+            Ok(y) if (2000..=2100).contains(&y) => {},
+            Ok(_) => {
+                year_error = Some("O Ano deve estar entre 2000 e 2100.");
+            },
+            Err(_) => {
+                missing_fields.push("Ano");
+            }
+        }
+
+        if !missing_fields.is_empty() {
+            let error_msg = format!("Por favor, preencha os campos obrigatórios: {}.", missing_fields.join(", "));
+            status.set(error_msg);
+            return;
+        }
+
+        if let Some(err) = year_error {
+            status.set(err.to_string());
             return;
         }
 
         is_creating.set(true);
         let project_name_raw = name().trim().to_string();
-        let project_year = year().trim().to_string();
         let sanitized_project_name = sanitize_name(&project_name_raw);
 
         if sanitized_project_name.is_empty() {
@@ -58,18 +120,40 @@ pub fn NewProject() -> Element {
         }
 
         *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
-        
-        let project_name_for_folder = sanitized_project_name;
+
+        let metadata = ProjectMetadata {
+            name: name().trim().to_string(),
+            description: description().trim().to_string(),
+            year: year().trim().to_string(),
+            leader: leader().trim().to_string(),
+            structure_type: structure_type().trim().to_string(),
+            observations: observations().trim().to_string(),
+            status: ProjectStatus::Created,
+        };
 
         spawn(async move {
             if let Some(projects_dir) = get_or_create_projects_dir() {
-                let new_folder = projects_dir.join(project_name_for_folder);
+                let new_folder = projects_dir.join(&sanitized_project_name);
+
+                if new_folder.exists() {
+                    status.set(format!("Erro: Projeto '{}' já existe.", sanitized_project_name));
+                    is_creating.set(false);
+                    return;
+                }
 
                 if let Err(e) = std::fs::create_dir_all(&new_folder) {
                     status.set(format!("Erro ao criar pasta: {}", e));
                 } else {
-                    status.set(format!("Projeto criado em: {}", new_folder.display()));
-                    project_path.set(Some(new_folder));
+                    match save_project_metadata(&new_folder, &metadata) {
+                        Ok(_) => {
+                            status.set(format!("Projeto criado em: {}", new_folder.display()));
+                            project_path.set(Some(new_folder));
+                        }
+                        Err(e) => {
+                             status.set(format!("Erro ao salvar metadados do projeto: {}", e));
+                             _ = std::fs::remove_dir_all(&new_folder);
+                        }
+                    }
                 }
             } else {
                 status.set("Erro: Não foi possível criar ou acessar o diretório Projects".to_string());
@@ -79,7 +163,7 @@ pub fn NewProject() -> Element {
         });
     };
 
-    let handle_back = move |_| {
+    let handle_back = move || {
         if let Some(path) = project_path() {
             if let Err(e) = std::fs::remove_dir_all(&path) {
                 eprintln!("Erro ao remover pasta: {}", e);
@@ -109,12 +193,24 @@ pub fn NewProject() -> Element {
         }
         
         div {
+            button {
+                class: "btn btn-secondary",
+                style: "position: fixed; top: 1.5rem; left: 1.5rem; z-index: 10;",
+                title: "Voltar para a página inicial",
+                onclick: move |_| {
+                    handle_back();
+                    navigator.push(Route::HomePage {});
+                },
+                i { class: "material-icons", "arrow_back" }
+                "Voltar ao Início"
+            }
+
             div { 
                 class: "container",
                 style: "max-width: 700px;",
 
                 div {
-                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;",
+                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; margin-top: 4rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                     h1 {
                         style: "font-weight: bold; font-size: 1.5rem; text-align: center; white-space: nowrap;",
@@ -123,23 +219,15 @@ pub fn NewProject() -> Element {
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                 }
                 
-                Link {
-                    to: Route::HomePage {},
-                    class: "btn btn-danger",
-                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem;",
-                    onclick: handle_back,
-                    title: "Voltar para a página inicial",
-                    i { class: "material-icons", "arrow_back" }
-                }
-
                 div { 
                     class: "card",
                     div {
                         class: "form-group",
-                        label { "Nome do Projeto" }
+                        label { "Nome do Projeto" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: Edifício Residencial Centro",
                             value: "{name()}",
                             oninput: move |e| name.set(e.value())
                         }
@@ -150,6 +238,7 @@ pub fn NewProject() -> Element {
                         label { "Descrição" }
                         textarea {
                             class: "form-textarea",
+                            placeholder: "Descreva o projeto, suas características principais e objetivos...",
                             value: "{description()}",
                             rows: "4",
                             oninput: move |e| description.set(e.value())
@@ -158,20 +247,22 @@ pub fn NewProject() -> Element {
 
                     div {
                         class: "form-group",
-                        label { "Líder responsável pelo projeto" }
+                        label { "Líder responsável pelo projeto" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: João Silva",
                             value: "{leader()}",
                             oninput: move |e| leader.set(e.value())
                         }
                     }
                     div {
                         class: "form-group",
-                        label { "Tipo de estrutura do edifício" }
+                        label { "Tipo de estrutura do edifício" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Ex: Concreto armado, Alvenaria estrutural, Metálica",
                             value: "{structure_type()}",
                             oninput: move |e| structure_type.set(e.value())
                         }
@@ -179,12 +270,13 @@ pub fn NewProject() -> Element {
 
                     div {
                         class: "form-group",
-                        label { "Ano" }
+                        label { "Ano" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "number",
+                            placeholder: "2025",
                             value: "{year()}",
-                            min: "1800",
+                            min: "2000",
                             max: "2100",
                             oninput: move |e| year.set(e.value())
                         }
@@ -197,6 +289,7 @@ pub fn NewProject() -> Element {
                         input {
                             class: "form-input",
                             r#type: "text",
+                            placeholder: "Informações adicionais, considerações especiais...",
                             value: "{observations()}",
                             oninput: move |e| observations.set(e.value())
                         }
@@ -210,7 +303,10 @@ pub fn NewProject() -> Element {
                     }
 
                     if !status().is_empty() {
-                        p { class: "status-message info", "{status()}" }
+                        p { 
+                            class: if status().starts_with("Projeto criado") { "status-message success" } else { "status-message error" }, 
+                            "{status()}" 
+                        }
                         
                         div { class: "flex justify-between mt-4",
                             

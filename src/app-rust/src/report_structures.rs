@@ -13,7 +13,7 @@ pub struct Faceta {
 pub struct Fissura {
     pub faceta_id: String,
     pub localizacao: String,
-    pub classificacao: String, // "Estrutural", "Térmica", "Retração plástica", "Deslocamento"
+    pub classificacao: String,
     pub descricao: String,
     pub caminho_imagem: String,
 }
@@ -21,7 +21,7 @@ pub struct Fissura {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ReportData {
     pub nome_projeto: String,
-    pub data_analise: String, // e.g., "YYYY-MM-DD"
+    pub data_analise: String,
     pub nome_responsavel: String,
     pub nome_predio: String,
     pub endereco_predio: String,

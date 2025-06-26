@@ -208,11 +208,12 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                 div {
                     class: "report-button-bar",
                     
+                    // MODIFICAÇÃO AQUI
                     Link {
-                        to: Route::HomePage {},
-                        class: "btn btn-primary",
-                        i { class: "material-icons", "home" }
-                        "Voltar para Home"
+                        to: Route::GraphView { project_name: props.project_name.clone() },
+                        class: "btn btn-secondary",
+                        i { class: "material-icons", "arrow_back" }
+                        "Voltar para Análise"
                     }
 
                     button {
