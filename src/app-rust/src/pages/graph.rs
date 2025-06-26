@@ -173,7 +173,7 @@ fn donut_segment(
 ) -> String {
     let path = describe_arc(cx, cy, r, start_angle, end_angle);
     format!(
-        r###"<path d="{path}" fill="url(#{color_id})" stroke="#FFFFFF" stroke-width="2" style="filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.2)); opacity: 0;">
+        r###"<path class="donut-segment" d="{path}" fill="url(#{color_id})" stroke-width="2">
             <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
             <title>{label}</title>
         </path>"###
@@ -196,15 +196,16 @@ fn gerar_svg_donut(total_termica: u32, total_retracao: u32) -> String {
     let label_termica = format!("Térmica: {}", total_termica);
     let label_retracao = format!("Retração: {}", total_retracao);
 
-    let mut svg = String::from(r#"<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">"#);
+    let mut svg = String::from(r#"<svg class="chart" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">"#);
     svg.push_str(r###"<defs>
-            <linearGradient id="grad_red" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#c94a4a; stop-opacity:1" /><stop offset="100%" style="stop-color:#a93a3a; stop-opacity:1" /></linearGradient>
-            <linearGradient id="grad_blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3a5a9c; stop-opacity:1" /><stop offset="100%" style="stop-color:#2c467a; stop-opacity:1" /></linearGradient>
+            <linearGradient id="grad_red" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:var(--status-red); stop-opacity:1" /><stop offset="100%" style="stop-color:var(--status-red-dark); stop-opacity:1" /></linearGradient>
+            <linearGradient id="grad_blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:var(--primary-blue); stop-opacity:1" /><stop offset="100%" style="stop-color:var(--primary-blue-darker); stop-opacity:1" /></linearGradient>
         </defs>"###);
     svg.push_str(&donut_segment(cx, cy, raio_externo, 0.0, angle_termica, "grad_red", &label_termica));
     svg.push_str(&donut_segment(cx, cy, raio_externo, angle_termica, 360.0, "grad_blue", &label_retracao));
-    svg.push_str(&format!(r###"<circle cx="{cx}" cy="{cy}" r="{raio_interno}" fill="var(--bg-light)"/>"###));
-    svg.push_str(&format!(r###"<text x="{cx}" y="{cy}" font-size="18" text-anchor="middle" fill="var(--text-dark)" dominant-baseline="middle" font-family="Poppins, sans-serif" font-weight="600">Total Fissuras</text>"###));
+    svg.push_str(&format!(r###"<circle cx="{cx}" cy="{cy}" r="{raio_interno}" fill="var(--bg-light)" class="donut-hole"/>"###));
+    svg.push_str(&format!(r###"<text x="{cx}" y="{cy}" text-anchor="middle" fill="var(--text-dark)" dominant-baseline="central" class="donut-text-main">{total_fissuras}</text>"###));
+    svg.push_str(&format!(r###"<text x="{cx}" y="{cy}" dy="1.5em" text-anchor="middle" fill="var(--gray-600)" dominant-baseline="central" class="donut-text-sub">Total Fissuras</text>"###));
     svg.push_str("</svg>");
     svg
 }
@@ -228,20 +229,20 @@ fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary], media_total: 
     let max_bar_height = 250.0;
     let y_base = 320.0;
 
-    let mut svg = format!(r###"<svg width="{largura_total_svg}" height="{altura_total}" viewBox="0 0 {largura_total_svg} {altura_total}" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Inter', sans-serif;">"###);
+    let mut svg = format!(r###"<svg class="chart" width="{largura_total_svg}" height="{altura_total}" viewBox="0 0 {largura_total_svg} {altura_total}" xmlns="http://www.w3.org/2000/svg">"###);
     svg.push_str(r###"<defs>
-            <linearGradient id="grad_red_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#c94a4a; stop-opacity:1" /><stop offset="100%" style="stop-color:#a93a3a; stop-opacity:1" /></linearGradient>
-            <linearGradient id="grad_blue_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#3a5a9c; stop-opacity:1" /><stop offset="100%" style="stop-color:#2c467a; stop-opacity:1" /></linearGradient>
+            <linearGradient id="grad_red_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--status-red);" /><stop offset="100%" style="stop-color:var(--status-red-dark);" /></linearGradient>
+            <linearGradient id="grad_blue_bar" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:var(--primary-blue);" /><stop offset="100%" style="stop-color:var(--primary-blue-darker);" /></linearGradient>
         </defs>"###);
 
     if media_total > 0.0 && max_count_val > 0.0 {
         let y_media = y_base - (media_total / max_count_val * max_bar_height);
         svg.push_str(&format!(
-            r###"<line x1="{margem_esquerda}" y1="{y_media}" x2="{x2}" y2="{y_media}" stroke="var(--border-color)" stroke-width="2" stroke-dasharray="4,4" stroke-opacity="0.9"><title>Média por Edifício: {media_total:.2}</title></line>"###,
+            r###"<line class="average-line" x1="{margem_esquerda}" y1="{y_media}" x2="{x2}" y2="{y_media}"><title>Média por Edifício: {media_total:.2}</title></line>"###,
             x2 = largura_total_svg - 20
         ));
         svg.push_str(&format!(
-            r###"<text x="{x}" y="{y}" font-size="11" fill="var(--text-dark)" text-anchor="end" dominant-baseline="middle">Média ({media_total:.1})</text>"###,
+            r###"<text class="average-line-text" x="{x}" y="{y}" text-anchor="end" dominant-baseline="middle">Média ({media_total:.1})</text>"###,
             x = largura_total_svg - 25,
             y = y_media
         ));
@@ -255,11 +256,11 @@ fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary], media_total: 
 
         let h_termica = h_total * proporcao_termica;
         let h_retracao = h_total - h_termica;
+
+        svg.push_str(&format!(r###"<g class="bar-group"><rect class="bar-segment bar-retracao" x="{x}" y="{y}" width="{w}" height="0" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Retração: {val}</title></rect>"###, x = x_base, y = y_base - h_retracao, y_plus = y_base, w = largura_barra, h = h_retracao, val = summary.retracao_count));
+        svg.push_str(&format!(r###"<rect class="bar-segment bar-termica" x="{x}" y="{y}" width="{w}" height="0" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Térmica: {val}</title></rect></g>"###, x = x_base, y = y_base - h_retracao - h_termica, y_plus = y_base - h_retracao, w = largura_barra, h = h_termica, val = summary.termica_count));
         
-        svg.push_str(&format!(r###"<rect x="{x}" y="{y}" width="{w}" height="0" fill="url(#grad_blue_bar)" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Retração: {val}</title></rect>"###, x = x_base, y = y_base - h_retracao, y_plus = y_base, w = largura_barra, h = h_retracao, val = summary.retracao_count));
-        svg.push_str(&format!(r###"<rect x="{x}" y="{y}" width="{w}" height="0" fill="url(#grad_red_bar)" rx="4"><animate attributeName="height" from="0" to="{h}" dur="0.8s" fill="freeze" /><animate attributeName="y" from="{y_plus}" to="{y}" dur="0.8s" fill="freeze" /><title>Térmica: {val}</title></rect>"###, x = x_base, y = y_base - h_retracao - h_termica, y_plus = y_base - h_retracao, w = largura_barra, h = h_termica, val = summary.termica_count));
-        
-        svg.push_str(&format!(r###"<text x="{x_text}" y="340" font-size="12" text-anchor="middle" fill="var(--text-dark)">{name}</text>"###, x_text = x_base + largura_barra / 2, name = summary.building_name));
+        svg.push_str(&format!(r###"<text class="bar-label" x="{x_text}" y="340" text-anchor="middle">{name}</text>"###, x_text = x_base + largura_barra / 2, name = summary.building_name));
     }
 
     svg.push_str("</svg>");
@@ -306,18 +307,18 @@ fn gerar_svg_boxplot(stats_termica: &Option<BoxPlotStats>, stats_retracao: &Opti
     let margin = (50.0, 50.0, 50.0, 50.0);
     let plot_height = height as f64 - margin.0 - margin.2;
 
-    let mut svg = format!(r###"<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Inter', sans-serif;">"###);
+    let mut svg = format!(r###"<svg class="chart" width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">"###);
 
-    svg.push_str(&format!(r###"<line x1="{x1}" y1="50" x2="{x1}" y2="350" stroke="var(--border-color)" stroke-width="1"/>"###, x1 = margin.3));
+    svg.push_str(&format!(r###"<line class="axis-line" x1="{x1}" y1="50" x2="{x1}" y2="350" />"###, x1 = margin.3));
     for i in 0..=10 {
         let y = 350.0 - (i as f64 * (plot_height / 10.0));
         let label = format!("{:.1}", i as f64 / 10.0);
-        svg.push_str(&format!(r###"<text x="40" y="{y}" font-size="10" text-anchor="end" fill="var(--text-dark)" dominant-baseline="middle">{label}</text>"###));
-        svg.push_str(&format!(r###"<line x1="50" y1="{y}" x2="{x2}" y2="{y}" stroke="var(--border-color)" stroke-width="0.5" stroke-dasharray="2,2"/>"###, x2 = width as f64 - margin.1));
+        svg.push_str(&format!(r###"<text class="axis-label y-axis-label" x="40" y="{y}" text-anchor="end" dominant-baseline="middle">{label}</text>"###));
+        svg.push_str(&format!(r###"<line class="grid-line" x1="50" y1="{y}" x2="{x2}" y2="{y}" />"###, x2 = width as f64 - margin.1));
     }
-    svg.push_str(r###"<text x="15" y="200" font-size="12" fill="var(--text-dark)" transform="rotate(-90 15,200)">Confiança</text>"###);
-
-    let draw_box = |stats: &BoxPlotStats, x_center: f64, color: &str, fill_color: &str| -> String {
+    svg.push_str(r###"<text class="axis-title" x="15" y="200" transform="rotate(-90 15,200)">Confiança</text>"###);
+    
+    let draw_box = |stats: &BoxPlotStats, x_center: f64| -> String {
         let mut parts = String::new();
         let scale = |v: f64| 350.0 - v * plot_height;
 
@@ -328,30 +329,31 @@ fn gerar_svg_boxplot(stats_termica: &Option<BoxPlotStats>, stats_retracao: &Opti
         let y_max_w = scale(stats.max_whisker);
         let box_width = 120.0;
 
-        parts.push_str(&format!(r###"<line x1="{x_center}" y1="{y_max_w}" x2="{x_center}" y2="{y_q3}" stroke="{color}" stroke-width="2"/>"###));
-        parts.push_str(&format!(r###"<line x1="{x_center}" y1="{y_q1}" x2="{x_center}" y2="{y_min_w}" stroke="{color}" stroke-width="2"/>"###));
-        parts.push_str(&format!(r###"<line x1="{x_center_min}" y1="{y_max_w}" x2="{x_center_plus}" y2="{y_max_w}" stroke="{color}" stroke-width="2"/>"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
-        parts.push_str(&format!(r###"<line x1="{x_center_min}" y1="{y_min_w}" x2="{x_center_plus}" y2="{y_min_w}" stroke="{color}" stroke-width="2"/>"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
-
-        parts.push_str(&format!(r###"<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill_color}" fill-opacity="0.5" stroke="{color}" stroke-width="2"/>"###, x = x_center - box_width / 2.0, y = y_q3, w = box_width, h = y_q1 - y_q3));
+        parts.push_str(&format!(r###"<line class="whisker" x1="{x_center}" y1="{y_max_w}" x2="{x_center}" y2="{y_q3}" />"###));
+        parts.push_str(&format!(r###"<line class="whisker" x1="{x_center}" y1="{y_q1}" x2="{x_center}" y2="{y_min_w}" />"###));
+        parts.push_str(&format!(r###"<line class="whisker-end" x1="{x_center_min}" y1="{y_max_w}" x2="{x_center_plus}" y2="{y_max_w}" />"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
+        parts.push_str(&format!(r###"<line class="whisker-end" x1="{x_center_min}" y1="{y_min_w}" x2="{x_center_plus}" y2="{y_min_w}" />"###, x_center_min = x_center - 25.0, x_center_plus = x_center + 25.0));
         
-        parts.push_str(&format!(r###"<line x1="{x_start}" y1="{y_median}" x2="{x_end}" y2="{y_median}" stroke="{color}" stroke-width="3"/>"###, x_start = x_center - box_width / 2.0, x_end = x_center + box_width / 2.0));
+        parts.push_str(&format!(r###"<rect class="box" x="{x}" y="{y}" width="{w}" height="{h}" />"###, x = x_center - box_width / 2.0, y = y_q3, w = box_width, h = y_q1 - y_q3));
+        
+        parts.push_str(&format!(r###"<line class="median" x1="{x_start}" y1="{y_median}" x2="{x_end}" y2="{y_median}" />"###, x_start = x_center - box_width / 2.0, x_end = x_center + box_width / 2.0));
         
         for &outlier in &stats.outliers {
             let y_outlier = scale(outlier);
-            parts.push_str(&format!(r###"<circle cx="{x_center}" cy="{y_outlier}" r="4" fill="none" stroke="{color}" stroke-width="1.5"/>"###));
+            parts.push_str(&format!(r###"<circle class="outlier" cx="{x_center}" cy="{y_outlier}" r="4" />"###));
         }
         parts
     };
 
     if let Some(stats) = stats_termica {
-        svg.push_str(&draw_box(stats, 200.0, "#c94a4a", "#f8d7da"));
-        svg.push_str(r###"<text x="200" y="375" font-size="14" text-anchor="middle" fill="#c94a4a" font-weight="500">Térmica</text>"###);
+        // Agrupa os elementos do boxplot em um <g> com a classe apropriada
+        svg.push_str(&format!(r###"<g class="boxplot-group termica">{}</g>"###, draw_box(stats, 200.0)));
+        svg.push_str(r###"<text class="boxplot-label" x="200" y="375" text-anchor="middle">Térmica</text>"###);
     }
 
     if let Some(stats) = stats_retracao {
-        svg.push_str(&draw_box(stats, 400.0, "#3a5a9c", "#d1ecf1"));
-        svg.push_str(r###"<text x="400" y="375" font-size="14" text-anchor="middle" fill="#3a5a9c" font-weight="500">Retração</text>"###);
+        svg.push_str(&format!(r###"<g class="boxplot-group retracao">{}</g>"###, draw_box(stats, 400.0)));
+        svg.push_str(r###"<text class="boxplot-label" x="400" y="375" text-anchor="middle">Retração</text>"###);
     }
     
     svg.push_str("</svg>");
@@ -361,7 +363,7 @@ fn gerar_svg_boxplot(stats_termica: &Option<BoxPlotStats>, stats_retracao: &Opti
 fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
     if heatmap_data.is_empty() {
         return r##"<svg width="100%" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-                   <text x="400" y="200" font-size="16" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
+                   <text x="400" y="200" font-size="8" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
                  </svg>"##.to_string();
     }
 
@@ -373,49 +375,53 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
     facade_names.sort();
 
     let max_val = heatmap_data.values().flat_map(|f| f.values()).max().cloned().unwrap_or(0) as f64;
-
-    // MODIFICAÇÃO: Reduzido o tamanho da célula para um gráfico menor.
-    let cell_size = 60.0;
-    // MODIFICAÇÃO: Ajustado o espaçamento X para balancear com o novo tamanho da célula.
-    let x_offset = 160.0;
-    // MODIFICAÇÃO: Aumentado o espaçamento Y para dar mais espaço à legenda superior (fachadas).
-    let y_offset = 200.0;
+    
+    let cell_size = 50.0;
+    let x_offset = 130.0; 
+    let y_offset = 100.0; 
     let svg_width = x_offset + (facade_names.len() as f64 * cell_size) + 120.0;
     let svg_height = y_offset + (building_names.len() as f64 * cell_size);
 
     let mut svg = format!(
-        r###"<svg width="100%" viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Inter', sans-serif;">"###,
+        r###"<svg class="chart" viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">"###,
         svg_width = svg_width,
         svg_height = svg_height
     );
-
+    
     svg.push_str(r###"
     <defs>
         <style>
+            .heatmap-cell .cell-rect, .heatmap-cell .cell-text {
+                transition: all 0.2s ease-in-out;
+            }
             .heatmap-cell:hover .cell-rect {
                 stroke: var(--primary-blue);
-                stroke-width: 2px;
-                stroke-opacity: 0.8;
+                stroke-width: 2.5px;
+                stroke-opacity: 1;
             }
             .heatmap-cell:hover .cell-text {
                 opacity: 1;
                 font-weight: 700;
             }
+            .heatmap-label, .heatmap-axis-label {
+                font-size: 10px;
+                fill: var(--text-dark);
+            }
+            .heatmap-axis-label {
+                text-anchor: end;
+            }
         </style>
+        <linearGradient id="legendGradient" x1="0" x2="0" y1="1" y2="0">
+            <stop offset="0%" stop-color="var(--gray-100)" />
+            <stop offset="100%" stop-color="var(--status-red)" />
+        </linearGradient>
     </defs>"###);
 
     let get_color = |count: u32| {
         if count == 0 { return "var(--gray-100)".to_string(); }
         let intensity = (count as f64 / max_val).sqrt();
-        
-        let r_start = 243.0; // from --gray-100 #f3f4f6
-        let g_start = 244.0;
-        let b_start = 246.0;
-
-        let r_end = 201.0; // to --status-red #c94a4a
-        let g_end = 74.0;
-        let b_end = 74.0;
-
+        let r_start = 243.0; let g_start = 244.0; let b_start = 246.0;
+        let r_end = 201.0; let g_end = 74.0; let b_end = 74.0;
         let r = (r_start + (r_end - r_start) * intensity).round() as u8;
         let g = (g_start + (g_end - g_start) * intensity).round() as u8;
         let b = (b_start + (b_end - b_start) * intensity).round() as u8;
@@ -424,16 +430,16 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
     
     for (row, building) in building_names.iter().enumerate() {
         let y = y_offset + (row as f64 * cell_size);
-        svg.push_str(&format!(r###"<text x="{x}" y="{y_center}" font-size="14" text-anchor="end" fill="var(--text-dark)" dominant-baseline="middle">{building}</text>"###, x = x_offset - 15.0, y_center = y + cell_size / 2.0));
+        svg.push_str(&format!(r###"<text class="heatmap-axis-label" x="{x}" y="{y_center}" dominant-baseline="middle">{building}</text>"###, x = x_offset - 15.0, y_center = y + cell_size / 2.0));
 
         for (col, facade) in facade_names.iter().enumerate() {
             let count = heatmap_data.get(building).and_then(|f| f.get(facade)).cloned().unwrap_or(0);
             let color = get_color(count);
             let x = x_offset + (col as f64 * cell_size);
             
-            svg.push_str(&format!(r###"<g class="heatmap-cell" style="cursor: default;">"###));
+            svg.push_str(r###"<g class="heatmap-cell" style="cursor: default;">"###);
             svg.push_str(&format!(
-                r###"<rect class="cell-rect" x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" stroke="rgba(0,0,0,0.05)" stroke-width="1" rx="8" style="transition: all 0.2s ease;">
+                r###"<rect class="cell-rect" x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" stroke="rgba(0,0,0,0.05)" stroke-width="1" rx="8">
                     <title>Edifício: {building}\nFachada: {facade}\nFissuras: {count}</title>
                     <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
                 </rect>"###,
@@ -445,7 +451,7 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
                 let text_fill = if intensity > 0.6 { "white" } else { "var(--gray-800)" };
                 let initial_opacity = if intensity > 0.6 { 0.7 } else { 0.5 };
                 svg.push_str(&format!(
-                    r###"<text class="cell-text" x="{cx}" y="{cy}" font-size="18" font-weight="500" text-anchor="middle" dominant-baseline="middle" fill="{fill}" opacity="{opacity}" style="pointer-events: none; transition: all 0.2s ease;">
+                    r###"<text class="cell-text" x="{cx}" y="{cy}" font-size="14" font-weight="500" text-anchor="middle" dominant-baseline="middle" fill="{fill}" opacity="{opacity}" style="pointer-events: none;">
                         {count}
                     </text>"###,
                     cx = x + cell_size / 2.0,
@@ -461,20 +467,17 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
 
     for (col, facade) in facade_names.iter().enumerate() {
         let x = x_offset + (col as f64 * cell_size) + (cell_size / 2.0);
-        // MODIFICAÇÃO: O `y` agora é calculado a partir do novo `y_offset`, garantindo maior espaçamento.
-        svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="14" text-anchor="end" fill="var(--text-dark)" transform="rotate(-45, {x}, {y})">{facade}</text>"###, x = x, y = y_offset - 25.0));
+        svg.push_str(&format!(r###"<text class="heatmap-label" x="{x}" y="{y}" text-anchor="middle" transform="rotate(-45, {x}, {y})">{facade}</text>"###, x = x + 25.0, y = y_offset - 40.0));
     }
-    
+
     let legend_x = svg_width - 90.0;
-    svg.push_str(&format!(r###"<text x="{legend_x}" y="35" font-size="12" font-weight="500" fill="var(--text-dark)">Criticidade</text>"###));
-    for i in 0..=5 {
-        let ratio = i as f64 / 5.0;
-        let count = (ratio * max_val).round() as u32;
-        let color = get_color(count);
-        let y = 50.0 + ratio * 150.0;
-        svg.push_str(&format!(r###"<rect x="{legend_x}" y="{y}" width="25" height="25" rx="4" fill="{color}"/>"###));
-        svg.push_str(&format!(r###"<text x="{x}" y="{y_text}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">{count}</text>"###, x = legend_x + 35.0, y_text= y + 12.5));
-    }
+    let legend_y = 50.0;
+    let legend_height = 150.0;
+    svg.push_str(&format!(r###"<text x="{legend_x}" y="{y}" font-size="12" font-weight="500" fill="var(--text-dark)">Criticidade</text>"###, y = legend_y - 15.0));
+    svg.push_str(&format!(r###"<rect x='{legend_x}' y='{legend_y}' width='25' height='{legend_height}' rx='4' fill='url(#legendGradient)' />"###));
+    svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">{label}</text>"###, x = legend_x + 35.0, y = legend_y, label=max_val.ceil()));
+    svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">0</text>"###, x = legend_x + 35.0, y= legend_y + legend_height));
+
 
     svg.push_str("</svg>");
     svg
@@ -672,11 +675,11 @@ pub fn GraphView(props: GraphViewProps) -> Element {
                             div {
                                 class: "legend",
                                 div { class: "legend-item",
-                                    div { class: "legend-color-box", style: "background-color: #c94a4a;" }
+                                    div { class: "legend-color-box", style: "background: linear-gradient(135deg, var(--status-red), var(--status-red-dark));" }
                                     span { "Térmica ({total_termica_overall})" }
                                 }
                                 div { class: "legend-item",
-                                    div { class: "legend-color-box", style: "background-color: var(--primary-blue);" }
+                                    div { class: "legend-color-box", style: "background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-darker));" }
                                     span { "Retração ({total_retracao_overall})" }
                                 }
                             }
@@ -704,7 +707,7 @@ pub fn GraphView(props: GraphViewProps) -> Element {
                             class: "card dashboard-card dashboard-card-large",
                             h2 { "Heatmap de Criticidade por Fachada" },
                             div { 
-                                class: "chart-container-scroll",
+                                class: "chart-container",
                                 dangerous_inner_html: heatmap_svg 
                             }
                         }
@@ -889,59 +892,66 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
             div { 
                 class: "modal-content",
                 style: "max-width: 700px;",
-                div {
-                    style: "position: absolute; top: 1rem; left: 1rem;",
-                    button {
-                        class: "btn btn-icon",
-                        onclick: move |_| props.on_close.call(()),
-                        i { class: "material-icons", "close" }
-                    }
+                button {
+                    class: "btn-icon modal-close-btn",
+                    onclick: move |_| props.on_close.call(()),
+                    i { class: "material-icons", "close" }
                 }
                 
-                h2 { class: "text-2xl font-bold mb-6 text-center", "Editar Projeto" }
+                h2 { class: "modal-title", "Editar Projeto" }
 
                 match initial_metadata.read().as_ref() {
                     Some(Ok(_)) => rsx! {
-                        div { 
-                            class: "card-body", 
-                            div { class: "form-group",
-                                label { "Nome do Projeto" }
-                                input { class: "form-input", r#type: "text", value: "{name()}", oninput: move |e| name.set(e.value()) }
-                            }
-                            div { class: "form-group",
-                                label { "Descrição" }
-                                textarea { class: "form-textarea", rows: "4", value: "{description()}", oninput: move |e| description.set(e.value()) }
-                            }
-                            div { class: "form-group",
-                                label { "Líder responsável pelo projeto" }
-                                input { class: "form-input", r#type: "text", value: "{leader()}", oninput: move |e| leader.set(e.value()) }
-                            }
-                            div { class: "form-group",
-                                label { "Tipo de estrutura do edifício" }
-                                input { class: "form-input", r#type: "text", value: "{structure_type()}", oninput: move |e| structure_type.set(e.value()) }
-                            }
-                             div { class: "form-group",
-                                label { "Ano" }
-                                input { class: "form-input", r#type: "number", value: "{year()}", oninput: move |e| year.set(e.value()) }
-                            }
-                             div { class: "form-group",
-                                label { "Observações gerais" }
-                                input { class: "form-input", r#type: "text", value: "{observations()}", oninput: move |e| observations.set(e.value()) }
-                            }
-                            
-                            if !status_message().is_empty() {
-                                p { class: "status-message error", "{status_message()}" }
-                            }
+                        div {
+                            class: "form-group",
+                            label { "Nome do Projeto" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{name()}", oninput: move |e| name.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Descrição" }
+                            textarea { class: "form-textarea", rows: "4", value: "{description()}", oninput: move |e| description.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Líder responsável pelo projeto" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{leader()}", oninput: move |e| leader.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Tipo de estrutura do edifício" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "text", value: "{structure_type()}", oninput: move |e| structure_type.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Ano" span { class: "required-indicator", "*" } }
+                            input { class: "form-input", r#type: "number", value: "{year()}", oninput: move |e| year.set(e.value()) }
+                        }
+                        div {
+                            class: "form-group",
+                            label { "Observações gerais" }
+                            input { class: "form-input", r#type: "text", value: "{observations()}", oninput: move |e| observations.set(e.value()) }
+                        }
+                        
+                        if !status_message().is_empty() {
+                            p { class: "status-message error", "{status_message()}" }
+                        }
 
-                            button {
-                                class: "btn btn-primary mt-4 w-full",
-                                onclick: handle_save,
-                                "Salvar Mudanças"
-                            }
+                        button {
+                            class: "btn btn-primary mt-4 w-full",
+                            onclick: handle_save,
+                            "Salvar Mudanças"
                         }
                     },
                     Some(Err(e)) => rsx! { p { "Erro ao carregar dados do projeto: {e:?}" } },
-                    None => rsx! { p { "Carregando..." } }
+                    None => rsx! {
+                        div {
+                            class: "d-flex justify-center items-center",
+                            style: "min-height: 200px;",
+                            div { class: "spinner" }
+                            p { class: "text-gray-600", "Carregando..." }
+                        }
+                    }
                 }
             }
         }

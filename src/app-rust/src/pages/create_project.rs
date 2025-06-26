@@ -210,7 +210,7 @@ pub fn NewProject() -> Element {
                 style: "max-width: 700px;",
 
                 div {
-                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; margin-top: 4rem;",
+                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                     h1 {
                         style: "font-weight: bold; font-size: 1.5rem; text-align: center; white-space: nowrap;",

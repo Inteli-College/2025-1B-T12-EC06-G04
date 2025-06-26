@@ -13,7 +13,7 @@
     --transition-curve: cubic-bezier(0.2, 0.8, 0.2, 1);
     --status-red: #c94a4a;
     --status-red-light: #f8d7da;
-    --status-red-dark: #721c24;
+    --status-red-dark: #a93a3a;
     --status-orange: #f97316;
     --status-green: #155724;
     --status-green-light: #d4edda;
@@ -78,6 +78,10 @@ a {
     max-width: 1200px;
     margin: 0 auto;
     padding: 3rem 1.5rem;
+}
+
+.btn-danger:hover {
+    background-color: var(--status-red-dark);
 }
 
 .page-header {
@@ -238,6 +242,7 @@ a {
     border: 1px solid transparent;
     background-clip: padding-box;
     position: relative;
+    transition: transform 0.3s var(--transition-curve), box-shadow 0.3s var(--transition-curve);
 }
 .card::before {
     content: '';
@@ -253,6 +258,10 @@ a {
     pointer-events: none;
 }
 
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-ambient), 0 15px 40px var(--shadow-key);
+}
 
 .form-group {
     display: flex;
@@ -1585,173 +1594,143 @@ a {
     margin-bottom: 0.25rem;
 }
 
-
-/* --- ADIÇÕES E MELHORIAS PARA GRÁFICOS E INTERATIVIDADE --- */
-
-/* Estilos Gerais para SVGs nos Dashboards */
-.dashboard-card .chart-container svg, 
-.dashboard-card .chart-container-scroll svg {
+.chart {
     font-family: 'Inter', sans-serif;
-    display: block; /* Remove espaço extra abaixo do SVG */
 }
 
-.empty-chart-label {
-    font-size: 16px;
-    text-anchor: middle;
-    fill: var(--gray-500);
-}
-
-/* --- Gráfico de Donut --- */
+/* Gráfico de Donut */
 .donut-segment {
     stroke: var(--bg-light);
     stroke-width: 2px;
     transition: transform 0.3s var(--transition-curve), filter 0.3s ease;
-    cursor: pointer;
     transform-origin: center center;
 }
 .donut-segment:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
     filter: brightness(1.1);
 }
-.donut-segment.termica { fill: var(--status-red); }
-.donut-segment.retracao { fill: var(--primary-blue); }
-
-.donut-center-circle {
-    fill: var(--bg-light);
+.donut-hole {
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.1));
 }
-
-.donut-center-text {
-    font-size: 18px;
-    text-anchor: middle;
-    fill: var(--text-dark);
-    dominant-baseline: middle;
+.donut-text-main {
+    font-size: 3rem;
     font-family: 'Poppins', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
+}
+.donut-text-sub {
+    font-size: 1rem;
+    font-weight: 500;
 }
 
-/* --- Gráfico de Barras --- */
+/* Gráfico de Barras */
 .bar-group {
     transition: filter 0.2s ease;
 }
 .bar-group:hover {
     filter: brightness(1.15);
 }
-
-.bar {
-    transition: all 0.4s var(--transition-curve);
-    animation: bar-grow 0.8s var(--transition-curve) forwards;
+.bar-segment {
+    transition: opacity 0.2s ease;
 }
-.bar.bar-termica { fill: var(--status-red); }
-.bar.bar-retracao { fill: var(--primary-blue); }
-
+.bar-group:not(:hover) .bar-segment {
+    opacity: 0.9;
+}
+.bar-segment.bar-retracao {
+    fill: url(#grad_blue_bar);
+}
+.bar-segment.bar-termica {
+    fill: url(#grad_red_bar);
+}
 .bar-label {
     font-size: 12px;
-    text-anchor: middle;
     fill: var(--text-dark);
+    text-anchor: middle;
 }
-
 .average-line {
-    stroke: var(--gray-600);
+    stroke: var(--border-color);
     stroke-width: 2px;
     stroke-dasharray: 4, 4;
     stroke-opacity: 0.9;
 }
-.average-line-label {
+.average-line-text {
     font-size: 11px;
     fill: var(--text-dark);
-    text-anchor: end;
-    dominant-baseline: middle;
 }
 
-/* --- Gráfico de Boxplot --- */
-.axis-line { stroke: var(--border-color); stroke-width: 1px; }
-.axis-label-y { font-size: 10px; text-anchor: end; fill: var(--text-dark); dominant-baseline: middle; }
-.grid-line { stroke: var(--border-color); stroke-width: 0.5px; stroke-dasharray: 2,2; }
-.axis-title-y { font-size: 12px; fill: var(--text-dark); }
-.boxplot-title { font-size: 14px; text-anchor: middle; font-weight: 500; }
-.boxplot-title.termica { fill: var(--status-red); }
-.boxplot-title.retracao { fill: var(--primary-blue); }
-
-.boxplot-whisker, .boxplot-whisker-end { stroke-width: 2px; }
-.boxplot-whisker.termica, .boxplot-whisker-end.termica { stroke: var(--status-red); }
-.boxplot-whisker.retracao, .boxplot-whisker-end.retracao { stroke: var(--primary-blue); }
-
-.boxplot-box { stroke-width: 2px; }
-.boxplot-box.termica { stroke: var(--status-red); fill: rgba(201, 74, 74, 0.2); }
-.boxplot-box.retracao { stroke: var(--primary-blue); fill: rgba(58, 90, 156, 0.2); }
-
-.boxplot-median { stroke-width: 3px; }
-.boxplot-median.termica { stroke: var(--status-red); }
-.boxplot-median.retracao { stroke: var(--primary-blue); }
-
-.boxplot-outlier { stroke-width: 1.5px; }
-.boxplot-outlier.termica { stroke: var(--status-red); fill: none; }
-.boxplot-outlier.retracao { stroke: var(--primary-blue); fill: none; }
-
-
-/* --- Heatmap --- */
-.heatmap-cell .cell-rect {
-    stroke: rgba(0,0,0,0.05);
+/* Gráfico de Boxplot */
+.axis-line {
+    stroke: var(--border-color);
     stroke-width: 1px;
-    transition: all 0.2s ease;
 }
-.heatmap-cell:hover .cell-rect {
-    stroke: var(--primary-blue);
-    stroke-width: 2.5px;
-    stroke-opacity: 1;
+.grid-line {
+    stroke: var(--border-color);
+    stroke-width: 0.5px;
+    stroke-dasharray: 2, 2;
 }
-.cell-text {
-    font-size: 18px;
+.axis-label, .axis-title, .boxplot-label {
+    fill: var(--text-dark);
+    font-size: 8px;
+}
+.boxplot-label {
+    font-size: 14px;
     font-weight: 500;
-    text-anchor: middle;
-    dominant-baseline: middle;
+    font-family: 'Poppins', sans-serif;
+}
+
+.boxplot-group .box {
+    stroke-width: 2px;
     transition: all 0.2s ease;
 }
-.heatmap-cell:hover .cell-text {
-    opacity: 1 !important;
-    font-weight: 700;
+.boxplot-group .median {
+    stroke-width: 3px;
 }
-.heatmap-label-y { font-size: 14px; text-anchor: end; fill: var(--text-dark); dominant-baseline: middle; }
-.heatmap-label-x { font-size: 14px; text-anchor: end; fill: var(--text-dark); }
-.legend-title { font-size: 12px; font-weight: 500; fill: var(--text-dark); }
-.legend-label { font-size: 11px; fill: var(--text-dark); dominant-baseline: middle; }
-
-
-/* --- Dropdown para Relatórios --- */
-.report-dropdown {
-    position: relative;
-    display: inline-block;
+.boxplot-group .whisker {
+    stroke-width: 2px;
 }
-
-.report-dropdown .dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: var(--bg-light);
-    min-width: 200px;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-    z-index: 10;
-    border-radius: 6px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    animation: fadeIn 0.2s;
+.boxplot-group .whisker-end {
+    stroke-width: 2px;
 }
-
-.report-dropdown:hover .dropdown-content {
-    display: block;
+.boxplot-group .outlier {
+    stroke-width: 1.5px;
+    fill: none;
 }
-
-.report-dropdown .dropdown-content a {
-    color: var(--text-dark);
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
+.boxplot-group:hover .box {
+    transform: scale(1.02);
+    transform-origin: center center;
+}
+/* Cores para Térmica */
+.boxplot-group.termica .box {
+    fill: var(--status-red-light);
+    stroke: var(--status-red);
+}
+.boxplot-group.termica .median,
+.boxplot-group.termica .whisker,
+.boxplot-group.termica .whisker-end,
+.boxplot-group.termica .outlier {
+    stroke: var(--status-red);
+}
+.boxplot-group.termica .outlier:hover {
+    fill: var(--status-red);
+}
+.boxplot-group.termica .boxplot-label {
+    fill: var(--status-red);
 }
 
-.report-dropdown .dropdown-content a:hover {
-    background-color: var(--gray-100);
-    color: var(--primary-blue);
+/* Cores para Retração */
+.boxplot-group.retracao .box {
+    fill: var(--status-blue-light);
+    stroke: var(--primary-blue);
 }
+.boxplot-group.retracao .median,
+.boxplot-group.retracao .whisker,
+.boxplot-group.retracao .whisker-end,
+.boxplot-group.retracao .outlier {
+    stroke: var(--primary-blue);
+}
+.boxplot-group.retracao .outlier:hover {
+    fill: var(--primary-blue);
+}
+.boxplot-group.retracao .boxplot-label {
+    fill: var(--primary-blue);
+}
+

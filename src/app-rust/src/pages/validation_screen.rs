@@ -94,7 +94,7 @@ pub fn ValidationPage() -> Element {
 
                         match carregar_dados_deteccao(p_name_only.unwrap_or_default().as_str()) {
                             Ok(data) => {
-                                let validation_states: Vec<ImageValidationState> = data.into_iter().filter_map(|img| {
+                                let mut validation_states: Vec<ImageValidationState> = data.into_iter().filter_map(|img| {
                                     let full_image_path_from_json = PathBuf::from(&img.path);
                                     let projects_root_dir_val = projects_root_dir_for_strip.read();
                                     let relative_image_path = if full_image_path_from_json.is_absolute() {
@@ -107,9 +107,14 @@ pub fn ValidationPage() -> Element {
                                         path: rel_path,
                                         fissuras: img.fissura,
                                         is_incorrect: false,
-                                        has_been_viewed: false,
+                                        has_been_viewed: false, // Inicializa como não vista
                                     })
                                 }).collect();
+
+                                if let Some(first_image) = validation_states.get_mut(0) {
+                                    first_image.has_been_viewed = true;
+                                }
+
                                 validation_data.set(validation_states);
                                 loading.set(false);
                             }
@@ -125,17 +130,41 @@ pub fn ValidationPage() -> Element {
     let total_images = validation_data.read().len();
     let has_images = total_images > 0;
 
-    use_effect(move || {
-        if has_images {
-            let idx = *current_image_index.read();
+    let next_image = move |_| {
+        let current_idx = current_image_index();
+        if current_idx < total_images - 1 {
+            let next_idx = current_idx + 1;
+            current_image_index.set(next_idx);
+            
             let mut data = validation_data.write();
-            if idx < data.len() { data[idx].has_been_viewed = true; }
+            if let Some(next_image_data) = data.get_mut(next_idx) {
+                next_image_data.has_been_viewed = true;
+            }
         }
-    });
+    };
 
-    let next_image = move |_| { if current_image_index() < total_images - 1 { current_image_index.set(current_image_index() + 1); } };
-    let previous_image = move |_| { if current_image_index() > 0 { current_image_index.set(current_image_index() - 1); } };
-    let toggle_incorrect = move |_| { if has_images { let idx = *current_image_index.read(); let mut data = validation_data.write(); if idx < data.len() { data[idx].is_incorrect = !data[idx].is_incorrect; } } };
+    let previous_image = move |_| {
+        let current_idx = current_image_index();
+        if current_idx > 0 {
+            let prev_idx = current_idx - 1;
+            current_image_index.set(prev_idx);
+
+            let mut data = validation_data.write();
+             if let Some(prev_image_data) = data.get_mut(prev_idx) {
+                prev_image_data.has_been_viewed = true;
+            }
+        }
+    };
+
+    let toggle_incorrect = move |_| { 
+        if has_images { 
+            let idx = *current_image_index.read(); 
+            let mut data = validation_data.write(); 
+            if idx < data.len() { 
+                data[idx].is_incorrect = !data[idx].is_incorrect; 
+            } 
+        } 
+    };
 
     let mut confirm_validation = move || {
     spawn(async move {
@@ -232,6 +261,17 @@ pub fn ValidationPage() -> Element {
     rsx! {
         div { class: "validation-page",
             document::Link { href: "https://fonts.googleapis.com/icon?family=Material+Icons", rel: "stylesheet" }
+
+            button {
+                class: "btn btn-secondary",
+                style: "position: fixed; top: 1.5rem; left: 1.5rem; z-index: 10;",
+                title: "Voltar para a página inicial",
+                onclick: move |_| {
+                    navigator.push(Route::HomePage {});
+                },
+                i { class: "material-icons", "arrow_back" }
+                "Voltar ao Início"
+            }
 
             div { class: "page-subheader",
                 div { class: "container",
@@ -341,7 +381,6 @@ pub fn ValidationPage() -> Element {
                             h3 { class: "info-card-title", "Ações" }
                             div { class: "space-y-3",
                                 button { class: "btn btn-primary w-full", onclick: attempt_confirm, "Confirmar Validação" }
-                                button { class: "btn btn-secondary w-full", onclick: move |_| navigator.go_back(), "Cancelar e Voltar" }
                             }
                             if !status_message().is_empty() {
                                 div { class: "status-box info",
