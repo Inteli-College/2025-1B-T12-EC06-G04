@@ -1,4 +1,3 @@
-// Import de bibliotecas externas
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use dioxus::desktop::{Config, WindowBuilder};
@@ -22,11 +21,9 @@ mod utils {
     pub mod image_processor;
 }
 
-// Import de arquivos locais
 mod report_structures;
 mod manual_processor;
 
-// MODIFICAÇÃO: Importa o componente com o novo nome `ValidationPage`.
 use pages::report::ReportView;
 use pages::graph::GraphView;
 use pages::select_images::SelectImages;
@@ -38,11 +35,9 @@ use pages::proccess::Process;
 
 
 fn main() {
-    // Obter o diretório base do CARGO_MANIFEST_DIR
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let projects_root_dir = base_dir.join("Projects");
 
-    // Configurar o Dioxus Desktop
     dioxus::LaunchBuilder::desktop()
         .with_cfg(
             Config::new()
@@ -130,7 +125,6 @@ pub enum Route {
     #[route("/processamento-manual")]
     ManualProcessor {project_name: String},
 
-    // MODIFICAÇÃO: A rota agora aponta para o componente renomeado `ValidationPage`.
     #[route("/validate")]
     ValidationPage {},
 }

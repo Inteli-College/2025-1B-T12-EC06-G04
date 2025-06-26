@@ -193,8 +193,7 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                         }
                         
                         time::sleep(time::Duration::from_millis(2000)).await;
-                        
-                        // MODIFICAÇÃO: Navega para a rota renomeada.
+
                         navigator.push(Route::ValidationPage {});
                     }
                     Err(e) => {
@@ -458,7 +457,6 @@ pub fn ManualProcessor(props: ManualProcessorProps) -> Element {
                                 let detection_file = base_dir.join("Projects").join(&project_name_for_detection_check).join("detection_results.json");
                                 if detection_file.exists() {
                                     rsx! {
-                                        // MODIFICAÇÃO: Link para a rota renomeada.
                                         Link {
                                             to: Route::ValidationPage {},
                                             class: "btn btn-success",

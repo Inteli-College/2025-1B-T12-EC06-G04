@@ -7,12 +7,9 @@ use crate::Route;
 use dioxus_router::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-
-// MODIFICAÇÃO: A struct é importada de create_project para manter uma fonte única.
 use crate::pages::create_project::{ProjectMetadata, ProjectStatus};
 
 
-// --- Structs for parsing detection_results.json ---
 #[derive(Deserialize, Debug, Clone)]
 struct DetectionFissura {
     name: String,
@@ -25,7 +22,6 @@ struct ImageDetectionData {
     fissura: Vec<DetectionFissura>,
 }
 
-// --- Structs for aggregated data for bar chart ---
 #[derive(Debug, Clone)]
 struct BuildingFissuraSummary {
     building_name: String,
@@ -33,7 +29,6 @@ struct BuildingFissuraSummary {
     retracao_count: u32,
 }
 
-// --- Struct for Box Plot statistics ---
 #[derive(Debug, Clone, PartialEq)]
 struct BoxPlotStats {
     min_whisker: f64,
@@ -44,11 +39,9 @@ struct BoxPlotStats {
     outliers: Vec<f64>,
 }
 
-// --- NEW: Type alias for Heatmap data ---
 type HeatmapData = HashMap<String, HashMap<String, u32>>;
 
 
-// --- Error type for JSON reading ---
 #[derive(Debug)]
 pub enum JsonReadError {
     Io(io::Error),
@@ -68,13 +61,11 @@ impl From<serde_json::Error> for JsonReadError {
     }
 }
 
-// --- Função para obter o diretório base de projetos ---
 fn get_projects_dir() -> Option<PathBuf> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     Some(base_dir.join("Projects"))
 }
 
-// --- NOVA FUNÇÃO: Sanitizar nome para nome de pasta ---
 fn sanitize_name(name: &str) -> String {
     name.replace(' ', "_")
         .chars()
@@ -82,7 +73,6 @@ fn sanitize_name(name: &str) -> String {
         .collect::<String>()
 }
 
-// --- MODIFICAÇÃO: Tornada pública para ser usada em outros módulos (homepage) ---
 pub fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, JsonReadError> {
     let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Diretório 'Projects' não encontrado".to_string()))?;
     let meta_path = projects_dir.join(project_name).join("project_meta.json");
@@ -94,7 +84,6 @@ pub fn read_project_metadata(project_name: &str) -> Result<ProjectMetadata, Json
     Ok(metadata)
 }
 
-// --- NOVA FUNÇÃO: Salvar metadados do projeto ---
 pub fn save_project_metadata(project_folder_name: &str, metadata: &ProjectMetadata) -> Result<(), io::Error> {
     if let Some(projects_dir) = get_projects_dir() {
         let project_path = projects_dir.join(project_folder_name);
@@ -109,7 +98,6 @@ pub fn save_project_metadata(project_folder_name: &str, metadata: &ProjectMetada
     Ok(())
 }
 
-// --- NOVA FUNÇÃO: Para deletar a pasta do projeto ---
 fn delete_project_folder(project_name: &str) -> Result<(), std::io::Error> {
     if let Some(projects_dir) = get_projects_dir() {
         let project_path = projects_dir.join(project_name);
@@ -128,7 +116,6 @@ fn delete_project_folder(project_name: &str) -> Result<(), std::io::Error> {
 }
 
 
-// --- Function to read and parse detection_results.json ---
 fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionData>, JsonReadError> {
     let projects_dir = get_projects_dir().ok_or_else(|| JsonReadError::PathError("Não foi possível encontrar o diretório 'Projects'".to_string()))?;
     let json_path = projects_dir
@@ -150,23 +137,16 @@ fn ler_json_detection_results(project_name: &str) -> Result<Vec<ImageDetectionDa
     Ok(results)
 }
 
-// Funções auxiliares (extract_building_name_from_path, polar_to_cartesian, etc.) permanecem as mesmas
-// ... (O código das funções de geração de SVG não foi alterado e foi omitido aqui para brevidade) ...
-
-// Helper to extract building name
 fn extract_building_name_from_path(image_path_str: &str) -> Option<String> {
     let image_path = Path::new(image_path_str);
     image_path.parent()?.parent()?.file_name()?.to_str().map(String::from)
 }
 
-// --- NEW: Helper to extract facade name ---
 fn extract_facade_name_from_path(image_path_str: &str) -> Option<String> {
     let image_path = Path::new(image_path_str);
     image_path.parent()?.file_name()?.to_str().map(String::from)
 }
 
-
-// --- Donut Chart Helpers ---
 fn polar_to_cartesian(cx: f64, cy: f64, r: f64, angle_deg: f64) -> (f64, f64) {
     let angle_rad = (angle_deg - 90.0) * PI / 180.0;
     (cx + r * angle_rad.cos(), cy + r * angle_rad.sin())
@@ -229,7 +209,6 @@ fn gerar_svg_donut(total_termica: u32, total_retracao: u32) -> String {
     svg
 }
 
-// --- Bar Chart Helpers ---
 fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary], media_total: f64) -> String {
     if building_summaries.is_empty() {
         return r##"<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
@@ -287,8 +266,6 @@ fn gerar_svg_barras(building_summaries: &[BuildingFissuraSummary], media_total: 
     svg
 }
 
-
-// --- Box Plot Helpers ---
 fn calculate_boxplot_stats(data: &mut Vec<f64>) -> Option<BoxPlotStats> {
     if data.is_empty() {
         return None;
@@ -381,10 +358,9 @@ fn gerar_svg_boxplot(stats_termica: &Option<BoxPlotStats>, stats_retracao: &Opti
     svg
 }
 
-// --- NEW: Heatmap Helpers ---
 fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
     if heatmap_data.is_empty() {
-        return r##"<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+        return r##"<svg width="100%" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
                    <text x="400" y="200" font-size="16" text-anchor="middle" fill="var(--gray-500)" dominant-baseline="middle">Sem dados para exibir</text>
                  </svg>"##.to_string();
     }
@@ -398,21 +374,51 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
 
     let max_val = heatmap_data.values().flat_map(|f| f.values()).max().cloned().unwrap_or(0) as f64;
 
+    // MODIFICAÇÃO: Reduzido o tamanho da célula para um gráfico menor.
     let cell_size = 60.0;
-    let x_offset = 150.0;
-    let y_offset = 120.0;
-    let svg_width = x_offset + (facade_names.len() as f64 * cell_size) + 120.0; // +120 for legend
+    // MODIFICAÇÃO: Ajustado o espaçamento X para balancear com o novo tamanho da célula.
+    let x_offset = 160.0;
+    // MODIFICAÇÃO: Aumentado o espaçamento Y para dar mais espaço à legenda superior (fachadas).
+    let y_offset = 200.0;
+    let svg_width = x_offset + (facade_names.len() as f64 * cell_size) + 120.0;
     let svg_height = y_offset + (building_names.len() as f64 * cell_size);
 
-    let mut svg = format!(r###"<svg width="{svg_width}" height="{svg_height}" viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Inter', sans-serif;">"###);
+    let mut svg = format!(
+        r###"<svg width="100%" viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Inter', sans-serif;">"###,
+        svg_width = svg_width,
+        svg_height = svg_height
+    );
+
+    svg.push_str(r###"
+    <defs>
+        <style>
+            .heatmap-cell:hover .cell-rect {
+                stroke: var(--primary-blue);
+                stroke-width: 2px;
+                stroke-opacity: 0.8;
+            }
+            .heatmap-cell:hover .cell-text {
+                opacity: 1;
+                font-weight: 700;
+            }
+        </style>
+    </defs>"###);
 
     let get_color = |count: u32| {
-        if count == 0 { return "#f3f4f6".to_string(); }
-        let intensity = (count as f64 / max_val).sqrt(); // Use sqrt for better color distribution
-        // Interpolate from light orange (#fff5e6) to dark red (#c94a4a)
-        let r = (255.0 + (201.0 - 255.0) * intensity).round() as u8;
-        let g = (245.0 + (74.0 - 245.0) * intensity).round() as u8;
-        let b = (230.0 + (74.0 - 230.0) * intensity).round() as u8;
+        if count == 0 { return "var(--gray-100)".to_string(); }
+        let intensity = (count as f64 / max_val).sqrt();
+        
+        let r_start = 243.0; // from --gray-100 #f3f4f6
+        let g_start = 244.0;
+        let b_start = 246.0;
+
+        let r_end = 201.0; // to --status-red #c94a4a
+        let g_end = 74.0;
+        let b_end = 74.0;
+
+        let r = (r_start + (r_end - r_start) * intensity).round() as u8;
+        let g = (g_start + (g_end - g_start) * intensity).round() as u8;
+        let b = (b_start + (b_end - b_start) * intensity).round() as u8;
         format!("#{:02x}{:02x}{:02x}", r, g, b)
     };
     
@@ -425,19 +431,38 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
             let color = get_color(count);
             let x = x_offset + (col as f64 * cell_size);
             
+            svg.push_str(&format!(r###"<g class="heatmap-cell" style="cursor: default;">"###));
             svg.push_str(&format!(
-                r###"<rect x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" stroke="rgba(0,0,0,0.05)" stroke-width="1" rx="4">
+                r###"<rect class="cell-rect" x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" stroke="rgba(0,0,0,0.05)" stroke-width="1" rx="8" style="transition: all 0.2s ease;">
                     <title>Edifício: {building}\nFachada: {facade}\nFissuras: {count}</title>
-                    <animate attributeName="opacity" from="0" to="1" dur="1.5s" fill="freeze" />
+                    <animate attributeName="opacity" from="0" to="1" dur="1s" fill="freeze" />
                 </rect>"###,
                 x=x, y=y, size=cell_size, color=color, building=building, facade=facade, count=count
             ));
+
+            if count > 0 {
+                let intensity = (count as f64 / max_val).sqrt();
+                let text_fill = if intensity > 0.6 { "white" } else { "var(--gray-800)" };
+                let initial_opacity = if intensity > 0.6 { 0.7 } else { 0.5 };
+                svg.push_str(&format!(
+                    r###"<text class="cell-text" x="{cx}" y="{cy}" font-size="18" font-weight="500" text-anchor="middle" dominant-baseline="middle" fill="{fill}" opacity="{opacity}" style="pointer-events: none; transition: all 0.2s ease;">
+                        {count}
+                    </text>"###,
+                    cx = x + cell_size / 2.0,
+                    cy = y + cell_size / 2.0,
+                    fill = text_fill,
+                    opacity = initial_opacity,
+                    count = count
+                ));
+            }
+            svg.push_str("</g>");
         }
     }
 
     for (col, facade) in facade_names.iter().enumerate() {
         let x = x_offset + (col as f64 * cell_size) + (cell_size / 2.0);
-        svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="14" text-anchor="end" fill="var(--text-dark)" transform="rotate(-45, {x}, {y})">{facade}</text>"###, x = x, y = y_offset - 15.0));
+        // MODIFICAÇÃO: O `y` agora é calculado a partir do novo `y_offset`, garantindo maior espaçamento.
+        svg.push_str(&format!(r###"<text x="{x}" y="{y}" font-size="14" text-anchor="end" fill="var(--text-dark)" transform="rotate(-45, {x}, {y})">{facade}</text>"###, x = x, y = y_offset - 25.0));
     }
     
     let legend_x = svg_width - 90.0;
@@ -448,12 +473,13 @@ fn gerar_svg_heatmap(heatmap_data: &HeatmapData) -> String {
         let color = get_color(count);
         let y = 50.0 + ratio * 150.0;
         svg.push_str(&format!(r###"<rect x="{legend_x}" y="{y}" width="25" height="25" rx="4" fill="{color}"/>"###));
-        svg.push_str(&format!(r###"<text x="{x}" y="{y_text}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">{count}</text>"###, x = legend_x + 30.0, y_text= y + 12.5));
+        svg.push_str(&format!(r###"<text x="{x}" y="{y_text}" font-size="11" fill="var(--text-dark)" dominant-baseline="middle">{count}</text>"###, x = legend_x + 35.0, y_text= y + 12.5));
     }
 
     svg.push_str("</svg>");
     svg
 }
+
 
 #[derive(Props, PartialEq, Clone)]
 pub struct GraphViewProps {
@@ -788,7 +814,6 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
     let mut structure_type = use_signal(|| String::new());
     let mut observations = use_signal(|| String::new());
     let mut status_message = use_signal(String::new);
-    // ADIÇÃO: Sinal para manter o status atual, embora não seja editável pelo usuário.
     let mut current_status = use_signal(ProjectStatus::default);
 
     
@@ -800,14 +825,12 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
             leader.set(data.leader.clone());
             structure_type.set(data.structure_type.clone());
             observations.set(data.observations.clone());
-            current_status.set(data.status.clone()); // Armazena o status atual
+            current_status.set(data.status.clone());
         }
     });
 
     let handle_save = move |_| {
         let original_folder_name = props.project_name.clone();
-        
-        // MODIFICAÇÃO: Inclui o status atual ao salvar.
         let new_metadata = ProjectMetadata {
             name: name(),
             description: description(),
@@ -815,7 +838,7 @@ fn EditProjectModal(props: EditProjectModalProps) -> Element {
             leader: leader(),
             structure_type: structure_type(),
             observations: observations(),
-            status: current_status.read().clone(), // Re-salva o status que não foi alterado
+            status: current_status.read().clone(),
         };
 
         let new_sanitized_name = sanitize_name(&new_metadata.name);

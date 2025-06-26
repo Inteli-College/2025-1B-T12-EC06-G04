@@ -124,7 +124,6 @@ pub fn SelectImages() -> Element {
                                                     result_data.images_with_gps, result_data.predio_groups));
                                                 processed_folder_signal.set(Some(PathBuf::from(path_clone_for_state)));
                                                 tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
-                                                // MODIFICAÇÃO: Navega para a rota renomeada.
                                                 navigator.push(AppRoute::ValidationPage {});
                                             } else {
                                                 status.set("Nenhuma imagem com GPS foi encontrada.".to_string());
@@ -216,7 +215,6 @@ pub fn SelectImages() -> Element {
                                                 let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
                                                 let detection_file = base_dir.join("Projects").join(project_name).join("detection_results.json");
                                                 if detection_file.exists() {
-                                                    // MODIFICAÇÃO: Navega para a rota renomeada.
                                                     navigator.push(AppRoute::ValidationPage {});
                                                 } else {
                                                     status.set("Erro: Resultados não encontrados. Execute o processamento de IA.".to_string());

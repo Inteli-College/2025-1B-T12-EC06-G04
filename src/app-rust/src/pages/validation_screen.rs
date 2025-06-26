@@ -3,26 +3,23 @@ use dioxus_router::prelude::*;
 use std::path::PathBuf;
 use std::fs;
 use serde::{Deserialize, Serialize};
-use crate::pages::create_project::PROJECT_NAME; // Importa o GlobalSignal
+use crate::pages::create_project::PROJECT_NAME;
 use crate::Route;
-use crate::pages::graph::{read_project_metadata, save_project_metadata}; // Importe as funções
-use crate::pages::create_project::ProjectStatus; // Importe o enum de Status
+use crate::pages::graph::{read_project_metadata, save_project_metadata};
+use crate::pages::create_project::ProjectStatus;
 
-// Estrutura para os dados de validação de fissuras
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct FissuraValidation {
     pub name: String,
     pub confidence: f64,
 }
 
-// Estrutura para os dados de validação de imagem
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ImageValidationData {
     pub path: String, 
     pub fissura: Vec<FissuraValidation>,
 }
 
-// Estado de validação da imagem para a UI
 #[derive(Clone, PartialEq)]
 pub struct ImageValidationState {
     pub path: String, 
@@ -31,7 +28,6 @@ pub struct ImageValidationState {
     pub has_been_viewed: bool,
 }
 
-// Resultados da validação a serem salvos
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ValidationResults {
     pub total_images: usize,
@@ -40,7 +36,6 @@ pub struct ValidationResults {
     pub project_name: String,
 }
 
-// Função para carregar os dados de detecção de fissuras a partir de um arquivo JSON.
 fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData>, String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let json_path = base_dir.join("Projects").join(project_name).join("detection_results.json");
@@ -56,7 +51,6 @@ fn carregar_dados_deteccao(project_name: &str) -> Result<Vec<ImageValidationData
         .map_err(|e| format!("Erro ao parsear JSON: {}", e))
 }
 
-// Função para salvar os resultados da validação em um arquivo JSON.
 fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) -> Result<(), String> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let validation_path = base_dir.join("Projects").join(project_name).join("validation_results.json");
@@ -70,7 +64,6 @@ fn salvar_resultados_validacao(project_name: &str, results: &ValidationResults) 
     Ok(())
 }
 
-/// Componente principal da tela de validação.
 #[component]
 pub fn ValidationPage() -> Element {
     let navigator = use_navigator();
@@ -156,22 +149,17 @@ pub fn ValidationPage() -> Element {
             project_name: project_display_name.read().clone().unwrap_or_default(),
         };
 
-        // 1. Salva os resultados da validação
         match salvar_resultados_validacao(&project_name_for_save, &results) {
             Ok(_) => {
-                // 2. Tenta ler e atualizar os metadados do projeto
                 match read_project_metadata(&project_name_for_save) {
                     Ok(mut metadata) => {
-                        // 3. Atualiza o status
                         metadata.status = ProjectStatus::ValidationComplete;
 
-                        // 4. Salva os metadados atualizados
                         if let Err(e) = save_project_metadata(&project_name_for_save, &metadata) {
                             status_message.set(format!("Erro ao atualizar status do projeto: {}", e));
-                            return; // Sai se não conseguir salvar
+                            return;
                         }
                         
-                        // 5. Sucesso! Navega para a página de gráficos
                         status_message.set("Validação salva com sucesso!".to_string());
                         tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                         navigator.push(Route::GraphView { project_name: project_name_for_save });

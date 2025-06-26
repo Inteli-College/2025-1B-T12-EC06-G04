@@ -119,7 +119,6 @@ pub fn HomePage() -> Element {
                                 Ok(metadata) => {
                                     match metadata.status {
                                         ProjectStatus::Created => Route::Process {},
-                                        // MODIFICAÇÃO: Navega para a rota renomeada.
                                         ProjectStatus::ProcessingComplete => Route::ValidationPage {},
                                         ProjectStatus::ValidationComplete => Route::GraphView { project_name: project_folder },
                                     }

@@ -3,8 +3,6 @@ use serde_json;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
-
-// ADIÇÃO: Importa as structs necessárias para a função de atualização.
 use crate::pages::create_project::{ProjectMetadata, ProjectStatus};
 
 #[derive(Clone)]
@@ -71,10 +69,9 @@ impl Files {
                         .ok()
                         .map(|time| {
                             let datetime: DateTime<Local> = time.into();
-                            datetime.to_rfc3339() // Armazenar em formato padrão para ordenação
+                            datetime.to_rfc3339() 
                         });
 
-                    // Tenta ler a descrição de project_meta.json
                     let meta_path = path.join("project_meta.json");
                     let description = if meta_path.exists() {
                         File::open(meta_path)
@@ -170,7 +167,6 @@ pub fn display_from_projects(path: &Path) -> Option<PathBuf> {
     None
 }
 
-// ADIÇÃO: Função auxiliar para atualizar o status de um projeto.
 pub fn update_project_status(project_folder_name: &str, new_status: ProjectStatus) -> Result<(), io::Error> {
     let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let meta_path = base_dir.join("Projects").join(project_folder_name).join("project_meta.json");
@@ -179,16 +175,13 @@ pub fn update_project_status(project_folder_name: &str, new_status: ProjectStatu
         return Err(io::Error::new(io::ErrorKind::NotFound, "project_meta.json não encontrado"));
     }
 
-    // Ler os metadados existentes
     let file = File::open(&meta_path)?;
     let reader = BufReader::new(file);
     let mut metadata: ProjectMetadata = serde_json::from_reader(reader)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    // Atualizar o status
     metadata.status = new_status;
 
-    // Salvar o arquivo de volta
     let file = OpenOptions::new().write(true).truncate(true).open(&meta_path)?;
     let mut writer = BufWriter::new(file);
     serde_json::to_writer_pretty(&mut writer, &metadata)?;

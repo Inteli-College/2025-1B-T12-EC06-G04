@@ -1,5 +1,3 @@
-// proccess.rs
-
 use dioxus::prelude::*;
 use dioxus_router::prelude::use_navigator;
 use crate::Route;
@@ -33,7 +31,6 @@ use crate::pages::create_project::ProjectStatus;
 use crate::utils::file_manager::update_project_status;
 
 
-// Uma struct de mensagem para iniciar o processamento na coroutine
 #[derive(Clone)]
 struct ProcessRequest {
     path: String,
@@ -81,7 +78,6 @@ pub fn Process() -> Element {
                                     sleep(Duration::from_secs(2)).await;
                                     status.set("Redirecionando...".to_string());
                                     sleep(Duration::from_secs(1)).await;
-                                    // MODIFICAÇÃO: Navega para a rota renomeada.
                                     navigator.push(AppRoute::ValidationPage {});
                                 }
                                 Err(e) => {
@@ -93,7 +89,6 @@ pub fn Process() -> Element {
                             sleep(Duration::from_secs(2)).await;
                             status.set("Redirecionando...".to_string());
                             sleep(Duration::from_secs(1)).await;
-                            // MODIFICAÇÃO: Navega para a rota renomeada.
                             navigator.push(AppRoute::ValidationPage {});
                         }
                     },
@@ -139,22 +134,19 @@ pub fn Process() -> Element {
 
 
         div {
+            button {
+                class: "btn btn-secondary",
+                style: "position: fixed; top: 1.5rem; left: 1.5rem; z-index: 10;",
+                onclick: move |_| {
+                    navigator.push(Route::HomePage {});
+                },
+                i { class: "material-icons", "arrow_back" }
+                "Voltar ao Início"
+            }
+
             div {
                 class: "container",
-                style: "max-width: 800px;",
-
-                // BOTÃO ADICIONADO AQUI
-                div {
-                    style: "margin-bottom: 2rem;",
-                    button {
-                        class: "btn btn-secondary",
-                        onclick: move |_| {
-                            navigator.push(Route::HomePage {});
-                        },
-                        i { class: "material-icons", "arrow_back" }
-                        "Voltar ao Início"
-                    }
-                }
+                style: "max-width: 800px; margin-top: 4rem;",
 
                 div {
                     style:"display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem;",
@@ -293,7 +285,6 @@ pub fn Process() -> Element {
                                         let detection_file = base_dir.join("Projects").join(&name).join("detection_results.json");
                                         if detection_file.exists() {
                                             rsx! {
-                                                // MODIFICAÇÃO: Link para a rota renomeada.
                                                 Link {
                                                     to: AppRoute::ValidationPage {},
                                                     button {
@@ -323,7 +314,6 @@ pub fn Process() -> Element {
     }
 }
 
-// O componente folders_popup permanece o mesmo
 fn folders_popup(send: Rc<dyn Fn(Option<PathBuf>)>) -> Element {
     let processed_folder_signal = use_context::<Signal<Option<PathBuf>>>();
     let initial_path_from_state = processed_folder_signal.read().clone();

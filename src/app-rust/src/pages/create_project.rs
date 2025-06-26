@@ -1,22 +1,20 @@
 use dioxus::prelude::*;
 use std::path::{Path, PathBuf};
-use dioxus_router::prelude::Link;
+use dioxus_router::prelude::{use_navigator, Link};
 use crate::Route;
 use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::Write;
-// ADIÇÃO: Import necessário para o #[serde(default)] funcionar
 use std::default::Default;
 
 pub static PROJECT_NAME: GlobalSignal<Option<String>> = Signal::global(|| None);
 
-// ADIÇÃO: Enum para rastrear o estado do projeto.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum ProjectStatus {
-    #[default] // O estado padrão quando um projeto é criado ou o campo não existe no JSON
-    Created, // Projeto recém-criado, precisa organizar as imagens e processar
-    ProcessingComplete, // Análise de IA concluída, pronto para validação
-    ValidationComplete, // Validação feita, pronto para ver gráficos e relatórios
+    #[default]
+    Created,
+    ProcessingComplete, 
+    ValidationComplete, 
 }
 
 
@@ -28,7 +26,6 @@ pub struct ProjectMetadata {
     pub leader: String,
     pub structure_type: String,
     pub observations: String,
-    // ADIÇÃO: Campo para armazenar o status atual do projeto.
     #[serde(default)]
     pub status: ProjectStatus,
 }
@@ -75,6 +72,7 @@ pub fn NewProject() -> Element {
     let mut is_creating = use_signal(|| false);
     let mut project_path = use_signal(|| None::<PathBuf>);
     let mut images_path = use_signal(|| None::<PathBuf>);
+    let navigator = use_navigator();
 
     let create_project = move |_| {
         let mut missing_fields = Vec::new();
@@ -123,7 +121,6 @@ pub fn NewProject() -> Element {
 
         *PROJECT_NAME.write() = Some(sanitized_project_name.clone());
 
-        // MODIFICAÇÃO: O status é definido explicitamente aqui.
         let metadata = ProjectMetadata {
             name: name().trim().to_string(),
             description: description().trim().to_string(),
@@ -131,7 +128,7 @@ pub fn NewProject() -> Element {
             leader: leader().trim().to_string(),
             structure_type: structure_type().trim().to_string(),
             observations: observations().trim().to_string(),
-            status: ProjectStatus::Created, // Projeto começa neste estado.
+            status: ProjectStatus::Created,
         };
 
         spawn(async move {
@@ -166,7 +163,7 @@ pub fn NewProject() -> Element {
         });
     };
 
-    let handle_back = move |_| {
+    let handle_back = move || {
         if let Some(path) = project_path() {
             if let Err(e) = std::fs::remove_dir_all(&path) {
                 eprintln!("Erro ao remover pasta: {}", e);
@@ -196,12 +193,24 @@ pub fn NewProject() -> Element {
         }
         
         div {
+            button {
+                class: "btn btn-secondary",
+                style: "position: fixed; top: 1.5rem; left: 1.5rem; z-index: 10;",
+                title: "Voltar para a página inicial",
+                onclick: move |_| {
+                    handle_back();
+                    navigator.push(Route::HomePage {});
+                },
+                i { class: "material-icons", "arrow_back" }
+                "Voltar ao Início"
+            }
+
             div { 
                 class: "container",
                 style: "max-width: 700px;",
 
                 div {
-                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;",
+                    style:"display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; margin-top: 4rem;",
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                     h1 {
                         style: "font-weight: bold; font-size: 1.5rem; text-align: center; white-space: nowrap;",
@@ -210,20 +219,11 @@ pub fn NewProject() -> Element {
                     hr { class: "form-divider", style: "flex-grow: 1;" },
                 }
                 
-                Link {
-                    to: Route::HomePage {},
-                    class: "btn btn-danger",
-                    style: "position: fixed; top: 1.5rem; left: 1.5rem; padding: 0.5rem;",
-                    onclick: handle_back,
-                    title: "Voltar para a página inicial",
-                    i { class: "material-icons", "arrow_back" }
-                }
-
                 div { 
                     class: "card",
                     div {
                         class: "form-group",
-                        label { "Nome do Projeto" }
+                        label { "Nome do Projeto" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
@@ -247,7 +247,7 @@ pub fn NewProject() -> Element {
 
                     div {
                         class: "form-group",
-                        label { "Líder responsável pelo projeto" }
+                        label { "Líder responsável pelo projeto" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
@@ -258,7 +258,7 @@ pub fn NewProject() -> Element {
                     }
                     div {
                         class: "form-group",
-                        label { "Tipo de estrutura do edifício" }
+                        label { "Tipo de estrutura do edifício" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "text",
@@ -270,7 +270,7 @@ pub fn NewProject() -> Element {
 
                     div {
                         class: "form-group",
-                        label { "Ano" }
+                        label { "Ano" span { class: "required-indicator", "*" }}
                         input {
                             class: "form-input",
                             r#type: "number",

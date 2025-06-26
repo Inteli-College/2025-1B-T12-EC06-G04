@@ -50,14 +50,11 @@ pub fn ReportView(props: ReportViewProps) -> Element {
     );
     let report_md_path = base_dir.join("Report").join(&props.project_name).join(&report_md_filename);
 
-    // Estado para controlar mensagens de status
     let mut status_message = use_signal(|| String::new());
     let mut is_exporting = use_signal(|| false);
 
-    // Canal para receber mensagens das threads
     let mut export_receiver = use_signal(|| -> Option<Receiver<ExportMessage>> { None });
 
-    // Effect para escutar mensagens do canal
     use_future(move || {
         let mut status = status_message.clone();
         let mut exporting = is_exporting.clone();
@@ -85,7 +82,6 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                 }
                 
-                // Pequena pausa para não sobrecarregar
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
         }
@@ -103,7 +99,6 @@ pub fn ReportView(props: ReportViewProps) -> Element {
             main {
                 class: "container",
 
-                // Mensagem de status
                 if !status_message.read().is_empty() {
                     div {
                         class: if status_message.read().contains("❌") { "status-message error" } else { "status-message info" },
@@ -112,7 +107,6 @@ pub fn ReportView(props: ReportViewProps) -> Element {
                     }
                 }
 
-                // Indicador de carregamento
                 if *is_exporting.read() {
                     div {
                         class: "loading-indicator",
@@ -218,8 +212,6 @@ pub fn ReportView(props: ReportViewProps) -> Element {
     }
 }
 
-// ======= Funções auxiliares =======
-
 fn get_report(project_name: &str, building_name: &str) -> Result<String, String> {
     let filename = format!(
         "Relatorio-{}-{}.md",
@@ -316,7 +308,6 @@ fn export_with_native_dialog(
     });
 }
 
-// Usa comando nativo do sistema para abrir diálogo
 fn show_save_dialog(default_name: &str, extension: &str) -> Option<String> {
     #[cfg(target_os = "windows")]
     {
@@ -403,7 +394,7 @@ fn save_pdf_file(content: &str, path: &str) -> Result<String, Box<dyn std::error
         y -= Mm(7.0);
         
         if y < Mm(20.0) {
-            break; // Evita overflow na página
+            break;
         }
     }
 
@@ -423,7 +414,6 @@ fn save_docx_file(content: &str, path: &str) -> Result<String, Box<dyn std::erro
     Ok(path.to_string())
 }
 
-// Função para exportação rápida na pasta Downloads
 fn quick_export_all(
     report_path: PathBuf,
     project: String,
@@ -456,7 +446,6 @@ fn quick_export_all(
 
         let mut results = Vec::new();
 
-        // Salva MD
         let md_path = downloads_dir.join(format!("{}.md", base_name));
         if let Err(e) = save_md_file(&content, &md_path.to_string_lossy()) {
             results.push(format!("❌ MD: {}", e));
@@ -464,7 +453,6 @@ fn quick_export_all(
             results.push("✅ MD salvo".to_string());
         }
 
-        // Salva PDF
         let pdf_path = downloads_dir.join(format!("{}.pdf", base_name));
         if let Err(e) = save_pdf_file(&content, &pdf_path.to_string_lossy()) {
             results.push(format!("❌ PDF: {}", e));
@@ -472,7 +460,6 @@ fn quick_export_all(
             results.push("✅ PDF salvo".to_string());
         }
 
-        // Salva DOCX
         let docx_path = downloads_dir.join(format!("{}.docx", base_name));
         if let Err(e) = save_docx_file(&content, &docx_path.to_string_lossy()) {
             results.push(format!("❌ DOCX: {}", e));
