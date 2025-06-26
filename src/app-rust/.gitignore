@@ -1,2 +1,7 @@
 /target/
 /Report/*
+.env
+.vscode
+output_images/
+/node_modules/
+/venv/

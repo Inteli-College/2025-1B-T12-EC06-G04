@@ -150,11 +150,13 @@ pub fn HomePage() -> Element {
 
         body {
             header { class: "page-header",
-            h1 { "Projetos" }}
+                div { class: "header-group",
+                    h1 { "Projetos" }
+                }
+            }
 
             div { class: "controls-bar",
                 div {
-                    class: "search-container",
                     input {
                         r#type: "text",
                         class: "search-input",

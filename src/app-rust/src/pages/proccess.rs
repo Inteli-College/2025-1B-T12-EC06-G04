@@ -255,27 +255,8 @@ pub fn Process() -> Element {
                                     }
                                 },
                                     i { class: "material-icons", "sync" }
-                                    if is_processing() { "Processando..." } else { "Automático" }
+                                    if is_processing() { "Processando..." } else { "Processar" }
                             }
-
-                        div {
-                            style:"display: flex; flex-direction: column; justify-content: center; align-items: center;",
-                            div { style:"border-left: 1px solid #ccc; height: 24px;" }
-                            p { style:"color: #888; margin: 4px 0;" }
-                            div { style:"border-left: 1px solid #ccc; height: 24px;" }
-                        }
-                        Link {
-                            to: Route::ManualProcessor {
-                                project_name: project_name_available.to_string().clone()
-                            },
-                            button {
-                                class:"btn btn-primary",
-                                style: "flex: 1; font-size: 1rem;",
-                                disabled: is_processing() || !project_name_available(),
-                                i { class: "material-icons", "folder_open" }
-                                "Processar Manualmente"
-                            }
-                        }
                     }
 
                     if !is_processing() && !status.read().is_empty() {
