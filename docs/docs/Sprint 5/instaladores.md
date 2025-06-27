@@ -1,6 +1,6 @@
 ---
 title: Instaladores do aplicativo
-sidebar_position: 0
+sidebar_position: 1
 ---
 
 # Instaladores

@@ -3,7 +3,7 @@ title: Introdução
 sidebar_position: 0
 ---
 
-I# Introdução e Contextualização da Sprint 5
+# Introdução e Contextualização da Sprint 5
 
 &emsp; Esta é a **quinta e última sprint** do projeto desenvolvido pelo grupo **14 BIS** em parceria com o IPT (Instituto de Pesquisas Tecnológicas) — especificamente com o Laboratório de Materiais para Produtos de Construção (LMPC). Após as sprints anteriores terem focado no estabelecimento das bases de desenvolvimento (Sprint 2), na integração dos módulos de IA e aplicação desktop (Sprint 3), e na consolidação da integração e do fluxo de dados (Sprint 4), esta sprint tem como principal objetivo a **robustez, a prontidão para implantação e a validação final da solução**.
 
