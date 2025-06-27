@@ -11,7 +11,7 @@ Durante as últimas sprints, foram feitas alterações no fluxo e na arquitetura
 
   <sub>Figura 1 - Arquitetura da Aplicação Desktop</sub>
 
-  ![Arquitetura](../../../static/img/Sprint5/arquitetura.png)
+  ![Arquitetura](../..//static/img/Sprint5/arquitetura.png)
 
   <sup>Fonte: Material produzido pelos autores (2025).</sup>
 
